@@ -1,3 +1,10 @@
+
+mod kscript;
+
+use self::kscript::Kscript;
+use kscript::logger::{Logger, DebugLogger};
+
 fn main() {
-    println!("Hello, world!");
+    let mut kscript = Kscript::new(DebugLogger::new());
+    kscript.run("test = 1234;");
 }
