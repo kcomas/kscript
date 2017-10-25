@@ -4,7 +4,7 @@ pub mod logger;
 mod parser;
 
 use self::controller::Controller;
-use self::logger::{VoidLogger, DebugLogger, Logger};
+use self::logger::Logger;
 use self::parser::ParserRunner;
 
 #[derive(Debug)]
