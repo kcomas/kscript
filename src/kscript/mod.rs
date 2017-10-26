@@ -21,6 +21,7 @@ where
     }
 
     pub fn run(&mut self, text_str: &str) {
-        let mut parser_runner = ParserRunner::new(&self.controller);
+        let mut parser_runner = ParserRunner::new(&mut self.controller);
+        parser_runner.run(text_str);
     }
 }
