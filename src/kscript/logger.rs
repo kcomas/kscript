@@ -1,4 +1,6 @@
 
+use super::parser::token::Token;
+
 #[derive(Debug, Clone)]
 pub enum LoggerMode {
     Void,
@@ -13,6 +15,7 @@ pub enum LoggerEvent {
     ParserStart,
     // char, index, line
     ParserNextChar(char, usize, usize),
+    ParserAddToken(Token),
     ParserEnd,
 }
 
@@ -30,6 +33,10 @@ pub trait Logger {
     }
 
     fn write(&self) {
+        if let LoggerMode::Void = *self.get_mode() {
+            return;
+        }
+
         if let Some(ref event) = self.get_last_event() {
             match *self.get_mode() {
                 LoggerMode::Void => {}
@@ -45,6 +52,8 @@ pub trait Logger {
     fn parser_start(&mut self) {}
 
     fn parser_next_char(&mut self, c: char, c_index: usize, l_index: usize) {}
+
+    fn parser_add_token(&mut self, token: &Token) {}
 }
 
 #[derive(Debug)]
@@ -84,6 +93,11 @@ impl Logger for DebugLogger {
 
     fn parser_start(&mut self) {
         self.add_event(LoggerEvent::ParserStart);
+        self.write();
+    }
+
+    fn parser_add_token(&mut self, token: &Token) {
+        self.add_event(LoggerEvent::ParserAddToken(token.clone()));
         self.write();
     }
 }
