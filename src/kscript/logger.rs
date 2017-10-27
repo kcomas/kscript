@@ -53,7 +53,9 @@ pub trait Logger {
 
     fn parser_next_char(&mut self, c: char, c_index: usize, l_index: usize) {}
 
-    fn parser_add_token(&mut self, token: &Token) {}
+    fn parser_add_token(&mut self, token: Token) {}
+
+    fn parser_end(&mut self) {}
 }
 
 #[derive(Debug)]
@@ -96,8 +98,13 @@ impl Logger for DebugLogger {
         self.write();
     }
 
-    fn parser_add_token(&mut self, token: &Token) {
-        self.add_event(LoggerEvent::ParserAddToken(token.clone()));
+    fn parser_add_token(&mut self, token: Token) {
+        self.add_event(LoggerEvent::ParserAddToken(token));
+        self.write();
+    }
+
+    fn parser_end(&mut self) {
+        self.add_event(LoggerEvent::ParserEnd);
         self.write();
     }
 }

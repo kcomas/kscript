@@ -9,11 +9,16 @@ use super::super::error::Error;
 #[derive(Debug)]
 pub struct EndParser {}
 
-impl SubParser for EndParser {
-    fn new() -> EndParser {
+impl EndParser {
+    pub fn new() -> EndParser {
         EndParser {}
     }
+}
 
+impl<T> SubParser<T> for EndParser
+where
+    T: Logger,
+{
     fn check(&self, c: char) -> bool {
         match c {
             ';' | '\n' => true,
@@ -21,7 +26,7 @@ impl SubParser for EndParser {
         }
     }
 
-    fn parse<T: Logger>(
+    fn parse(
         &mut self,
         controller: &mut Controller<T>,
         parser_data: &mut ParserContainer,
@@ -30,11 +35,19 @@ impl SubParser for EndParser {
     ) -> Result<(), Error> {
         match parser_data.get_current_char() {
             ';' => {
-                tokens.push(Token::End);
+                let token = Token::End;
+                {
+                    controller.get_logger_mut().parser_add_token(token.clone());
+                }
+                tokens.push(token);
                 parser_data.inc_char();
             }
             '\n' => {
-                tokens.push(Token::End);
+                let token = Token::End;
+                {
+                    controller.get_logger_mut().parser_add_token(token.clone());
+                }
+                tokens.push(token);
                 parser_data.inc_line();
                 parser_data.inc_char();
             }

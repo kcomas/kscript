@@ -7,6 +7,7 @@ mod end_parser;
 use super::controller::Controller;
 use super::logger::Logger;
 use self::token::Token;
+use self::sub_parser::SubParser;
 use self::end_parser::EndParser;
 use self::parser_container::ParserContainer;
 
@@ -36,6 +37,11 @@ where
 
         let mut parser_data = ParserContainer::new(text_str);
 
+        let mut parsers: [Box<SubParser<T>>; 1] = [Box::new(EndParser::new())];
+
+        {
+            self.controller.get_logger_mut().parser_end();
+        }
 
     }
 }
