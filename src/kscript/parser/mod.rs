@@ -1,11 +1,14 @@
 
 pub mod token;
+pub mod parser_container;
 mod sub_parser;
 mod end_parser;
 
 use super::controller::Controller;
 use super::logger::Logger;
 use self::token::Token;
+use self::end_parser::EndParser;
+use self::parser_container::ParserContainer;
 
 #[derive(Debug)]
 pub struct ParserRunner<'a, T: Logger + 'a> {
@@ -31,9 +34,8 @@ where
             self.controller.get_logger_mut().parser_start();
         }
 
-        let text_vec: Vec<char> = text_str.chars().collect();
-        let current_char = 0;
-        let current_line = 0;
+        let mut parser_data = ParserContainer::new(text_str);
+
 
     }
 }

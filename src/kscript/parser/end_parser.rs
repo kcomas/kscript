@@ -1,14 +1,20 @@
 
-use super::sub_parser::SubParser;
 use super::token::Token;
+use super::parser_container::ParserContainer;
+use super::sub_parser::SubParser;
 use super::super::logger::Logger;
 use super::super::controller::Controller;
+use super::super::error::Error;
 
 #[derive(Debug)]
 pub struct EndParser {}
 
 impl SubParser for EndParser {
-    fn check(c: char) -> bool {
+    fn new() -> EndParser {
+        EndParser {}
+    }
+
+    fn check(&self, c: char) -> bool {
         match c {
             ';' | '\n' => true,
             _ => false,
@@ -16,24 +22,26 @@ impl SubParser for EndParser {
     }
 
     fn parse<T: Logger>(
+        &mut self,
         controller: &mut Controller<T>,
-        text_vec: &Vec<char>,
-        current_char: &mut usize,
-        current_line: &mut usize,
+        parser_data: &mut ParserContainer,
         current_chars: &mut Vec<char>,
         tokens: &mut Vec<Token>,
-    ) -> Result<(), String> {
-        match text_vec[*current_char] {
+    ) -> Result<(), Error> {
+        match parser_data.get_current_char() {
             ';' => {
                 tokens.push(Token::End);
-                *current_char += 1;
+                parser_data.inc_char();
             }
             '\n' => {
                 tokens.push(Token::End);
-                *current_line += 1;
-                *current_char += 1;
+                parser_data.inc_line();
+                parser_data.inc_char();
             }
-            _ => return Err("derp".to_string()),
+            _ => {
+                let (c, ci, li) = parser_data.get_as_tuple();
+                return Err(Error::InvalidEndChar(c, ci, li));
+            }
         };
         Ok(())
     }

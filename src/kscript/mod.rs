@@ -2,6 +2,7 @@
 mod controller;
 pub mod logger;
 mod parser;
+mod error;
 
 use self::controller::Controller;
 use self::logger::Logger;
