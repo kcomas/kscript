@@ -3,6 +3,7 @@ pub mod token;
 pub mod parser_container;
 mod sub_parser;
 mod end_parser;
+mod var_parser;
 
 use super::controller::Controller;
 use super::logger::Logger;

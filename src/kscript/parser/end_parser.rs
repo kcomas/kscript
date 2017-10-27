@@ -6,7 +6,6 @@ use super::super::logger::Logger;
 use super::super::controller::Controller;
 use super::super::error::Error;
 
-#[derive(Debug)]
 pub struct EndParser {}
 
 impl EndParser {
