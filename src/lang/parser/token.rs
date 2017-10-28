@@ -2,7 +2,7 @@
 #[derive(Debug, Clone, PartialEq)]
 pub enum Token {
     End,
-    Constant(String),
+    Const(String),
     Var(String),
     Integer(i64),
     Float(f64),

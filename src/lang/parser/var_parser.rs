@@ -91,7 +91,7 @@ where
                         }
                         'a'...'z' | '0'...'9' => return Err(Error::InvalidConstantChar(c, ci, li)),
                         _ => {
-                            let token = Token::Constant(char_container.flush());
+                            let token = Token::Const(char_container.flush());
                             token_container.add_token(controller, token);
                             return Ok(());
                         }
