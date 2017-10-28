@@ -6,7 +6,7 @@ use kscript::lang::logger::{Logger, VoidLogger, LoggerMode};
 use kscript::lang::parser::token::Token;
 
 #[test]
-fn simple_string_var_integer() {
+fn var_assign_integer() {
     let mut kscript = Kscript::new(VoidLogger::new(LoggerMode::Void));
     if let Err(kerror) = kscript.run("test = 1234") {
         panic!("{:?}", kerror);
