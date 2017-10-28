@@ -35,7 +35,7 @@ where
         &mut self,
         controller: &mut Controller<T>,
         parser_data: &mut ParserContainer,
-        char_container: &mut CharContainer,
+        _char_container: &mut CharContainer,
         token_container: &mut TokenContainer,
     ) -> Result<(), Error> {
         match parser_data.get_current_char() {
