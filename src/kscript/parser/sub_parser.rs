@@ -10,6 +10,8 @@ pub trait SubParser<T: Logger> {
     // if the current chars can be taken into this parser
     fn check(&self, c: char) -> bool;
 
+    fn identify(&self) -> String;
+
     fn parse(
         &mut self,
         controller: &mut Controller<T>,

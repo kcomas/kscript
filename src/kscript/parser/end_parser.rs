@@ -27,6 +27,10 @@ where
         }
     }
 
+    fn identify(&self) -> String {
+        "End Parser".to_string()
+    }
+
     fn parse(
         &mut self,
         controller: &mut Controller<T>,

@@ -27,6 +27,10 @@ where
         }
     }
 
+    fn identify(&self) -> String {
+        "Operator Parser".to_string()
+    }
+
     fn parse(
         &mut self,
         controller: &mut Controller<T>,

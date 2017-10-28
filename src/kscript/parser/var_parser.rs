@@ -12,7 +12,6 @@ pub enum VarParserState {
     Nothing,
     Variable,
     Constant,
-    Done,
 }
 
 pub struct VarParser {
@@ -34,6 +33,10 @@ where
             'a'...'z' | 'A'...'Z' => true,
             _ => false,
         }
+    }
+
+    fn identify(&self) -> String {
+        "Var Parser".to_string()
     }
 
     fn parse(
@@ -75,7 +78,7 @@ where
                         _ => {
                             let token = Token::Var(char_container.flush());
                             token_container.add_token(controller, token);
-                            VarParserState::Done
+                            return Ok(());
                         }
                     }
                 }
@@ -90,11 +93,10 @@ where
                         _ => {
                             let token = Token::Constant(char_container.flush());
                             token_container.add_token(controller, token);
-                            VarParserState::Done
+                            return Ok(());
                         }
                     }
                 }
-                VarParserState::Done => return Ok(()),
             };
         }
         Err(Error::ImpossibleState)

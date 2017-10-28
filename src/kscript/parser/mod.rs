@@ -60,6 +60,11 @@ where
             for i in 0..3 {
                 if parsers[i].check(c) {
                     // use parser
+                    {
+                        self.controller.get_logger_mut().parser_in_parser(
+                            parsers[i].identify(),
+                        );
+                    }
                     let rst = parsers[i].parse(
                         self.controller,
                         &mut parser_data,
@@ -69,6 +74,11 @@ where
 
                     if let Err(kerror) = rst {
                         return Err(kerror);
+                    }
+                    {
+                        self.controller.get_logger_mut().parser_out_parser(
+                            parsers[i].identify(),
+                        );
                     }
                     used = true;
                     break;

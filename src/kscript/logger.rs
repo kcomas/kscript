@@ -15,6 +15,8 @@ pub enum LoggerEvent {
     ParserStart,
     // char, index, line
     ParserNextChar(char, usize, usize),
+    ParserInParser(String),
+    ParserOutParser(String),
     ParserAddToken(Token),
     ParserEnd,
 }
@@ -53,7 +55,11 @@ pub trait Logger {
 
     fn parser_next_char(&mut self, c: char, c_index: usize, l_index: usize) {}
 
+    fn parser_in_parser(&mut self, parser_name: String) {}
+
     fn parser_add_token(&mut self, token: Token) {}
+
+    fn parser_out_parser(&mut self, parser_name: String) {}
 
     fn parser_end(&mut self) {}
 }
@@ -103,8 +109,18 @@ impl Logger for DebugLogger {
         self.write();
     }
 
+    fn parser_in_parser(&mut self, parser_name: String) {
+        self.add_event(LoggerEvent::ParserInParser(parser_name));
+        self.write();
+    }
+
     fn parser_add_token(&mut self, token: Token) {
         self.add_event(LoggerEvent::ParserAddToken(token));
+        self.write();
+    }
+
+    fn parser_out_parser(&mut self, parser_name: String) {
+        self.add_event(LoggerEvent::ParserOutParser(parser_name));
         self.write();
     }
 
