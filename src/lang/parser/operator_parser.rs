@@ -22,7 +22,7 @@ where
 {
     fn check(&self, c: char) -> bool {
         match c {
-            '=' => true,
+            '=' | '+' | '-' | '*' | '/' | '%' | '^' => true,
             _ => false,
         }
     }
@@ -41,6 +41,30 @@ where
         match parser_data.get_current_char() {
             '=' => {
                 token_container.add_token(controller, Token::Assign);
+                parser_data.inc_char();
+            }
+            '+' => {
+                token_container.add_token(controller, Token::Add);
+                parser_data.inc_char();
+            }
+            '-' => {
+                token_container.add_token(controller, Token::Subtract);
+                parser_data.inc_char();
+            }
+            '*' => {
+                token_container.add_token(controller, Token::Multiply);
+                parser_data.inc_char();
+            }
+            '/' => {
+                token_container.add_token(controller, Token::Divide);
+                parser_data.inc_char();
+            }
+            '%' => {
+                token_container.add_token(controller, Token::Modulus);
+                parser_data.inc_char();
+            }
+            '^' => {
+                token_container.add_token(controller, Token::Exponent);
                 parser_data.inc_char();
             }
             _ => {

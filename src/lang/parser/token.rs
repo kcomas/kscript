@@ -7,4 +7,10 @@ pub enum Token {
     Integer(i64),
     Float(f64),
     Assign,
+    Add,
+    Subtract,
+    Multiply,
+    Divide,
+    Modulus,
+    Exponent,
 }
