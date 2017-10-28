@@ -24,7 +24,6 @@ use super::error::Error;
 pub struct ParserRunner<'a, T: Logger + 'a> {
     controller: &'a mut Controller<T>,
     char_container: CharContainer,
-    token_container: TokenContainer,
 }
 
 impl<'a, T> ParserRunner<'a, T>
@@ -35,14 +34,15 @@ where
         ParserRunner {
             controller: controller,
             char_container: CharContainer::new(),
-            token_container: TokenContainer::new(),
         }
     }
 
-    pub fn run(&mut self, text_str: &str) -> Result<(), Error> {
+    pub fn run(&mut self, text_str: &str) -> Result<TokenContainer, Error> {
         {
             self.controller.get_logger_mut().parser_start();
         }
+
+        let mut token_container = TokenContainer::new();
 
         let mut parser_data = ParserContainer::new(text_str);
 
@@ -72,7 +72,7 @@ where
                         self.controller,
                         &mut parser_data,
                         &mut self.char_container,
-                        &mut self.token_container,
+                        &mut token_container,
                     );
 
                     if let Err(kerror) = rst {
@@ -96,6 +96,6 @@ where
             self.controller.get_logger_mut().parser_end();
         }
 
-        Ok(())
+        Ok(token_container)
     }
 }

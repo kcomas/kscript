@@ -24,9 +24,11 @@ where
 
     pub fn run(&mut self, text_str: &str) -> Result<(), Error> {
         let mut parser_runner = ParserRunner::new(&mut self.controller);
-        if let Err(kerror) = parser_runner.run(text_str) {
-            return Err(kerror);
-        }
+        let tokens = match parser_runner.run(text_str) {
+            Ok(tokens) => tokens,
+            Err(kerror) => return Err(kerror),
+        };
+        println!("{:?}", tokens);
         Ok(())
     }
 }

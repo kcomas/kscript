@@ -3,6 +3,7 @@ use super::super::controller::Controller;
 use super::super::logger::Logger;
 use super::token::Token;
 
+#[derive(Debug)]
 pub struct TokenContainer {
     tokens: Vec<Token>,
 }
