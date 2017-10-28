@@ -7,21 +7,21 @@ use super::super::logger::Logger;
 use super::super::controller::Controller;
 use super::super::error::Error;
 
-pub struct EndParser {}
+pub struct OperatorParser {}
 
-impl EndParser {
-    pub fn new() -> EndParser {
-        EndParser {}
+impl OperatorParser {
+    pub fn new() -> OperatorParser {
+        OperatorParser {}
     }
 }
 
-impl<T> SubParser<T> for EndParser
+impl<T> SubParser<T> for OperatorParser
 where
     T: Logger,
 {
     fn check(&self, c: char) -> bool {
         match c {
-            ';' | '\n' => true,
+            '=' => true,
             _ => false,
         }
     }
@@ -34,20 +34,15 @@ where
         token_container: &mut TokenContainer,
     ) -> Result<(), Error> {
         match parser_data.get_current_char() {
-            ';' => {
-                token_container.add_token(controller, Token::End);
-                parser_data.inc_char();
-            }
-            '\n' => {
-                token_container.add_token(controller, Token::End);
-                parser_data.inc_line();
+            '=' => {
+                token_container.add_token(controller, Token::Assign);
                 parser_data.inc_char();
             }
             _ => {
                 let (c, ci, li) = parser_data.get_as_tuple();
                 return Err(Error::CheckMismatch(c, ci, li));
             }
-        };
+        }
         Ok(())
     }
 }
