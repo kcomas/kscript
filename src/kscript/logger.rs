@@ -98,6 +98,11 @@ impl Logger for DebugLogger {
         self.write();
     }
 
+    fn parser_next_char(&mut self, c: char, c_index: usize, l_index: usize) {
+        self.add_event(LoggerEvent::ParserNextChar(c, c_index, l_index));
+        self.write();
+    }
+
     fn parser_add_token(&mut self, token: Token) {
         self.add_event(LoggerEvent::ParserAddToken(token));
         self.write();

@@ -35,6 +35,10 @@ impl ParserContainer {
     }
 
     pub fn get_current_char(&self) -> char {
+        if self.is_done() {
+            // return null byte so current parser flushes
+            return '\0';
+        }
         self.text_vec[self.current_char]
     }
 

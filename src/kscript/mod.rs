@@ -7,6 +7,7 @@ mod error;
 use self::controller::Controller;
 use self::logger::Logger;
 use self::parser::ParserRunner;
+use self::error::Error;
 
 #[derive(Debug)]
 pub struct Kscript<T: Logger> {
@@ -21,8 +22,11 @@ where
         Kscript { controller: Controller::new(logger) }
     }
 
-    pub fn run(&mut self, text_str: &str) {
+    pub fn run(&mut self, text_str: &str) -> Result<(), Error> {
         let mut parser_runner = ParserRunner::new(&mut self.controller);
-        parser_runner.run(text_str);
+        if let Err(kerror) = parser_runner.run(text_str) {
+            return Err(kerror);
+        }
+        Ok(())
     }
 }

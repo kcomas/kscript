@@ -52,7 +52,7 @@ where
             }
             _ => {
                 let (c, ci, li) = parser_data.get_as_tuple();
-                return Err(Error::InvalidEndChar(c, ci, li));
+                return Err(Error::CheckMismatch(c, ci, li));
             }
         };
         Ok(())

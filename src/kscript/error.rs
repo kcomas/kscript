@@ -1,6 +1,7 @@
 
 #[derive(Debug)]
 pub enum Error {
-    // wrong char, char pos, line
-    InvalidEndChar(char, usize, usize),
+    CheckMismatch(char, usize, usize),
+    InvalidVariableChar(char, usize, usize),
+    InvalidConstantChar(char, usize, usize),
 }
