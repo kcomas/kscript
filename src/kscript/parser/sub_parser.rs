@@ -1,5 +1,6 @@
 
 use super::token_container::TokenContainer;
+use super::char_container::CharContainer;
 use super::parser_container::ParserContainer;
 use super::super::logger::Logger;
 use super::super::controller::Controller;
@@ -13,7 +14,7 @@ pub trait SubParser<T: Logger> {
         &mut self,
         controller: &mut Controller<T>,
         parser_data: &mut ParserContainer,
-        current_chars: &mut Vec<char>,
+        char_container: &mut CharContainer,
         token_container: &mut TokenContainer,
     ) -> Result<(), Error>;
 }

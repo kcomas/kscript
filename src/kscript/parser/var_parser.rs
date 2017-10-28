@@ -2,6 +2,7 @@
 use super::token::Token;
 use super::token_container::TokenContainer;
 use super::parser_container::ParserContainer;
+use super::char_container::CharContainer;
 use super::sub_parser::SubParser;
 use super::super::logger::Logger;
 use super::super::controller::Controller;
@@ -39,7 +40,7 @@ where
         &mut self,
         controller: &mut Controller<T>,
         parser_data: &mut ParserContainer,
-        current_chars: &mut Vec<char>,
+        char_container: &mut CharContainer,
         token_container: &mut TokenContainer,
     ) -> Result<(), Error> {
         while !parser_data.is_done() {
@@ -51,12 +52,12 @@ where
                 VarParserState::Nothing => {
                     match c {
                         'a'...'z' => {
-                            current_chars.push(c);
+                            char_container.add_char(c);
                             parser_data.inc_char();
                             VarParserState::Variable
                         }
                         'A'...'Z' => {
-                            current_chars.push(c);
+                            char_container.add_char(c);
                             parser_data.inc_char();
                             VarParserState::Constant
                         }
@@ -66,14 +67,13 @@ where
                 VarParserState::Variable => {
                     match c {
                         'a'...'z' => {
-                            current_chars.push(c);
+                            char_container.add_char(c);
                             parser_data.inc_char();
                             VarParserState::Variable
                         }
                         'A'...'Z' | '0'...'9' => return Err(Error::InvalidVariableChar(c, ci, li)),
                         _ => {
-                            let token = Token::Var(current_chars.clone().into_iter().collect());
-                            current_chars.clear();
+                            let token = Token::Var(char_container.flush());
                             token_container.add_token(controller, token);
                             VarParserState::Done
                         }
@@ -82,15 +82,13 @@ where
                 VarParserState::Constant => {
                     match c {
                         'A'...'Z' => {
-                            current_chars.push(c);
+                            char_container.add_char(c);
                             parser_data.inc_char();
                             VarParserState::Constant
                         }
                         'a'...'z' | '0'...'9' => return Err(Error::InvalidConstantChar(c, ci, li)),
                         _ => {
-                            let token =
-                                Token::Constant(current_chars.clone().into_iter().collect());
-                            current_chars.clear();
+                            let token = Token::Constant(char_container.flush());
                             token_container.add_token(controller, token);
                             VarParserState::Done
                         }

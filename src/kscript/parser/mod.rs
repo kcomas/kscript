@@ -2,6 +2,7 @@
 pub mod token;
 pub mod parser_container;
 pub mod token_container;
+pub mod char_container;
 mod sub_parser;
 mod end_parser;
 mod var_parser;
@@ -10,6 +11,7 @@ mod operator_parser;
 use super::controller::Controller;
 use super::logger::Logger;
 use self::token_container::TokenContainer;
+use self::char_container::CharContainer;
 use self::sub_parser::SubParser;
 use self::end_parser::EndParser;
 use self::var_parser::VarParser;
@@ -19,8 +21,8 @@ use super::error::Error;
 
 pub struct ParserRunner<'a, T: Logger + 'a> {
     controller: &'a mut Controller<T>,
-    current_chars: Vec<char>,
-    tokens: TokenContainer,
+    char_container: CharContainer,
+    token_container: TokenContainer,
 }
 
 impl<'a, T> ParserRunner<'a, T>
@@ -30,8 +32,8 @@ where
     pub fn new(controller: &'a mut Controller<T>) -> ParserRunner<'a, T> {
         ParserRunner {
             controller: controller,
-            current_chars: Vec::new(),
-            tokens: TokenContainer::new(),
+            char_container: CharContainer::new(),
+            token_container: TokenContainer::new(),
         }
     }
 
@@ -61,8 +63,8 @@ where
                     let rst = parsers[i].parse(
                         self.controller,
                         &mut parser_data,
-                        &mut self.current_chars,
-                        &mut self.tokens,
+                        &mut self.char_container,
+                        &mut self.token_container,
                     );
 
                     if let Err(kerror) = rst {
