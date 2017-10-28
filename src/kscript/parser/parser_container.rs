@@ -15,7 +15,7 @@ impl ParserContainer {
     }
 
     pub fn is_done(&self) -> bool {
-        self.current_char == self.text_vec.len()
+        self.current_char == self.text_vec.len() + 1
     }
 
     pub fn get_as_tuple(&self) -> (char, usize, usize) {
@@ -35,7 +35,7 @@ impl ParserContainer {
     }
 
     pub fn get_current_char(&self) -> char {
-        if self.is_done() {
+        if self.current_char == self.text_vec.len() {
             // return null byte so current parser flushes
             return '\0';
         }

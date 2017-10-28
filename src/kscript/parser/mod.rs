@@ -7,6 +7,7 @@ mod sub_parser;
 mod end_parser;
 mod var_parser;
 mod operator_parser;
+mod number_parser;
 
 use super::controller::Controller;
 use super::logger::Logger;
@@ -15,6 +16,7 @@ use self::char_container::CharContainer;
 use self::sub_parser::SubParser;
 use self::end_parser::EndParser;
 use self::var_parser::VarParser;
+use self::number_parser::NumberParser;
 use self::operator_parser::OperatorParser;
 use self::parser_container::ParserContainer;
 use super::error::Error;
@@ -44,10 +46,11 @@ where
 
         let mut parser_data = ParserContainer::new(text_str);
 
-        let mut parsers: [Box<SubParser<T>>; 3] = [
+        let mut parsers: [Box<SubParser<T>>; 4] = [
             Box::new(EndParser::new()),
             Box::new(VarParser::new()),
             Box::new(OperatorParser::new()),
+            Box::new(NumberParser::new()),
         ];
 
         while !parser_data.is_done() {
@@ -57,7 +60,7 @@ where
                 self.controller.get_logger_mut().parser_next_char(c, ci, li);
             }
 
-            for i in 0..3 {
+            for i in 0..4 {
                 if parsers[i].check(c) {
                     // use parser
                     {
