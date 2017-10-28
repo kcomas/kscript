@@ -1,5 +1,5 @@
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Token {
     End,
     Constant(String),
