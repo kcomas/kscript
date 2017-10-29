@@ -27,4 +27,12 @@ impl TokenContainer {
     pub fn get_tokens(&self) -> &Vec<Token> {
         &self.tokens
     }
+
+    pub fn get_tokens_mut(&mut self) -> &mut Vec<Token> {
+        &mut self.tokens
+    }
+
+    pub fn merge_tokens(&mut self, new_tokens: &mut Vec<Token>) {
+        self.tokens.append(new_tokens);
+    }
 }
