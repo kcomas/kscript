@@ -66,13 +66,14 @@ where
                 {
                     return Err(kerror);
                 }
+
+                token_container.add_token(
+                    controller,
+                    Token::Math(math_tokens.get_tokens().clone()),
+                );
             }
             ')' => {
                 parser_data.inc_char();
-                // flush the current token container
-                let tc = token_container.get_tokens().clone();
-                token_container.clear();
-                token_container.add_token(controller, Token::Math(tc));
             }
             _ => {
                 let (c, ci, li) = parser_data.get_as_tuple();
