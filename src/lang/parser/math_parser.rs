@@ -67,12 +67,16 @@ where
                     return Err(kerror);
                 }
 
-                token_container.add_token(
-                    controller,
-                    Token::Math(
-                        math_container.get_tokens().clone(),
-                    ),
-                );
+                if math_container.get_tokens().len() == 1 {
+                    token_container.merge_tokens(math_container.get_tokens_mut());
+                } else {
+                    token_container.add_token(
+                        controller,
+                        Token::Math(
+                            math_container.get_tokens().clone(),
+                        ),
+                    );
+                }
             }
             ')' => {
                 parser_data.inc_char();
