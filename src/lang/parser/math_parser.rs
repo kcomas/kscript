@@ -81,9 +81,14 @@ where
             ')' => {
                 parser_data.inc_char();
                 // flush the current token container
-                let tc = token_container.get_tokens().clone();
+                let mut tc = token_container.get_tokens().clone();
                 token_container.clear();
-                token_container.add_token(controller, Token::Math(tc));
+
+                if tc.len() == 1 {
+                    token_container.merge_tokens(&mut tc);
+                } else {
+                    token_container.add_token(controller, Token::Math(tc));
+                }
             }
             _ => {
                 let (c, ci, li) = parser_data.get_as_tuple();
