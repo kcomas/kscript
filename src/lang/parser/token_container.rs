@@ -15,7 +15,7 @@ impl TokenContainer {
 
     pub fn add_token<T: Logger>(&mut self, controller: &mut Controller<T>, token: Token) {
         {
-            controller.get_logger_mut().parser_add_token(token.clone());
+            controller.get_logger_mut().parser_add_token(&token);
         }
         self.tokens.push(token);
     }

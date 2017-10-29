@@ -55,11 +55,11 @@ pub trait Logger {
 
     fn parser_next_char(&mut self, c: char, c_index: usize, l_index: usize) {}
 
-    fn parser_in_parser(&mut self, parser_name: String) {}
+    fn parser_in_parser(&mut self, parser_name: &str) {}
 
-    fn parser_add_token(&mut self, token: Token) {}
+    fn parser_add_token(&mut self, token: &Token) {}
 
-    fn parser_out_parser(&mut self, parser_name: String) {}
+    fn parser_out_parser(&mut self, parser_name: &str) {}
 
     fn parser_end(&mut self) {}
 }
@@ -109,18 +109,18 @@ impl Logger for DebugLogger {
         self.write();
     }
 
-    fn parser_in_parser(&mut self, parser_name: String) {
-        self.add_event(LoggerEvent::ParserInParser(parser_name));
+    fn parser_in_parser(&mut self, parser_name: &str) {
+        self.add_event(LoggerEvent::ParserInParser(parser_name.to_string()));
         self.write();
     }
 
-    fn parser_add_token(&mut self, token: Token) {
-        self.add_event(LoggerEvent::ParserAddToken(token));
+    fn parser_add_token(&mut self, token: &Token) {
+        self.add_event(LoggerEvent::ParserAddToken(token.clone()));
         self.write();
     }
 
-    fn parser_out_parser(&mut self, parser_name: String) {
-        self.add_event(LoggerEvent::ParserOutParser(parser_name));
+    fn parser_out_parser(&mut self, parser_name: &str) {
+        self.add_event(LoggerEvent::ParserOutParser(parser_name.to_string()));
         self.write();
     }
 

@@ -35,8 +35,8 @@ where
         }
     }
 
-    fn identify(&self) -> String {
-        "Var Parser".to_string()
+    fn identify(&self) -> &str {
+        "Var Parser"
     }
 
     fn parse(

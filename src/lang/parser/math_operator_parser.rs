@@ -27,8 +27,8 @@ where
         }
     }
 
-    fn identify(&self) -> String {
-        "Math Operator Parser".to_string()
+    fn identify(&self) -> &str {
+        "Math Operator Parser"
     }
 
     fn parse(

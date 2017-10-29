@@ -27,8 +27,8 @@ where
         }
     }
 
-    fn identify(&self) -> String {
-        "End Parser".to_string()
+    fn identify(&self) -> &str {
+        "End Parser"
     }
 
     fn parse(
