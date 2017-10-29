@@ -43,7 +43,7 @@ where
         char_container: &mut CharContainer,
         token_container: &mut TokenContainer,
     ) -> Result<(), Error> {
-        let mut math_tokens = TokenContainer::new();
+        let mut math_container = TokenContainer::new();
         match parser_data.get_current_char() {
             '(' => {
                 parser_data.inc_char();
@@ -61,13 +61,18 @@ where
                     5,
                     &mut parsers,
                     char_container,
-                    &mut math_tokens,
+                    &mut math_container,
                 )
                 {
                     return Err(kerror);
                 }
 
-                token_container.merge_tokens(math_tokens.get_tokens_mut());
+                token_container.add_token(
+                    controller,
+                    Token::Math(
+                        math_container.get_tokens().clone(),
+                    ),
+                );
             }
             ')' => {
                 parser_data.inc_char();
