@@ -13,4 +13,7 @@ pub enum Token {
     Divide,
     Modulus,
     Exponent,
+    Math(Vec<Token>),
+    ParensStart,
+    ParensEnd,
 }

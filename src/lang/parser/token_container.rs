@@ -20,6 +20,10 @@ impl TokenContainer {
         self.tokens.push(token);
     }
 
+    pub fn clear(&mut self) {
+        self.tokens.clear();
+    }
+
     pub fn get_tokens(&self) -> &Vec<Token> {
         &self.tokens
     }

@@ -68,7 +68,7 @@ pub trait Logger {
 pub struct VoidLogger {}
 
 impl Logger for VoidLogger {
-    fn new(mode: LoggerMode) -> VoidLogger {
+    fn new(_mode: LoggerMode) -> VoidLogger {
         VoidLogger {}
     }
 }

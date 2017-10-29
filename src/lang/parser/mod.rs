@@ -14,11 +14,13 @@ mod util;
 use super::controller::Controller;
 use super::logger::Logger;
 use self::token_container::TokenContainer;
+use self::parser_container::ParserContainer;
 use self::char_container::CharContainer;
 use self::sub_parser::SubParser;
 use self::end_parser::EndParser;
 use self::var_parser::VarParser;
 use self::number_parser::NumberParser;
+use self::math_parser::MathParser;
 use self::operator_parser::OperatorParser;
 use super::error::Error;
 use self::util::do_parse;
@@ -44,23 +46,29 @@ where
             self.controller.get_logger_mut().parser_start();
         }
 
-        let mut parsers: [Box<SubParser<T>>; 4] = [
+        let mut parsers: [Box<SubParser<T>>; 5] = [
             Box::new(EndParser::new()),
             Box::new(VarParser::new()),
             Box::new(OperatorParser::new()),
             Box::new(NumberParser::new()),
+            Box::new(MathParser::new()),
         ];
 
-        let token_container = match do_parse(
-            text_str,
+        let mut token_container = TokenContainer::new();
+
+        let mut parser_data = ParserContainer::new(text_str);
+
+        if let Err(kerror) = do_parse(
+            &mut parser_data,
             self.controller,
-            4,
+            5,
             &mut parsers,
             &mut self.char_container,
-        ) {
-            Ok(token_container) => token_container,
-            Err(kerror) => return Err(kerror),
-        };
+            &mut token_container,
+        )
+        {
+            return Err(kerror);
+        }
 
         {
             self.controller.get_logger_mut().parser_end();
