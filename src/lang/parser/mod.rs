@@ -9,6 +9,7 @@ mod var_parser;
 mod operator_parser;
 mod number_parser;
 mod math_parser;
+mod math_operator_parser;
 mod util;
 
 use super::controller::Controller;

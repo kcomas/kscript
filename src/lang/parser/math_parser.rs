@@ -7,7 +7,7 @@ use super::sub_parser::SubParser;
 use super::end_parser::EndParser;
 use super::var_parser::VarParser;
 use super::number_parser::NumberParser;
-use super::operator_parser::OperatorParser;
+use super::math_operator_parser::MathOperatorParser;
 use super::super::logger::Logger;
 use super::super::controller::Controller;
 use super::super::error::Error;
@@ -50,7 +50,7 @@ where
                 let mut parsers: [Box<SubParser<T>>; 5] = [
                     Box::new(EndParser::new()),
                     Box::new(VarParser::new()),
-                    Box::new(OperatorParser::new()),
+                    Box::new(MathOperatorParser::new()),
                     Box::new(NumberParser::new()),
                     Box::new(MathParser::new()),
                 ];
