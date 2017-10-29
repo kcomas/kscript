@@ -27,8 +27,11 @@ where
         }
     }
 
-    pub fn get_token_container(&self) -> &Option<TokenContainer> {
-        &self.token_container
+    pub fn get_token_container(&self) -> Option<&TokenContainer> {
+        match self.token_container {
+            Some(ref container) => Some(container),
+            None => None,
+        }
     }
 
     pub fn run(&mut self, text_str: &str) -> Result<(), Error> {
