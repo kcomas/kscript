@@ -7,7 +7,6 @@ use kscript::lang::parser::token::Token;
 
 fn create<T: Logger>(program: &str, logger: T) -> Kscript<T> {
     let mut kscript = Kscript::new(logger);
-    kscript.run(program);
     if let Err(kerror) = kscript.run(program) {
         panic!("{:?}", kerror);
     }
@@ -16,7 +15,7 @@ fn create<T: Logger>(program: &str, logger: T) -> Kscript<T> {
 
 #[test]
 fn var_assign_integer() {
-    let mut kscript = create("test = 1234", VoidLogger::new(LoggerMode::Void));
+    let kscript = create("test = 1234", VoidLogger::new(LoggerMode::Void));
 
     let mabe_token_container = kscript.get_token_container();
 
@@ -30,7 +29,7 @@ fn var_assign_integer() {
 
 #[test]
 fn constant_assign_float() {
-    let mut kscript = create("TEST = 1234.123", VoidLogger::new(LoggerMode::Void));
+    let kscript = create("TEST = 1234.123", VoidLogger::new(LoggerMode::Void));
 
     let mabe_token_container = kscript.get_token_container();
 
@@ -43,4 +42,37 @@ fn constant_assign_float() {
 }
 
 #[test]
-fn var_assign_math() {}
+fn var_assign_math() {
+    let kscript = create(
+        "a = (1 * ((2 + 4) % 2) + 1 ^ 5)",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let mabe_token_container = kscript.get_token_container();
+
+    let token_container = mabe_token_container.unwrap();
+    let tokens = token_container.get_tokens();
+    assert_eq!(tokens.len(), 3);
+    assert_eq!(tokens[0], Token::Var("a".to_string()));
+    assert_eq!(tokens[1], Token::Assign);
+    assert_eq!(
+        tokens[2],
+        Token::Math(vec![
+            Token::Integer(1),
+            Token::Multiply,
+            Token::Math(vec![
+                Token::Math(vec![
+                    Token::Integer(2),
+                    Token::Add,
+                    Token::Integer(4),
+                ]),
+                Token::Modulus,
+                Token::Integer(2),
+            ]),
+            Token::Add,
+            Token::Integer(1),
+            Token::Exponent,
+            Token::Integer(5),
+        ])
+    );
+}
