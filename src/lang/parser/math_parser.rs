@@ -4,7 +4,7 @@ use super::token_container::TokenContainer;
 use super::parser_container::ParserContainer;
 use super::char_container::CharContainer;
 use super::sub_parser::SubParser;
-use super::end_parser::EndParser;
+use super::line_end_parser::LineEndParser;
 use super::var_parser::VarParser;
 use super::number_parser::NumberParser;
 use super::math_operator_parser::MathOperatorParser;
@@ -48,7 +48,7 @@ where
             '(' => {
                 parser_data.inc_char();
                 let mut parsers: [Box<SubParser<T>>; 5] = [
-                    Box::new(EndParser::new()),
+                    Box::new(LineEndParser::new()),
                     Box::new(VarParser::new()),
                     Box::new(MathOperatorParser::new()),
                     Box::new(NumberParser::new()),

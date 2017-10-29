@@ -5,6 +5,7 @@ pub mod token_container;
 pub mod char_container;
 mod sub_parser;
 mod end_parser;
+mod line_end_parser;
 mod var_parser;
 mod operator_parser;
 mod number_parser;
