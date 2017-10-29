@@ -8,6 +8,8 @@ mod end_parser;
 mod var_parser;
 mod operator_parser;
 mod number_parser;
+mod math_parser;
+mod util;
 
 use super::controller::Controller;
 use super::logger::Logger;
@@ -18,8 +20,8 @@ use self::end_parser::EndParser;
 use self::var_parser::VarParser;
 use self::number_parser::NumberParser;
 use self::operator_parser::OperatorParser;
-use self::parser_container::ParserContainer;
 use super::error::Error;
+use self::util::do_parse;
 
 pub struct ParserRunner<'a, T: Logger + 'a> {
     controller: &'a mut Controller<T>,
@@ -42,10 +44,6 @@ where
             self.controller.get_logger_mut().parser_start();
         }
 
-        let mut token_container = TokenContainer::new();
-
-        let mut parser_data = ParserContainer::new(text_str);
-
         let mut parsers: [Box<SubParser<T>>; 4] = [
             Box::new(EndParser::new()),
             Box::new(VarParser::new()),
@@ -53,44 +51,16 @@ where
             Box::new(NumberParser::new()),
         ];
 
-        while !parser_data.is_done() {
-            let mut used = false;
-            let (c, ci, li) = parser_data.get_as_tuple();
-            {
-                self.controller.get_logger_mut().parser_next_char(c, ci, li);
-            }
-
-            for i in 0..4 {
-                if parsers[i].check(c) {
-                    // use parser
-                    {
-                        self.controller.get_logger_mut().parser_in_parser(
-                            parsers[i].identify(),
-                        );
-                    }
-                    let rst = parsers[i].parse(
-                        self.controller,
-                        &mut parser_data,
-                        &mut self.char_container,
-                        &mut token_container,
-                    );
-
-                    if let Err(kerror) = rst {
-                        return Err(kerror);
-                    }
-                    {
-                        self.controller.get_logger_mut().parser_out_parser(
-                            parsers[i].identify(),
-                        );
-                    }
-                    used = true;
-                    break;
-                }
-            }
-            if !used {
-                parser_data.inc_char();
-            }
-        }
+        let token_container = match do_parse(
+            text_str,
+            self.controller,
+            4,
+            &mut parsers,
+            &mut self.char_container,
+        ) {
+            Ok(token_container) => token_container,
+            Err(kerror) => return Err(kerror),
+        };
 
         {
             self.controller.get_logger_mut().parser_end();
