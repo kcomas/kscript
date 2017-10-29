@@ -5,12 +5,18 @@ use kscript::lang::Kscript;
 use kscript::lang::logger::{Logger, VoidLogger, LoggerMode};
 use kscript::lang::parser::token::Token;
 
-#[test]
-fn var_assign_integer() {
-    let mut kscript = Kscript::new(VoidLogger::new(LoggerMode::Void));
-    if let Err(kerror) = kscript.run("test = 1234") {
+fn create<T: Logger>(program: &str, logger: T) -> Kscript<T> {
+    let mut kscript = Kscript::new(logger);
+    kscript.run(program);
+    if let Err(kerror) = kscript.run(program) {
         panic!("{:?}", kerror);
     }
+    kscript
+}
+
+#[test]
+fn var_assign_integer() {
+    let mut kscript = create("test = 1234", VoidLogger::new(LoggerMode::Void));
 
     let mabe_token_container = kscript.get_token_container();
 
@@ -27,10 +33,7 @@ fn var_assign_integer() {
 
 #[test]
 fn constant_assign_float() {
-    let mut kscript = Kscript::new(VoidLogger::new(LoggerMode::Void));
-    if let Err(kerror) = kscript.run("TEST = 1234.123") {
-        panic!("{:?}", kerror);
-    }
+    let mut kscript = create("TEST = 1234.123", VoidLogger::new(LoggerMode::Void));
 
     let mabe_token_container = kscript.get_token_container();
 
@@ -44,3 +47,6 @@ fn constant_assign_float() {
         panic!("Token container not created");
     }
 }
+
+#[test]
+fn var_assign_math() {}
