@@ -44,6 +44,7 @@ where
         parser_data: &mut ParserContainer,
         char_container: &mut CharContainer,
         token_container: &mut TokenContainer,
+        exit: &mut bool,
     ) -> Result<(), Error> {
         while !parser_data.is_done() {
             let (c, ci, li) = parser_data.get_as_tuple();

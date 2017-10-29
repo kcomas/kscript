@@ -13,11 +13,13 @@ use super::super::controller::Controller;
 use super::super::error::Error;
 use super::util::do_parse;
 
-pub struct MathParser {}
+pub struct MathParser {
+    math_container: TokenContainer,
+}
 
 impl MathParser {
     pub fn new() -> MathParser {
-        MathParser {}
+        MathParser { math_container: TokenContainer::new() }
     }
 }
 
@@ -42,8 +44,8 @@ where
         parser_data: &mut ParserContainer,
         char_container: &mut CharContainer,
         token_container: &mut TokenContainer,
+        exit: &mut bool,
     ) -> Result<(), Error> {
-        let mut math_container = TokenContainer::new();
         match parser_data.get_current_char() {
             '(' => {
                 parser_data.inc_char();
@@ -61,34 +63,20 @@ where
                     5,
                     &mut parsers,
                     char_container,
-                    &mut math_container,
+                    &mut self.math_container,
                 )
                 {
                     return Err(kerror);
                 }
 
-                if math_container.get_tokens().len() == 1 {
-                    token_container.merge_tokens(math_container.get_tokens_mut());
-                } else {
-                    token_container.add_token(
-                        controller,
-                        Token::Math(
-                            math_container.get_tokens().clone(),
-                        ),
-                    );
-                }
+                token_container.add_token(
+                    controller,
+                    Token::Math(self.math_container.get_tokens().clone()),
+                );
             }
             ')' => {
                 parser_data.inc_char();
-                // flush the current token container
-                let mut tc = token_container.get_tokens().clone();
-                token_container.clear();
-
-                if tc.len() == 1 {
-                    token_container.merge_tokens(&mut tc);
-                } else {
-                    token_container.add_token(controller, Token::Math(tc));
-                }
+                *exit = true;
             }
             _ => {
                 let (c, ci, li) = parser_data.get_as_tuple();

@@ -15,6 +15,7 @@ pub fn do_parse<T: Logger>(
     char_container: &mut CharContainer,
     token_container: &mut TokenContainer,
 ) -> Result<(), Error> {
+    let mut exit = false;
     while !parser_data.is_done() {
         let mut used = false;
         let (c, ci, li) = parser_data.get_as_tuple();
@@ -30,8 +31,17 @@ pub fn do_parse<T: Logger>(
                         parsers[i].identify(),
                     );
                 }
-                let rst =
-                    parsers[i].parse(controller, parser_data, char_container, token_container);
+                let rst = parsers[i].parse(
+                    controller,
+                    parser_data,
+                    char_container,
+                    token_container,
+                    &mut exit,
+                );
+
+                if (exit) {
+                    return Ok(());
+                }
 
                 if let Err(kerror) = rst {
                     return Err(kerror);

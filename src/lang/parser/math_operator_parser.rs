@@ -37,6 +37,7 @@ where
         parser_data: &mut ParserContainer,
         _char_container: &mut CharContainer,
         token_container: &mut TokenContainer,
+        exit: &mut bool,
     ) -> Result<(), Error> {
         match parser_data.get_current_char() {
             '+' => {

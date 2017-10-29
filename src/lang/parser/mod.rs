@@ -76,7 +76,7 @@ where
             self.controller.get_logger_mut().parser_end();
         }
 
-        println!("{:?}", token_container.get_tokens());
+        println!("{:#?}", token_container.get_tokens());
 
         Ok(token_container)
     }

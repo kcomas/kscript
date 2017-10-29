@@ -18,5 +18,6 @@ pub trait SubParser<T: Logger> {
         parser_data: &mut ParserContainer,
         char_container: &mut CharContainer,
         token_container: &mut TokenContainer,
+        exit: &mut bool,
     ) -> Result<(), Error>;
 }
