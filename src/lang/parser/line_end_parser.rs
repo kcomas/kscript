@@ -32,10 +32,10 @@ where
 
     fn parse(
         &mut self,
-        controller: &mut Controller<T>,
+        _controller: &mut Controller<T>,
         parser_data: &mut ParserContainer,
         _char_container: &mut CharContainer,
-        token_container: &mut TokenContainer,
+        _token_container: &mut TokenContainer,
     ) -> Result<bool, Error> {
         match parser_data.get_current_char() {
             '\n' => {

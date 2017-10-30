@@ -28,7 +28,7 @@ pub trait Logger {
         &LoggerMode::Void
     }
 
-    fn add_event(&mut self, event: LoggerEvent) {}
+    fn add_event(&mut self, _event: LoggerEvent) {}
 
     fn get_last_event(&self) -> Option<&LoggerEvent> {
         None
@@ -53,13 +53,13 @@ pub trait Logger {
 
     fn parser_start(&mut self) {}
 
-    fn parser_next_char(&mut self, c: char, c_index: usize, l_index: usize) {}
+    fn parser_next_char(&mut self, _c: char, _c_index: usize, _l_index: usize) {}
 
-    fn parser_in_parser(&mut self, parser_name: &str) {}
+    fn parser_in_parser(&mut self, _parser_name: &str) {}
 
-    fn parser_add_token(&mut self, token: &Token) {}
+    fn parser_add_token(&mut self, _token: &Token) {}
 
-    fn parser_out_parser(&mut self, parser_name: &str) {}
+    fn parser_out_parser(&mut self, _parser_name: &str) {}
 
     fn parser_end(&mut self) {}
 }
