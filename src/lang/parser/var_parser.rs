@@ -45,8 +45,7 @@ where
         parser_data: &mut ParserContainer,
         char_container: &mut CharContainer,
         token_container: &mut TokenContainer,
-        exit: &mut bool,
-    ) -> Result<(), Error> {
+    ) -> Result<bool, Error> {
         while !parser_data.is_done() {
             let (c, ci, li) = parser_data.get_as_tuple();
             {
@@ -79,7 +78,7 @@ where
                         _ => {
                             let token = Token::Var(char_container.flush());
                             token_container.add_token(controller, token);
-                            return Ok(());
+                            return Ok(false);
                         }
                     }
                 }
@@ -94,7 +93,7 @@ where
                         _ => {
                             let token = Token::Const(char_container.flush());
                             token_container.add_token(controller, token);
-                            return Ok(());
+                            return Ok(false);
                         }
                     }
                 }

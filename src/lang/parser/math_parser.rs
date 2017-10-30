@@ -44,8 +44,7 @@ where
         parser_data: &mut ParserContainer,
         char_container: &mut CharContainer,
         token_container: &mut TokenContainer,
-        exit: &mut bool,
-    ) -> Result<(), Error> {
+    ) -> Result<bool, Error> {
         match parser_data.get_current_char() {
             '(' => {
                 parser_data.inc_char();
@@ -76,13 +75,13 @@ where
             }
             ')' => {
                 parser_data.inc_char();
-                *exit = true;
+                return Ok(true);
             }
             _ => {
                 let (c, ci, li) = parser_data.get_as_tuple();
                 return Err(Error::CheckMismatch(c, ci, li));
             }
         }
-        Ok(())
+        Ok(false)
     }
 }

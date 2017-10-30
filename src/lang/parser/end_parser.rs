@@ -37,8 +37,7 @@ where
         parser_data: &mut ParserContainer,
         _char_container: &mut CharContainer,
         token_container: &mut TokenContainer,
-        exit: &mut bool,
-    ) -> Result<(), Error> {
+    ) -> Result<bool, Error> {
         match parser_data.get_current_char() {
             ';' => {
                 token_container.add_token(controller, Token::End);
@@ -54,6 +53,6 @@ where
                 return Err(Error::CheckMismatch(c, ci, li));
             }
         };
-        Ok(())
+        Ok(false)
     }
 }

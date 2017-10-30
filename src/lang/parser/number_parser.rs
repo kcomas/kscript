@@ -44,8 +44,7 @@ where
         parser_data: &mut ParserContainer,
         char_container: &mut CharContainer,
         token_container: &mut TokenContainer,
-        exit: &mut bool,
-    ) -> Result<(), Error> {
+    ) -> Result<bool, Error> {
         while !parser_data.is_done() {
             let (c, ci, li) = parser_data.get_as_tuple();
             {
@@ -71,7 +70,7 @@ where
                                 Err(err) => return Err(Error::IntegerParseFail(err)),
                             };
                             token_container.add_token(controller, token);
-                            return Ok(());
+                            return Ok(false);
                         }
                     }
                 }
@@ -89,7 +88,7 @@ where
                                 Err(err) => return Err(Error::FloatParseFail(err)),
                             };
                             token_container.add_token(controller, token);
-                            return Ok(());
+                            return Ok(false);
                         }
                     }
                 }

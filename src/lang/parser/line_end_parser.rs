@@ -36,8 +36,7 @@ where
         parser_data: &mut ParserContainer,
         _char_container: &mut CharContainer,
         token_container: &mut TokenContainer,
-        exit: &mut bool,
-    ) -> Result<(), Error> {
+    ) -> Result<bool, Error> {
         match parser_data.get_current_char() {
             '\n' => {
                 parser_data.inc_line();
@@ -48,6 +47,6 @@ where
                 return Err(Error::CheckMismatch(c, ci, li));
             }
         };
-        Ok(())
+        Ok(false)
     }
 }
