@@ -14,6 +14,8 @@ pub enum Token {
     Modulus,
     Exponent,
     Math(Vec<Token>),
-    ParensStart,
-    ParensEnd,
+    IoWrite,
+    IoAppend,
+    IoRead,
+    IoReadAppend,
 }
