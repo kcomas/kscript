@@ -13,14 +13,17 @@ fn create<T: Logger>(program: &str, logger: T) -> Kscript<T> {
     kscript
 }
 
+fn get_tokens<T: Logger>(kscript: &Kscript<T>) -> &Vec<Token> {
+    let mabe_token_container = kscript.get_token_container();
+    let token_container = mabe_token_container.unwrap();
+    token_container.get_tokens()
+}
+
 #[test]
 fn var_assign_integer() {
     let kscript = create("test = 1234", VoidLogger::new(LoggerMode::Void));
 
-    let mabe_token_container = kscript.get_token_container();
-
-    let token_container = mabe_token_container.unwrap();
-    let tokens = token_container.get_tokens();
+    let tokens = get_tokens(&kscript);
     assert_eq!(tokens.len(), 3);
     assert_eq!(tokens[0], Token::Var("test".to_string()));
     assert_eq!(tokens[1], Token::Assign);
@@ -31,10 +34,7 @@ fn var_assign_integer() {
 fn constant_assign_float() {
     let kscript = create("TEST = 1234.123", VoidLogger::new(LoggerMode::Void));
 
-    let mabe_token_container = kscript.get_token_container();
-
-    let token_container = mabe_token_container.unwrap();
-    let tokens = token_container.get_tokens();
+    let tokens = get_tokens(&kscript);
     assert_eq!(tokens.len(), 3);
     assert_eq!(tokens[0], Token::Const("TEST".to_string()));
     assert_eq!(tokens[1], Token::Assign);
@@ -48,10 +48,7 @@ fn var_assign_math() {
         VoidLogger::new(LoggerMode::Void),
     );
 
-    let mabe_token_container = kscript.get_token_container();
-
-    let token_container = mabe_token_container.unwrap();
-    let tokens = token_container.get_tokens();
+    let tokens = get_tokens(&kscript);
     assert_eq!(tokens.len(), 3);
     assert_eq!(tokens[0], Token::Var("a".to_string()));
     assert_eq!(tokens[1], Token::Assign);
@@ -75,4 +72,14 @@ fn var_assign_math() {
             Token::Integer(5),
         ])
     );
+}
+
+#[test]
+fn math_io_integer() {
+    let kscript = create("(2 * 3) > 1", VoidLogger::new(LoggerMode::Void));
+
+    let tokens = get_tokens(&kscript);
+    assert_eq!(tokens.len(), 3);
+    assert_eq!(tokens[1], Token::IoWrite);
+    assert_eq!(tokens[2], Token::Integer(1));
 }
