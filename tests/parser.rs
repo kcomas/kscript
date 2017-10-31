@@ -44,7 +44,7 @@ fn constant_assign_float() {
 #[test]
 fn var_assign_math() {
     let kscript = create(
-        "a = (1 * ((2 + 4) % 2) + 1 ^ 5)",
+        "a = (1.234 * ((2 + 4.3) % 2) + 1 ^ 5)",
         VoidLogger::new(LoggerMode::Void),
     );
 
@@ -58,13 +58,13 @@ fn var_assign_math() {
     assert_eq!(
         tokens[2],
         Token::Math(vec![
-            Token::Integer(1),
+            Token::Float(1.234),
             Token::Multiply,
             Token::Math(vec![
                 Token::Math(vec![
                     Token::Integer(2),
                     Token::Add,
-                    Token::Integer(4),
+                    Token::Float(4.3),
                 ]),
                 Token::Modulus,
                 Token::Integer(2),

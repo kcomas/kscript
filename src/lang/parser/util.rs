@@ -33,6 +33,8 @@ pub fn do_parse<T: Logger>(
                 let rst =
                     parsers[i].parse(controller, parser_data, char_container, token_container);
 
+                parsers[i].reset();
+
                 match rst {
                     Ok(exit) => {
                         if exit {

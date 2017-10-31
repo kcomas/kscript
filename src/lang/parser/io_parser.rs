@@ -39,6 +39,10 @@ where
         "IO Parser"
     }
 
+    fn reset(&mut self) {
+        self.state = IoParserState::Nothing;
+    }
+
     fn parse(
         &mut self,
         controller: &mut Controller<T>,

@@ -39,6 +39,10 @@ where
         "Var Parser"
     }
 
+    fn reset(&mut self) {
+        self.state = VarParserState::Nothing;
+    }
+
     fn parse(
         &mut self,
         controller: &mut Controller<T>,

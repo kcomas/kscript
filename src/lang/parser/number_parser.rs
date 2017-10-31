@@ -38,6 +38,10 @@ where
         "Number Parser"
     }
 
+    fn reset(&mut self) {
+        self.state = NumberParserState::Integer;
+    }
+
     fn parse(
         &mut self,
         controller: &mut Controller<T>,

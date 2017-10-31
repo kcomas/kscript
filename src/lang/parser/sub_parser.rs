@@ -12,6 +12,8 @@ pub trait SubParser<T: Logger> {
 
     fn identify(&self) -> &str;
 
+    fn reset(&mut self) {}
+
     fn parse(
         &mut self,
         controller: &mut Controller<T>,
