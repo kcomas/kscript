@@ -12,6 +12,7 @@ mod number_parser;
 mod math_parser;
 mod math_operator_parser;
 mod io_parser;
+mod comment_parser;
 mod util;
 
 use super::controller::Controller;
@@ -26,6 +27,7 @@ use self::number_parser::NumberParser;
 use self::math_parser::MathParser;
 use self::operator_parser::OperatorParser;
 use self::io_parser::IoParser;
+use self::comment_parser::CommentParser;
 use super::error::Error;
 use self::util::do_parse;
 
@@ -50,13 +52,14 @@ where
             self.controller.get_logger_mut().parser_start();
         }
 
-        let mut parsers: [Box<SubParser<T>>; 6] = [
+        let mut parsers: [Box<SubParser<T>>; 7] = [
             Box::new(EndParser::new()),
             Box::new(VarParser::new()),
             Box::new(OperatorParser::new()),
             Box::new(NumberParser::new()),
             Box::new(MathParser::new()),
             Box::new(IoParser::new()),
+            Box::new(CommentParser::new()),
         ];
 
         let mut token_container = TokenContainer::new();
@@ -66,7 +69,7 @@ where
         if let Err(kerror) = do_parse(
             &mut parser_data,
             self.controller,
-            6,
+            7,
             &mut parsers,
             &mut self.char_container,
             &mut token_container,

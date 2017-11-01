@@ -18,4 +18,5 @@ pub enum Token {
     IoAppend,
     IoRead,
     IoReadAppend,
+    Comment(String),
 }
