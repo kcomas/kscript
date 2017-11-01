@@ -80,6 +80,10 @@ fn math_io_integer() {
 
     let tokens = get_tokens(&kscript);
     assert_eq!(tokens.len(), 3);
+    assert_eq!(
+        tokens[0],
+        Token::Math(vec![Token::Integer(2), Token::Multiply, Token::Integer(3)])
+    );
     assert_eq!(tokens[1], Token::IoWrite);
     assert_eq!(tokens[2], Token::Integer(1));
 }
