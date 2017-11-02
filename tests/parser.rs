@@ -87,3 +87,20 @@ fn math_io_integer() {
     assert_eq!(tokens[1], Token::IoWrite);
     assert_eq!(tokens[2], Token::Integer(1));
 }
+
+#[test]
+fn comment_op_comment() {
+    let kscript = create(
+        "# this is a comment\n a = 1 # another comment",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let tokens = get_tokens(&kscript);
+
+    assert_eq!(tokens.len(), 5);
+    assert_eq!(tokens[0], Token::Comment(" this is a comment".to_string()));
+    assert_eq!(tokens[1], Token::Var("a".to_string()));
+    assert_eq!(tokens[2], Token::Assign);
+    assert_eq!(tokens[3], Token::Integer(1));
+    assert_eq!(tokens[4], Token::Comment(" another comment".to_string()));
+}
