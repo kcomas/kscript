@@ -103,3 +103,14 @@ fn comment_op_comment() {
     assert_eq!(tokens[3], Token::Integer(1));
     assert_eq!(tokens[4], Token::Comment(" another comment".to_string()));
 }
+
+#[test]
+fn var_assign_file() {
+    let kscript = create("myfile = 'hello'", VoidLogger::new(LoggerMode::Void));
+
+    let tokens = get_tokens(&kscript);
+    assert_eq!(tokens.len(), 3);
+    assert_eq!(tokens[0], Token::Var("myfile".to_string()));
+    assert_eq!(tokens[1], Token::Assign);
+    assert_eq!(tokens[2], Token::File("hello".to_string()));
+}
