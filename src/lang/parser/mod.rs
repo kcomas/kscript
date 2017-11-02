@@ -13,6 +13,7 @@ mod math_parser;
 mod math_operator_parser;
 mod io_parser;
 mod comment_parser;
+mod file_parser;
 mod util;
 
 use super::controller::Controller;

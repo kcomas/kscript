@@ -96,7 +96,6 @@ fn comment_op_comment() {
     );
 
     let tokens = get_tokens(&kscript);
-
     assert_eq!(tokens.len(), 5);
     assert_eq!(tokens[0], Token::Comment(" this is a comment".to_string()));
     assert_eq!(tokens[1], Token::Var("a".to_string()));
