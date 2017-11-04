@@ -3,6 +3,7 @@ mod controller;
 pub mod logger;
 pub mod parser;
 mod error;
+mod util;
 
 use self::controller::Controller;
 use self::logger::Logger;
@@ -37,10 +38,7 @@ where
     pub fn run(&mut self, text_str: &str) -> Result<(), Error> {
         let mut parser_runner = ParserRunner::new(&mut self.controller);
         self.token_container = None;
-        self.token_container = match parser_runner.run(text_str) {
-            Ok(tokens) => Some(tokens),
-            Err(kerror) => return Err(kerror),
-        };
+        self.token_container = Some(parser_runner.run(text_str)?);
         Ok(())
     }
 }

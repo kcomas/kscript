@@ -56,17 +56,14 @@ where
                     Box::new(MathParser::new()),
                 ];
 
-                if let Err(kerror) = do_parse(
+                do_parse(
                     parser_data,
                     controller,
                     5,
                     &mut parsers,
                     char_container,
                     &mut self.math_container,
-                )
-                {
-                    return Err(kerror);
-                }
+                )?;
 
                 token_container.add_token(
                     controller,

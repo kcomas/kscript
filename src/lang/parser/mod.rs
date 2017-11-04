@@ -72,17 +72,14 @@ where
 
         let mut parser_data = ParserContainer::new(text_str);
 
-        if let Err(kerror) = do_parse(
+        do_parse(
             &mut parser_data,
             self.controller,
             9,
             &mut parsers,
             &mut self.char_container,
             &mut token_container,
-        )
-        {
-            return Err(kerror);
-        }
+        )?;
 
         {
             self.controller.get_logger_mut().parser_end();

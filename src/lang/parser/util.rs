@@ -30,19 +30,18 @@ pub fn do_parse<T: Logger>(
                         parsers[i].identify(),
                     );
                 }
-                let rst =
-                    parsers[i].parse(controller, parser_data, char_container, token_container);
+                let mabe_exit = parsers[i].parse(
+                    controller,
+                    parser_data,
+                    char_container,
+                    token_container,
+                )?;
+
+                if mabe_exit {
+                    return Ok(());
+                }
 
                 parsers[i].reset();
-
-                match rst {
-                    Ok(exit) => {
-                        if exit {
-                            return Ok(());
-                        }
-                    }
-                    Err(kerror) => return Err(kerror),
-                };
 
                 {
                     controller.get_logger_mut().parser_out_parser(
