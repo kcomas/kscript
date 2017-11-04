@@ -114,3 +114,14 @@ fn var_assign_file() {
     assert_eq!(tokens[1], Token::Assign);
     assert_eq!(tokens[2], Token::File("hello".to_string()));
 }
+
+#[test]
+fn var_assign_string() {
+    let kscript = create("mystr = \"test # str\"", VoidLogger::new(LoggerMode::Void));
+
+    let tokens = get_tokens(&kscript);
+    assert_eq!(tokens.len(), 3);
+    assert_eq!(tokens[0], Token::Var("mystr".to_string()));
+    assert_eq!(tokens[1], Token::Assign);
+    assert_eq!(tokens[2], Token::String("test # str".to_string()));
+}
