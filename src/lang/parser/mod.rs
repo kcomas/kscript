@@ -15,6 +15,7 @@ mod io_parser;
 mod comment_parser;
 mod file_parser;
 mod string_parser;
+mod array_parser;
 mod util;
 
 use super::controller::Controller;
@@ -22,18 +23,8 @@ use super::logger::Logger;
 use self::token_container::TokenContainer;
 use self::parser_container::ParserContainer;
 use self::char_container::CharContainer;
-use self::sub_parser::SubParser;
-use self::end_parser::EndParser;
-use self::var_parser::VarParser;
-use self::number_parser::NumberParser;
-use self::math_parser::MathParser;
-use self::operator_parser::OperatorParser;
-use self::io_parser::IoParser;
-use self::comment_parser::CommentParser;
-use self::file_parser::FileParser;
-use self::string_parser::StringParser;
 use super::error::Error;
-use self::util::do_parse;
+use self::util::{do_parse, top_level_parsers};
 
 pub struct ParserRunner<'a, T: Logger + 'a> {
     controller: &'a mut Controller<T>,
@@ -56,17 +47,7 @@ where
             self.controller.get_logger_mut().parser_start();
         }
 
-        let mut parsers: [Box<SubParser<T>>; 9] = [
-            Box::new(EndParser::new()),
-            Box::new(VarParser::new()),
-            Box::new(OperatorParser::new()),
-            Box::new(NumberParser::new()),
-            Box::new(MathParser::new()),
-            Box::new(IoParser::new()),
-            Box::new(CommentParser::new()),
-            Box::new(FileParser::new()),
-            Box::new(StringParser::new()),
-        ];
+        let (mut parsers, total_parsers) = top_level_parsers();
 
         let mut token_container = TokenContainer::new();
 
@@ -75,7 +56,7 @@ where
         do_parse(
             &mut parser_data,
             self.controller,
-            9,
+            total_parsers,
             &mut parsers,
             &mut self.char_container,
             &mut token_container,

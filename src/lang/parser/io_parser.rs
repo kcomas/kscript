@@ -36,7 +36,7 @@ where
     }
 
     fn identify(&self) -> &str {
-        "IO Parser"
+        "Io Parser"
     }
 
     fn reset(&mut self) {
