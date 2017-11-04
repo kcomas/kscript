@@ -10,6 +10,7 @@ use self::logger::Logger;
 use self::parser::ParserRunner;
 use self::parser::token_container::TokenContainer;
 use self::error::Error;
+use self::util::load_file_to_string;
 
 #[derive(Debug)]
 pub struct Kscript<T: Logger> {
@@ -40,5 +41,12 @@ where
         self.token_container = None;
         self.token_container = Some(parser_runner.run(text_str)?);
         Ok(())
+    }
+
+    pub fn run_file(&mut self, file_name: &str) -> Result<(), Error> {
+        match load_file_to_string(file_name) {
+            Ok(ref file_string) => self.run(file_string),
+            Err(file_error) => Err(Error::FileLoadFail(file_error)),
+        }
     }
 }
