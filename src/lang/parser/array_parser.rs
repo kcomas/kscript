@@ -56,6 +56,8 @@ where
         char_container: &mut CharContainer,
         token_container: &mut TokenContainer,
     ) -> Result<bool, Error> {
+        let (mut parsers, num_parsers) = object_value_parsers();
+
         while !parser_data.is_done() {
             let (c, ci, li) = parser_data.get_as_tuple();
             {
@@ -93,9 +95,6 @@ where
                     }
                 }
                 ArrayParserState::LoadItem => {
-
-                    let (mut parsers, num_parsers) = object_value_parsers();
-
 
                     let (_exit, used) = do_parse_single(
                         c,

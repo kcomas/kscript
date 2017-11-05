@@ -114,7 +114,6 @@ pub fn top_level_parsers<T: Logger>() -> ([Box<SubParser<T>>; 11], usize) {
 }
 
 pub fn object_value_parsers<T: Logger>() -> ([Box<SubParser<T>>; 8], usize) {
-
     (
         [
             Box::new(VarParser::new()),
