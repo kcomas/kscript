@@ -16,6 +16,7 @@ mod comment_parser;
 mod file_parser;
 mod string_parser;
 mod array_parser;
+mod dict_parser;
 mod util;
 
 use super::controller::Controller;

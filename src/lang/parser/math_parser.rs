@@ -38,6 +38,10 @@ where
         "Math Parser"
     }
 
+    fn reset(&mut self) {
+        self.math_container.clear();
+    }
+
     fn parse(
         &mut self,
         controller: &mut Controller<T>,

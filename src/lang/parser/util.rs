@@ -12,6 +12,7 @@ use super::comment_parser::CommentParser;
 use super::file_parser::FileParser;
 use super::string_parser::StringParser;
 use super::array_parser::ArrayParser;
+use super::dict_parser::DictParser;
 use super::parser_container::ParserContainer;
 use super::char_container::CharContainer;
 use super::token_container::TokenContainer;
@@ -93,7 +94,7 @@ pub fn do_parse<T: Logger>(
     Ok(())
 }
 
-pub fn top_level_parsers<T: Logger>() -> ([Box<SubParser<T>>; 10], usize) {
+pub fn top_level_parsers<T: Logger>() -> ([Box<SubParser<T>>; 11], usize) {
     (
         [
             Box::new(EndParser::new()),
@@ -106,7 +107,25 @@ pub fn top_level_parsers<T: Logger>() -> ([Box<SubParser<T>>; 10], usize) {
             Box::new(FileParser::new()),
             Box::new(StringParser::new()),
             Box::new(ArrayParser::new()),
+            Box::new(DictParser::new()),
         ],
-        10,
+        11,
+    )
+}
+
+pub fn object_value_parsers<T: Logger>() -> ([Box<SubParser<T>>; 8], usize) {
+
+    (
+        [
+            Box::new(VarParser::new()),
+            Box::new(NumberParser::new()),
+            Box::new(MathParser::new()),
+            Box::new(CommentParser::new()),
+            Box::new(FileParser::new()),
+            Box::new(StringParser::new()),
+            Box::new(ArrayParser::new()),
+            Box::new(DictParser::new()),
+        ],
+        8,
     )
 }

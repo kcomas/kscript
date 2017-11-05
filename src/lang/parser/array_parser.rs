@@ -4,16 +4,10 @@ use super::token_container::TokenContainer;
 use super::char_container::CharContainer;
 use super::parser_container::ParserContainer;
 use super::sub_parser::SubParser;
-use super::var_parser::VarParser;
-use super::number_parser::NumberParser;
-use super::math_parser::MathParser;
-use super::comment_parser::CommentParser;
-use super::file_parser::FileParser;
-use super::string_parser::StringParser;
 use super::super::logger::Logger;
 use super::super::controller::Controller;
 use super::super::error::Error;
-use super::util::do_parse_single;
+use super::util::{do_parse_single, object_value_parsers};
 
 pub enum ArrayParserState {
     Nothing,
@@ -100,21 +94,14 @@ where
                 }
                 ArrayParserState::LoadItem => {
 
-                    let mut parsers: [Box<SubParser<T>>; 7] = [
-                        Box::new(VarParser::new()),
-                        Box::new(NumberParser::new()),
-                        Box::new(MathParser::new()),
-                        Box::new(CommentParser::new()),
-                        Box::new(FileParser::new()),
-                        Box::new(StringParser::new()),
-                        Box::new(ArrayParser::new()),
-                    ];
+                    let (mut parsers, num_parsers) = object_value_parsers();
+
 
                     let (_exit, used) = do_parse_single(
                         c,
                         parser_data,
                         controller,
-                        7,
+                        num_parsers,
                         &mut parsers,
                         char_container,
                         &mut self.array_container,
