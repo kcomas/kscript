@@ -79,9 +79,13 @@ where
                             parser_data.inc_char();
                             ArrayParserState::LoadItem
                         }
-                        ' ' | '\n' => {
+                        ',' => {
                             parser_data.inc_char();
                             ArrayParserState::LoadItem
+                        }
+                        ' ' | '\n' => {
+                            parser_data.inc_char();
+                            ArrayParserState::IsArray
                         }
                         ']' => {
                             parser_data.inc_char();
@@ -95,7 +99,6 @@ where
                     }
                 }
                 ArrayParserState::LoadItem => {
-
                     let (_exit, used) = do_parse_single(
                         c,
                         parser_data,

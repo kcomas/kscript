@@ -13,4 +13,5 @@ pub enum Error {
     FloatParseFail(ParseFloatError),
     FileLoadFail(IoError),
     InvalidArrayOp(char, usize, usize),
+    InvaliDictOp(char, usize, usize),
 }

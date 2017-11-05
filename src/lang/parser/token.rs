@@ -22,4 +22,5 @@ pub enum Token {
     File(String),
     String(String),
     Array(Vec<Token>),
+    Dict(Vec<Token>, Vec<Token>),
 }

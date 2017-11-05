@@ -129,7 +129,7 @@ fn var_assign_string() {
 #[test]
 fn var_assign_array() {
     let kscript = create(
-        "a = @[1 @[1.34 \"herp\"] (1 + 2 * 3) 1234]",
+        "a = @[1, @[1.34, \"herp\"], (1 + 2 * 3), 1234]",
         VoidLogger::new(LoggerMode::Void),
     );
 
