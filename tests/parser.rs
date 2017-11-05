@@ -125,3 +125,34 @@ fn var_assign_string() {
     assert_eq!(tokens[1], Token::Assign);
     assert_eq!(tokens[2], Token::String("test # str".to_string()));
 }
+
+#[test]
+fn var_assign_array() {
+    let kscript = create(
+        "a = @[1 @[1.34 \"herp\"] (1 + 2 * 3) 1234]",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let tokens = get_tokens(&kscript);
+    assert_eq!(tokens.len(), 3);
+    assert_eq!(tokens[0], Token::Var("a".to_string()));
+    assert_eq!(tokens[1], Token::Assign);
+    assert_eq!(
+        tokens[2],
+        Token::Array(vec![
+            Token::Integer(1),
+            Token::Array(vec![
+                Token::Float(1.34),
+                Token::String("herp".to_string()),
+            ]),
+            Token::Math(vec![
+                Token::Integer(1),
+                Token::Add,
+                Token::Integer(2),
+                Token::Multiply,
+                Token::Integer(3),
+            ]),
+            Token::Integer(1234),
+        ])
+    );
+}
