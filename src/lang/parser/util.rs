@@ -11,10 +11,52 @@ use super::io_parser::IoParser;
 use super::comment_parser::CommentParser;
 use super::file_parser::FileParser;
 use super::string_parser::StringParser;
+use super::array_parser::ArrayParser;
 use super::parser_container::ParserContainer;
 use super::char_container::CharContainer;
 use super::token_container::TokenContainer;
 use super::super::error::Error;
+
+pub fn do_parse_single<T: Logger>(
+    c: char,
+    parser_data: &mut ParserContainer,
+    controller: &mut Controller<T>,
+    num_parsers: usize,
+    parsers: &mut [Box<SubParser<T>>],
+    char_container: &mut CharContainer,
+    token_container: &mut TokenContainer,
+) -> Result<(bool, bool), Error> {
+    for i in 0..num_parsers {
+        if parsers[i].check(c) {
+            // use parser
+            {
+                controller.get_logger_mut().parser_in_parser(
+                    parsers[i].identify(),
+                );
+            }
+            let mabe_exit = parsers[i].parse(
+                controller,
+                parser_data,
+                char_container,
+                token_container,
+            )?;
+
+            if mabe_exit {
+                return Ok((true, true));
+            }
+
+            parsers[i].reset();
+
+            {
+                controller.get_logger_mut().parser_out_parser(
+                    parsers[i].identify(),
+                );
+            }
+            return Ok((false, true));
+        }
+    }
+    Ok((false, false))
+}
 
 pub fn do_parse<T: Logger>(
     parser_data: &mut ParserContainer,
@@ -25,41 +67,23 @@ pub fn do_parse<T: Logger>(
     token_container: &mut TokenContainer,
 ) -> Result<(), Error> {
     while !parser_data.is_done() {
-        let mut used = false;
         let (c, ci, li) = parser_data.get_as_tuple();
         {
             controller.get_logger_mut().parser_next_char(c, ci, li);
         }
 
-        for i in 0..num_parsers {
-            if parsers[i].check(c) {
-                // use parser
-                {
-                    controller.get_logger_mut().parser_in_parser(
-                        parsers[i].identify(),
-                    );
-                }
-                let mabe_exit = parsers[i].parse(
-                    controller,
-                    parser_data,
-                    char_container,
-                    token_container,
-                )?;
+        let (exit, used) = do_parse_single(
+            c,
+            parser_data,
+            controller,
+            num_parsers,
+            parsers,
+            char_container,
+            token_container,
+        )?;
 
-                if mabe_exit {
-                    return Ok(());
-                }
-
-                parsers[i].reset();
-
-                {
-                    controller.get_logger_mut().parser_out_parser(
-                        parsers[i].identify(),
-                    );
-                }
-                used = true;
-                break;
-            }
+        if exit {
+            break;
         }
 
         if !used {
@@ -69,7 +93,7 @@ pub fn do_parse<T: Logger>(
     Ok(())
 }
 
-pub fn top_level_parsers<T: Logger>() -> ([Box<SubParser<T>>; 9], usize) {
+pub fn top_level_parsers<T: Logger>() -> ([Box<SubParser<T>>; 10], usize) {
     (
         [
             Box::new(EndParser::new()),
@@ -81,7 +105,8 @@ pub fn top_level_parsers<T: Logger>() -> ([Box<SubParser<T>>; 9], usize) {
             Box::new(CommentParser::new()),
             Box::new(FileParser::new()),
             Box::new(StringParser::new()),
+            Box::new(ArrayParser::new()),
         ],
-        9,
+        10,
     )
 }

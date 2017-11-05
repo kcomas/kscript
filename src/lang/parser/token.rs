@@ -21,4 +21,5 @@ pub enum Token {
     Comment(String),
     File(String),
     String(String),
+    Array(Vec<Token>),
 }
