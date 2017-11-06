@@ -156,3 +156,40 @@ fn var_assign_array() {
         ])
     );
 }
+
+#[test]
+fn var_assign_dict() {
+    let kscript = create(
+        "d = %[\"asdf\": 1234, \"sub\": %[\"merp\": 3.45], \"arr\": @[1, 2, 4], \"herp\": \"derp\"]",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let tokens = get_tokens(&kscript);
+    assert_eq!(tokens.len(), 3);
+    assert_eq!(tokens[0], Token::Var("d".to_string()));
+    assert_eq!(tokens[1], Token::Assign);
+    assert_eq!(
+        tokens[2],
+        Token::Dict(
+            vec![
+                Token::String("asdf".to_string()),
+                Token::String("sub".to_string()),
+                Token::String("arr".to_string()),
+                Token::String("herp".to_string()),
+            ],
+            vec![
+                Token::Integer(1234),
+                Token::Dict(
+                    vec![Token::String("merp".to_string())],
+                    vec![Token::Float(3.45)]
+                ),
+                Token::Array(vec![
+                    Token::Integer(1),
+                    Token::Integer(2),
+                    Token::Integer(4),
+                ]),
+                Token::String("derp".to_string()),
+            ],
+        )
+    );
+}
