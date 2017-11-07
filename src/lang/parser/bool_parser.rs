@@ -30,7 +30,7 @@ where
 {
     fn check(&self, c: char) -> bool {
         match c {
-            't' | 'f' | 'T' | 'F' => true,
+            't' | 'f' => true,
             _ => false,
         }
     }
@@ -58,12 +58,12 @@ where
             self.state = match self.state {
                 BoolState::Nothing => {
                     match c {
-                        'T' | 't' => {
+                        't' => {
                             char_container.add_char(c);
                             parser_data.inc_char();
                             BoolState::HasTrue
                         }
-                        'F' | 'f' => {
+                        'f' => {
                             char_container.add_char(c);
                             parser_data.inc_char();
                             BoolState::HasFalse
@@ -73,7 +73,7 @@ where
                 }
                 BoolState::HasTrue => {
                     match c {
-                        'a'...'z' | 'A'...'Z' => return Ok(false),
+                        'a'...'z' => return Ok(false),
                         _ => {
                             char_container.flush();
                             token_container.add_token(controller, Token::Bool(true));
@@ -83,7 +83,7 @@ where
                 }
                 BoolState::HasFalse => {
                     match c {
-                        'a'...'z' | 'A'...'Z' => return Ok(false),
+                        'a'...'z' => return Ok(false),
                         _ => {
                             char_container.flush();
                             token_container.add_token(controller, Token::Bool(false));

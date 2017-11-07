@@ -6,7 +6,7 @@ use kscript::lang::logger::{Logger, DebugLogger, LoggerMode};
 
 fn main() {
     let mut kscript = Kscript::new(DebugLogger::new(LoggerMode::Stdout));
-    if let Err(kerror) = kscript.run("test = t; TESTD = F") {
+    if let Err(kerror) = kscript.run("test = t; TESTD = f") {
         panic!("{:?}", kerror);
     }
 }
