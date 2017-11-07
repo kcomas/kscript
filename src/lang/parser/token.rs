@@ -23,4 +23,5 @@ pub enum Token {
     String(String),
     Array(Vec<Token>),
     Dict(Vec<Token>, Vec<Token>),
+    Bool(bool),
 }
