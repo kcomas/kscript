@@ -193,3 +193,18 @@ fn var_assign_dict() {
         )
     );
 }
+
+#[test]
+fn var_assign_bool_const_assign_bool() {
+    let kscript = create("test = t; TESTD = f", VoidLogger::new(LoggerMode::Void));
+
+    let tokens = get_tokens(&kscript);
+    assert_eq!(tokens.len(), 7);
+    assert_eq!(tokens[0], Token::Var("test".to_string()));
+    assert_eq!(tokens[1], Token::Assign);
+    assert_eq!(tokens[2], Token::Bool(true));
+    assert_eq!(tokens[3], Token::End);
+    assert_eq!(tokens[4], Token::Const("TESTD".to_string()));
+    assert_eq!(tokens[5], Token::Assign);
+    assert_eq!(tokens[6], Token::Bool(false));
+}
