@@ -208,3 +208,25 @@ fn var_assign_bool_const_assign_bool() {
     assert_eq!(tokens[5], Token::Assign);
     assert_eq!(tokens[6], Token::Bool(false));
 }
+
+#[test]
+fn vars_const_with_numbers() {
+    let kscript = create(
+        "py3 = 3; 23a = 3.12; 1S3 = 4",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let tokens = get_tokens(&kscript);
+    assert_eq!(tokens.len(), 11);
+    assert_eq!(tokens[0], Token::Var("py3".to_string()));
+    assert_eq!(tokens[1], Token::Assign);
+    assert_eq!(tokens[2], Token::Integer(3));
+    assert_eq!(tokens[3], Token::End);
+    assert_eq!(tokens[4], Token::Var("23a".to_string()));
+    assert_eq!(tokens[5], Token::Assign);
+    assert_eq!(tokens[6], Token::Float(3.12));
+    assert_eq!(tokens[7], Token::End);
+    assert_eq!(tokens[8], Token::Const("1S3".to_string()));
+    assert_eq!(tokens[9], Token::Assign);
+    assert_eq!(tokens[10], Token::Integer(4));
+}

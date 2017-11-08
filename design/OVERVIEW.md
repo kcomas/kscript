@@ -128,12 +128,12 @@ An apl-ish scripting language to be used like bash
 * Only applies to numbers
 
 ## If statement
-* ```?(comparision){true statments}:{false statements}```
-* ```?(comparision)```
+* ```?comparision{true statments}:{false statements}```
+* ```?comparision```
     * This just returns a boolean
 
 ## Loops
-* ```$(condition){while condition)```
+* ```$condition{while condition}```
 
 ## System Commands
 * All commands start with ```\```

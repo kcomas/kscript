@@ -99,10 +99,10 @@ pub fn top_level_parsers<T: Logger>() -> ([Box<SubParser<T>>; 12], usize) {
     (
         [
             Box::new(EndParser::new()),
+            Box::new(NumberParser::new()),
             Box::new(BoolParser::new()),
             Box::new(VarParser::new()),
             Box::new(OperatorParser::new()),
-            Box::new(NumberParser::new()),
             Box::new(MathParser::new()),
             Box::new(IoParser::new()),
             Box::new(CommentParser::new()),
@@ -118,9 +118,9 @@ pub fn top_level_parsers<T: Logger>() -> ([Box<SubParser<T>>; 12], usize) {
 pub fn object_value_parsers<T: Logger>() -> ([Box<SubParser<T>>; 9], usize) {
     (
         [
+            Box::new(NumberParser::new()),
             Box::new(BoolParser::new()),
             Box::new(VarParser::new()),
-            Box::new(NumberParser::new()),
             Box::new(MathParser::new()),
             Box::new(CommentParser::new()),
             Box::new(FileParser::new()),
@@ -129,5 +129,20 @@ pub fn object_value_parsers<T: Logger>() -> ([Box<SubParser<T>>; 9], usize) {
             Box::new(DictParser::new()),
         ],
         9,
+    )
+}
+
+pub fn loop_conditional_parsers<T: Logger>() -> ([Box<SubParser<T>>; 7], usize) {
+    (
+        [
+            Box::new(NumberParser::new()),
+            Box::new(BoolParser::new()),
+            Box::new(VarParser::new()),
+            Box::new(OperatorParser::new()),
+            Box::new(MathParser::new()),
+            Box::new(FileParser::new()),
+            Box::new(StringParser::new()),
+        ],
+        7,
     )
 }

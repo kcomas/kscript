@@ -58,7 +58,7 @@ where
             self.state = match self.state {
                 VarParserState::Nothing => {
                     match c {
-                        'a'...'z' => {
+                        '0'...'9' | 'a'...'z' => {
                             char_container.add_char(c);
                             parser_data.inc_char();
                             VarParserState::Variable
@@ -73,12 +73,12 @@ where
                 }
                 VarParserState::Variable => {
                     match c {
-                        'a'...'z' => {
+                        '0'...'9' | 'a'...'z' => {
                             char_container.add_char(c);
                             parser_data.inc_char();
                             VarParserState::Variable
                         }
-                        'A'...'Z' | '0'...'9' => return Err(Error::InvalidVariableChar(c, ci, li)),
+                        'A'...'Z' => return Err(Error::InvalidVariableChar(c, ci, li)),
                         _ => {
                             let token = Token::Var(char_container.flush());
                             token_container.add_token(controller, token);
@@ -88,12 +88,12 @@ where
                 }
                 VarParserState::Constant => {
                     match c {
-                        'A'...'Z' => {
+                        '0'...'9' | 'A'...'Z' => {
                             char_container.add_char(c);
                             parser_data.inc_char();
                             VarParserState::Constant
                         }
-                        'a'...'z' | '0'...'9' => return Err(Error::InvalidConstantChar(c, ci, li)),
+                        'a'...'z' => return Err(Error::InvalidConstantChar(c, ci, li)),
                         _ => {
                             let token = Token::Const(char_container.flush());
                             token_container.add_token(controller, token);

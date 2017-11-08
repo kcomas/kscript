@@ -67,6 +67,10 @@ where
                             parser_data.inc_char();
                             NumberParserState::Float
                         }
+                        'a'...'z' | 'A'...'Z' => {
+                            // give to var parser
+                            return Ok(false);
+                        }
                         _ => {
                             let num = char_container.flush();
                             let token = match num.parse() {
