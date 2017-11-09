@@ -35,4 +35,8 @@ impl TokenContainer {
     pub fn merge_tokens(&mut self, new_tokens: &mut Vec<Token>) {
         self.tokens.append(new_tokens);
     }
+
+    pub fn get(&self, i: usize) -> Option<&Token> {
+        self.tokens.get(i)
+    }
 }

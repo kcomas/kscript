@@ -27,4 +27,5 @@ pub enum Token {
     Equals,
     EqualOrGreater,
     EqualOrLess,
+    Conditional(Box<Token>, Box<Token>, Box<Token>),
 }

@@ -4,6 +4,7 @@ use super::token_container::TokenContainer;
 use super::char_container::CharContainer;
 use super::parser_container::ParserContainer;
 use super::sub_parser::SubParser;
+use super::cond_builder::CondBuilder;
 use super::operator_parser::OperatorParser;
 use super::super::logger::Logger;
 use super::super::controller::Controller;
@@ -12,24 +13,21 @@ use super::util::{do_parse_single, loop_conditional_parsers};
 
 pub enum ConditionalParserState {
     Nothing,
-    ItemA,
-    Conditional,
-    // ItemB,
-    // MabeBlocks,
+    MabeBlocks,
     // TrueStatements,
     // FalseStatements,
 }
 
 pub struct ConditionalParser {
     state: ConditionalParserState,
-    condition_container: TokenContainer,
+    cond: Option<Token>,
 }
 
 impl ConditionalParser {
     pub fn new() -> ConditionalParser {
         ConditionalParser {
             state: ConditionalParserState::Nothing,
-            condition_container: TokenContainer::new(),
+            cond: None,
         }
     }
 }
@@ -51,7 +49,6 @@ where
 
     fn reset(&mut self) {
         self.state = ConditionalParserState::Nothing;
-        self.condition_container.clear();
     }
 
     fn parse(
@@ -61,8 +58,8 @@ where
         char_container: &mut CharContainer,
         token_container: &mut TokenContainer,
     ) -> Result<bool, Error> {
-        let (mut parsers, num_parsers) = loop_conditional_parsers();
-        let operator_parsers = [Box::new(OperatorParser::new()); 1];
+        // let (mut parsers, num_parsers) = loop_conditional_parsers();
+        // let mut operator_parsers: [Box<SubParser<T>>; 1] = [Box::new(OperatorParser::new())];
 
         while !parser_data.is_done() {
             let (c, ci, li) = parser_data.get_as_tuple();
@@ -74,31 +71,27 @@ where
                     match c {
                         '?' => {
                             parser_data.inc_char();
-                            ConditionalParserState::ItemA
+                            let mut cond = CondBuilder::new();
+                            self.cond = Some(cond.parse(controller, parser_data, char_container)?);
+                            ConditionalParserState::MabeBlocks
                         }
                         _ => return Err(Error::CheckMismatch(c, ci, li)),
                     }
                 }
-                ConditionalParserState::ItemA => {
-                    let (_exit, used) = do_parse_single(
-                        c,
-                        parser_data,
-                        controller,
-                        num_parsers,
-                        &mut parsers,
-                        char_container,
-                        &mut self.condition_container,
-                    )?;
-
-                    match used {
-                        true => ConditionalParserState::Conditional,
-                        false => {
+                ConditionalParserState::MabeBlocks => {
+                    match c {
+                        ' ' | '\n' => {
                             parser_data.inc_char();
-                            ConditionalParserState::ItemA
+                            ConditionalParserState::MabeBlocks
+                        }
+                        _ => {
+                            if let Some(ref token) = self.cond {
+                                token_container.add_token(controller, token.clone());
+                            }
+                            return Ok(false);
                         }
                     }
                 }
-                ConditionalParserState::Conditional => return Ok(false),
             };
         }
         Err(Error::ImpossibleState)

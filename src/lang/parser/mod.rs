@@ -18,6 +18,7 @@ mod string_parser;
 mod array_parser;
 mod dict_parser;
 mod bool_parser;
+mod cond_builder;
 mod conditional_parser;
 mod util;
 
