@@ -8,7 +8,7 @@ use super::operator_parser::OperatorParser;
 use super::super::logger::Logger;
 use super::super::controller::Controller;
 use super::super::error::Error;
-use super::util::{do_parse_single, loop_conditional_parsers};
+use super::util::{do_parse_single, conditional_parsers};
 
 pub enum CondBuilderState {
     ItemA,
@@ -35,7 +35,7 @@ impl CondBuilder {
         parser_data: &mut ParserContainer,
         char_container: &mut CharContainer,
     ) -> Result<Token, Error> {
-        let (mut parsers, num_parsers) = loop_conditional_parsers();
+        let (mut parsers, num_parsers) = conditional_parsers();
         let mut operator_parsers: [Box<SubParser<T>>; 1] = [Box::new(OperatorParser::new())];
 
         while !parser_data.is_done() {

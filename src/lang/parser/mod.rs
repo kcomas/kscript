@@ -20,6 +20,7 @@ mod dict_parser;
 mod bool_parser;
 mod cond_builder;
 mod conditional_parser;
+mod block_end_parser;
 mod util;
 
 use super::controller::Controller;

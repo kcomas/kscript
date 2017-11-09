@@ -5,11 +5,9 @@ use super::char_container::CharContainer;
 use super::parser_container::ParserContainer;
 use super::sub_parser::SubParser;
 use super::cond_builder::CondBuilder;
-use super::operator_parser::OperatorParser;
 use super::super::logger::Logger;
 use super::super::controller::Controller;
 use super::super::error::Error;
-use super::util::{do_parse_single, loop_conditional_parsers};
 
 pub enum ConditionalParserState {
     Nothing,
@@ -58,9 +56,6 @@ where
         char_container: &mut CharContainer,
         token_container: &mut TokenContainer,
     ) -> Result<bool, Error> {
-        // let (mut parsers, num_parsers) = loop_conditional_parsers();
-        // let mut operator_parsers: [Box<SubParser<T>>; 1] = [Box::new(OperatorParser::new())];
-
         while !parser_data.is_done() {
             let (c, ci, li) = parser_data.get_as_tuple();
             {
