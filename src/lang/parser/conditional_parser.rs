@@ -87,8 +87,9 @@ where
                         _ => {
                             if let Some(ref token) = self.cond {
                                 token_container.add_token(controller, token.clone());
+                                return Ok(false);
                             }
-                            return Ok(false);
+                            return Err(Error::InvalidConditional(c, ci, li));
                         }
                     }
                 }

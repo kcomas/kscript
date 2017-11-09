@@ -14,4 +14,5 @@ pub enum Error {
     FileLoadFail(IoError),
     InvalidArrayOp(char, usize, usize),
     InvaliDictOp(char, usize, usize),
+    InvalidConditional(char, usize, usize),
 }
