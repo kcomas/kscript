@@ -24,4 +24,7 @@ pub enum Token {
     Array(Vec<Token>),
     Dict(Vec<Token>, Vec<Token>),
     Bool(bool),
+    Equals,
+    EqualOrGreater,
+    EqualOrLess,
 }

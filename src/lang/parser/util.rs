@@ -14,6 +14,7 @@ use super::string_parser::StringParser;
 use super::array_parser::ArrayParser;
 use super::dict_parser::DictParser;
 use super::bool_parser::BoolParser;
+use super::conditional_parser::ConditionalParser;
 use super::parser_container::ParserContainer;
 use super::char_container::CharContainer;
 use super::token_container::TokenContainer;
@@ -95,7 +96,7 @@ pub fn do_parse<T: Logger>(
     Ok(())
 }
 
-pub fn top_level_parsers<T: Logger>() -> ([Box<SubParser<T>>; 12], usize) {
+pub fn top_level_parsers<T: Logger>() -> ([Box<SubParser<T>>; 13], usize) {
     (
         [
             Box::new(EndParser::new()),
@@ -110,12 +111,13 @@ pub fn top_level_parsers<T: Logger>() -> ([Box<SubParser<T>>; 12], usize) {
             Box::new(StringParser::new()),
             Box::new(ArrayParser::new()),
             Box::new(DictParser::new()),
+            Box::new(ConditionalParser::new()),
         ],
-        12,
+        13,
     )
 }
 
-pub fn object_value_parsers<T: Logger>() -> ([Box<SubParser<T>>; 9], usize) {
+pub fn object_value_parsers<T: Logger>() -> ([Box<SubParser<T>>; 10], usize) {
     (
         [
             Box::new(NumberParser::new()),
@@ -127,22 +129,22 @@ pub fn object_value_parsers<T: Logger>() -> ([Box<SubParser<T>>; 9], usize) {
             Box::new(StringParser::new()),
             Box::new(ArrayParser::new()),
             Box::new(DictParser::new()),
+            Box::new(ConditionalParser::new()),
         ],
-        9,
+        10,
     )
 }
 
-pub fn loop_conditional_parsers<T: Logger>() -> ([Box<SubParser<T>>; 7], usize) {
+pub fn loop_conditional_parsers<T: Logger>() -> ([Box<SubParser<T>>; 6], usize) {
     (
         [
             Box::new(NumberParser::new()),
             Box::new(BoolParser::new()),
             Box::new(VarParser::new()),
-            Box::new(OperatorParser::new()),
             Box::new(MathParser::new()),
             Box::new(FileParser::new()),
             Box::new(StringParser::new()),
         ],
-        7,
+        6,
     )
 }
