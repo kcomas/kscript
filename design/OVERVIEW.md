@@ -128,7 +128,7 @@ An apl-ish scripting language to be used like bash
 * Only applies to numbers
 
 ## If statement
-* ```?comparision{true statments}:{false statements}```
+* ```?comparision{true statments}{false statements}```
 * ```?comparision```
     * This just returns a boolean
 

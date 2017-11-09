@@ -39,4 +39,8 @@ impl TokenContainer {
     pub fn get(&self, i: usize) -> Option<&Token> {
         self.tokens.get(i)
     }
+
+    pub fn len(&self) -> usize {
+        self.tokens.len()
+    }
 }
