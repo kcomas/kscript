@@ -230,3 +230,37 @@ fn vars_const_with_numbers() {
     assert_eq!(tokens[9], Token::Assign);
     assert_eq!(tokens[10], Token::Integer(4));
 }
+
+#[test]
+fn assign_conditional_true_false() {
+    let kscript = create(
+        "a = ?1 == 2{a = 3}{b = \"test\"}",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let tokens = get_tokens(&kscript);
+
+    assert_eq!(tokens.len(), 3);
+    assert_eq!(tokens[0], Token::Var("a".to_string()));
+    assert_eq!(tokens[1], Token::Assign);
+    assert_eq!(
+        tokens[2],
+        Token::If(
+            Box::new(Token::Conditional(
+                Box::new(Token::Integer(1)),
+                Box::new(Token::Equals),
+                Box::new(Token::Integer(2)),
+            )),
+            vec![
+                Token::Var("a".to_string()),
+                Token::Assign,
+                Token::Integer(3),
+            ],
+            vec![
+                Token::Var("b".to_string()),
+                Token::Assign,
+                Token::String("test".to_string()),
+            ],
+        )
+    );
+}
