@@ -24,6 +24,7 @@ fn var_assign_integer() {
     let kscript = create("test = 1234", VoidLogger::new(LoggerMode::Void));
 
     let tokens = get_tokens(&kscript);
+
     assert_eq!(tokens.len(), 3);
     assert_eq!(tokens[0], Token::Var("test".to_string()));
     assert_eq!(tokens[1], Token::Assign);
@@ -35,6 +36,7 @@ fn constant_assign_float() {
     let kscript = create("TEST = 1234.123", VoidLogger::new(LoggerMode::Void));
 
     let tokens = get_tokens(&kscript);
+
     assert_eq!(tokens.len(), 3);
     assert_eq!(tokens[0], Token::Const("TEST".to_string()));
     assert_eq!(tokens[1], Token::Assign);
@@ -49,6 +51,7 @@ fn var_assign_math() {
     );
 
     let tokens = get_tokens(&kscript);
+
     assert_eq!(tokens.len(), 3);
     assert_eq!(tokens[0], Token::Var("a".to_string()));
     assert_eq!(tokens[1], Token::Assign);
@@ -60,13 +63,13 @@ fn var_assign_math() {
             Token::Math(vec![
                 Token::Math(vec![
                     Token::Integer(2),
-                    Token::Add,
+                    Token::Addition,
                     Token::Float(4.3),
                 ]),
                 Token::Modulus,
                 Token::Integer(2),
             ]),
-            Token::Add,
+            Token::Addition,
             Token::Integer(1),
             Token::Exponent,
             Token::Integer(5),
@@ -79,6 +82,7 @@ fn math_io_integer() {
     let kscript = create("(2 * 3) > 1", VoidLogger::new(LoggerMode::Void));
 
     let tokens = get_tokens(&kscript);
+
     assert_eq!(tokens.len(), 3);
     assert_eq!(
         tokens[0],
@@ -96,6 +100,7 @@ fn comment_op_comment() {
     );
 
     let tokens = get_tokens(&kscript);
+
     assert_eq!(tokens.len(), 5);
     assert_eq!(tokens[0], Token::Comment(" this is a comment".to_string()));
     assert_eq!(tokens[1], Token::Var("a".to_string()));
@@ -109,6 +114,7 @@ fn var_assign_file() {
     let kscript = create("myfile = 'hello'", VoidLogger::new(LoggerMode::Void));
 
     let tokens = get_tokens(&kscript);
+
     assert_eq!(tokens.len(), 3);
     assert_eq!(tokens[0], Token::Var("myfile".to_string()));
     assert_eq!(tokens[1], Token::Assign);
@@ -120,6 +126,7 @@ fn var_assign_string() {
     let kscript = create("mystr = \"test # str\"", VoidLogger::new(LoggerMode::Void));
 
     let tokens = get_tokens(&kscript);
+
     assert_eq!(tokens.len(), 3);
     assert_eq!(tokens[0], Token::Var("mystr".to_string()));
     assert_eq!(tokens[1], Token::Assign);
@@ -134,6 +141,7 @@ fn var_assign_array() {
     );
 
     let tokens = get_tokens(&kscript);
+
     assert_eq!(tokens.len(), 3);
     assert_eq!(tokens[0], Token::Var("a".to_string()));
     assert_eq!(tokens[1], Token::Assign);
@@ -147,7 +155,7 @@ fn var_assign_array() {
             ]),
             Token::Math(vec![
                 Token::Integer(1),
-                Token::Add,
+                Token::Addition,
                 Token::Integer(2),
                 Token::Multiply,
                 Token::Integer(3),
@@ -165,6 +173,7 @@ fn var_assign_dict() {
     );
 
     let tokens = get_tokens(&kscript);
+
     assert_eq!(tokens.len(), 3);
     assert_eq!(tokens[0], Token::Var("d".to_string()));
     assert_eq!(tokens[1], Token::Assign);
@@ -199,6 +208,7 @@ fn var_assign_bool_const_assign_bool() {
     let kscript = create("test = t; TESTD = f", VoidLogger::new(LoggerMode::Void));
 
     let tokens = get_tokens(&kscript);
+
     assert_eq!(tokens.len(), 7);
     assert_eq!(tokens[0], Token::Var("test".to_string()));
     assert_eq!(tokens[1], Token::Assign);
@@ -217,6 +227,7 @@ fn vars_const_with_numbers() {
     );
 
     let tokens = get_tokens(&kscript);
+
     assert_eq!(tokens.len(), 11);
     assert_eq!(tokens[0], Token::Var("py3".to_string()));
     assert_eq!(tokens[1], Token::Assign);
@@ -263,4 +274,43 @@ fn assign_conditional_true_false() {
             ],
         )
     );
+}
+
+#[test]
+fn assign_loop_print() {
+    let kscript = create(
+        "a = 1; $a<5{a = (a + 1)} a > 1",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let tokens = get_tokens(&kscript);
+
+    assert_eq!(tokens.len(), 8);
+
+    assert_eq!(tokens[0], Token::Var("a".to_string()));
+    assert_eq!(tokens[1], Token::Assign);
+    assert_eq!(tokens[2], Token::Integer(1));
+    assert_eq!(tokens[3], Token::End);
+    assert_eq!(
+        tokens[4],
+        Token::Loop(
+            Box::new(Token::Conditional(
+                Box::new(Token::Var("a".to_string())),
+                Box::new(Token::Less),
+                Box::new(Token::Integer(5)),
+            )),
+            vec![
+                Token::Var("a".to_string()),
+                Token::Assign,
+                Token::Math(vec![
+                    Token::Var("a".to_string()),
+                    Token::Addition,
+                    Token::Integer(1),
+                ]),
+            ],
+        )
+    );
+    assert_eq!(tokens[5], Token::Var("a".to_string()));
+    assert_eq!(tokens[6], Token::IoWrite);
+    assert_eq!(tokens[7], Token::Integer(1));
 }

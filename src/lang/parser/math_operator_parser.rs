@@ -40,7 +40,7 @@ where
     ) -> Result<bool, Error> {
         match parser_data.get_current_char() {
             '+' => {
-                token_container.add_token(controller, Token::Add);
+                token_container.add_token(controller, Token::Addition);
                 parser_data.inc_char();
             }
             '-' => {
