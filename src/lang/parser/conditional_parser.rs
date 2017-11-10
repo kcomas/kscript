@@ -90,11 +90,6 @@ where
                         }
                         '{' => {
                             parser_data.inc_char();
-
-                            if let None = self.cond {
-                                return Err(Error::InvalidConditional(c, ci, li));
-                            }
-
                             ConditionalParserState::TrueStatements
                         }
                         _ => {

@@ -138,5 +138,5 @@ An apl-ish scripting language to be used like bash
 ## System Commands
 * All commands start with ```\```
 
-### Exit \\code
+### Exit \\\\code
 * Exits the program with code

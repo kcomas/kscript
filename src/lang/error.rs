@@ -16,4 +16,5 @@ pub enum Error {
     InvaliDictOp(char, usize, usize),
     InvalidConditional(char, usize, usize),
     InvalidIfBlock(char, usize, usize),
+    InvalidLoop(char, usize, usize),
 }
