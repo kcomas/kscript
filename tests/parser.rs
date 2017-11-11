@@ -3,7 +3,7 @@ extern crate kscript;
 
 use kscript::lang::Kscript;
 use kscript::lang::logger::{Logger, VoidLogger, LoggerMode};
-use kscript::lang::parser::token::Token;
+use kscript::lang::parser::token::{Token, SystemCommand};
 
 fn create<T: Logger>(program: &str, logger: T) -> Kscript<T> {
     let mut kscript = Kscript::new(logger);
@@ -347,4 +347,22 @@ fn var_assign_var_function() {
             ],
         )
     )
+}
+
+#[test]
+fn assign_system_command() {
+    let kscript = create("a = 1; \\\\1; b = 2", VoidLogger::new(LoggerMode::Void));
+
+    let tokens = get_tokens(&kscript);
+
+    assert_eq!(tokens.len(), 9);
+    assert_eq!(tokens[0], Token::Var("a".to_string()));
+    assert_eq!(tokens[1], Token::Assign);
+    assert_eq!(tokens[2], Token::Integer(1));
+    assert_eq!(tokens[3], Token::End);
+    assert_eq!(tokens[4], Token::System(SystemCommand::Exit(1)));
+    assert_eq!(tokens[5], Token::End);
+    assert_eq!(tokens[6], Token::Var("b".to_string()));
+    assert_eq!(tokens[7], Token::Assign);
+    assert_eq!(tokens[8], Token::Integer(2));
 }

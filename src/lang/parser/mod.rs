@@ -25,6 +25,7 @@ mod loop_parser;
 mod ref_parser;
 mod function_parser;
 mod system_parser;
+mod function_call_parser;
 mod util;
 
 use super::controller::Controller;
