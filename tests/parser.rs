@@ -286,7 +286,6 @@ fn assign_loop_print() {
     let tokens = get_tokens(&kscript);
 
     assert_eq!(tokens.len(), 8);
-
     assert_eq!(tokens[0], Token::Var("a".to_string()));
     assert_eq!(tokens[1], Token::Assign);
     assert_eq!(tokens[2], Token::Integer(1));
@@ -313,4 +312,39 @@ fn assign_loop_print() {
     assert_eq!(tokens[5], Token::Var("a".to_string()));
     assert_eq!(tokens[6], Token::IoWrite);
     assert_eq!(tokens[7], Token::Integer(1));
+}
+
+#[test]
+fn var_assign_var_function() {
+    let kscript = create(
+        "a = 1; b = { (a, &e, c) e = c; d }",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let tokens = get_tokens(&kscript);
+
+    assert_eq!(tokens.len(), 7);
+    assert_eq!(tokens[0], Token::Var("a".to_string()));
+    assert_eq!(tokens[1], Token::Assign);
+    assert_eq!(tokens[2], Token::Integer(1));
+    assert_eq!(tokens[3], Token::End);
+    assert_eq!(tokens[4], Token::Var("b".to_string()));
+    assert_eq!(tokens[5], Token::Assign);
+    assert_eq!(
+        tokens[6],
+        Token::Function(
+            vec![
+                Token::Var("a".to_string()),
+                Token::Ref(Box::new(Token::Var("e".to_string()))),
+                Token::Var("c".to_string()),
+            ],
+            vec![
+                Token::Var("e".to_string()),
+                Token::Assign,
+                Token::Var("c".to_string()),
+                Token::End,
+                Token::Var("d".to_string()),
+            ],
+        )
+    )
 }
