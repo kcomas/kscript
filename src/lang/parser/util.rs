@@ -18,6 +18,7 @@ use super::conditional_parser::ConditionalParser;
 use super::block_end_parser::BlockEndParser;
 use super::loop_parser::LoopParser;
 use super::function_parser::FunctionParser;
+use super::system_parser::SystemParser;
 use super::parser_container::ParserContainer;
 use super::char_container::CharContainer;
 use super::token_container::TokenContainer;
@@ -99,7 +100,7 @@ pub fn do_parse<T: Logger>(
     Ok(())
 }
 
-pub fn top_level_parsers<T: Logger>() -> ([Box<SubParser<T>>; 16], usize) {
+pub fn top_level_parsers<T: Logger>() -> ([Box<SubParser<T>>; 17], usize) {
     (
         [
             Box::new(EndParser::new()),
@@ -112,6 +113,7 @@ pub fn top_level_parsers<T: Logger>() -> ([Box<SubParser<T>>; 16], usize) {
             Box::new(CommentParser::new()),
             Box::new(FileParser::new()),
             Box::new(StringParser::new()),
+            Box::new(SystemParser::new()),
             Box::new(ArrayParser::new()),
             Box::new(DictParser::new()),
             Box::new(ConditionalParser::new()),
@@ -119,7 +121,7 @@ pub fn top_level_parsers<T: Logger>() -> ([Box<SubParser<T>>; 16], usize) {
             Box::new(LoopParser::new()),
             Box::new(FunctionParser::new()),
         ],
-        16,
+        17,
     )
 }
 

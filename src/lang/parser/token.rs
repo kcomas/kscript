@@ -1,4 +1,10 @@
 
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum SystemCommand {
+    Exit(u32),
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Token {
     End,
@@ -34,4 +40,5 @@ pub enum Token {
     Loop(Box<Token>, Vec<Token>),
     Ref(Box<Token>),
     Function(Vec<Token>, Vec<Token>),
+    System(SystemCommand),
 }

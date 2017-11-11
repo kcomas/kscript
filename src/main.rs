@@ -6,7 +6,7 @@ use kscript::lang::logger::{Logger, DebugLogger, LoggerMode};
 
 fn main() {
     let mut kscript = Kscript::new(DebugLogger::new(LoggerMode::Stdout));
-    if let Err(kerror) = kscript.run("a = 1; b = { (a, &e, c) e = c; d }") {
+    if let Err(kerror) = kscript.run("a = 1; \\\\1; b = 2") {
         panic!("{:?}", kerror);
     }
 }

@@ -20,4 +20,5 @@ pub enum Error {
     InvalidFunctionArguments(char, usize, usize),
     InvalidRef(char, usize, usize),
     InvalidFunctionBody(char, usize, usize),
+    InvalidSystemCommand(char, usize, usize),
 }
