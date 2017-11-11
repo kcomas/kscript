@@ -32,4 +32,6 @@ pub enum Token {
     Conditional(Box<Token>, Box<Token>, Box<Token>),
     If(Box<Token>, Vec<Token>, Vec<Token>),
     Loop(Box<Token>, Vec<Token>),
+    Ref(Box<Token>),
+    Function(Vec<Token>, Vec<Token>),
 }

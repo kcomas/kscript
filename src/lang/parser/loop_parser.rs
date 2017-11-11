@@ -113,7 +113,6 @@ where
                             self.statements.get_tokens().clone(),
                         ),
                     );
-
                     return Ok(false);
                 }
             };

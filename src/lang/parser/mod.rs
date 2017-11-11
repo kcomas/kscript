@@ -22,6 +22,8 @@ mod cond_builder;
 mod conditional_parser;
 mod block_end_parser;
 mod loop_parser;
+mod ref_parser;
+mod function_parser;
 mod util;
 
 use super::controller::Controller;

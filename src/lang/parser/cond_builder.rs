@@ -100,6 +100,9 @@ impl CondBuilder {
                                 Box::new(self.cond_container.get(1).unwrap().clone()),
                                 Box::new(self.cond_container.get(2).unwrap().clone()),
                             );
+                            {
+                                controller.get_logger_mut().parser_add_token(&token);
+                            }
                             self.cond_container.clear();
                             return Ok(token);
                         }
