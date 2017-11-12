@@ -22,4 +22,5 @@ pub enum Error {
     InvalidFunctionBody(char, usize, usize),
     InvalidSystemCommand(char, usize, usize),
     InvalidFunctionCall(char, usize, usize),
+    InvalidObjectAccess(char, usize, usize),
 }

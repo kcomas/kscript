@@ -49,6 +49,7 @@ where
     fn reset(&mut self) {
         self.state = FunctionCallParserState::Nothing;
         self.arg_container.clear();
+        self.var_name = None;
     }
 
     fn parse(

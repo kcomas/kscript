@@ -29,6 +29,7 @@ pub enum Token {
     String(String),
     Array(Vec<Token>),
     Dict(Vec<Token>, Vec<Token>),
+    ObjectAccess(Box<Token>, Box<Token>),
     Bool(bool),
     Equals,
     EqualOrGreater,
