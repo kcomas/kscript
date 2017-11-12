@@ -17,15 +17,15 @@ pub enum FunctionCallParserState {
 
 pub struct FunctionCallParser {
     state: FunctionCallParserState,
-    var_name: Option<Token>,
+    var_name: Token,
     arg_container: TokenContainer,
 }
 
 impl FunctionCallParser {
-    pub fn new() -> FunctionCallParser {
+    pub fn new(var_name: Token) -> FunctionCallParser {
         FunctionCallParser {
             state: FunctionCallParserState::Nothing,
-            var_name: None,
+            var_name: var_name,
             arg_container: TokenContainer::new(),
         }
     }
@@ -49,7 +49,7 @@ where
     fn reset(&mut self) {
         self.state = FunctionCallParserState::Nothing;
         self.arg_container.clear();
-        self.var_name = None;
+        self.var_name = Token::End;
     }
 
     fn parse(
@@ -71,11 +71,6 @@ where
                     match c {
                         '|' => {
                             parser_data.inc_char();
-                            let token = Token::Var(char_container.flush());
-                            {
-                                controller.get_logger_mut().parser_add_token(&token);
-                            }
-                            self.var_name = Some(token);
                             FunctionCallParserState::LoadArguments
                         }
                         _ => return Err(Error::CheckMismatch(c, ci, li)),
@@ -94,7 +89,7 @@ where
                         '|' => {
                             parser_data.inc_char();
                             let token = Token::FunctionCall(
-                                Box::new(self.var_name.clone().unwrap()),
+                                Box::new(self.var_name.clone()),
                                 self.arg_container.get_tokens().clone(),
                             );
                             token_container.add_token(controller, token);

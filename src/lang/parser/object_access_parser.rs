@@ -20,15 +20,15 @@ pub enum ObjectAccessParserState {
 
 pub struct ObjectAccessParser {
     state: ObjectAccessParserState,
-    var_name: Option<Token>,
+    var_name: Token,
     access_container: TokenContainer,
 }
 
 impl ObjectAccessParser {
-    pub fn new() -> ObjectAccessParser {
+    pub fn new(var_name: Token) -> ObjectAccessParser {
         ObjectAccessParser {
             state: ObjectAccessParserState::Nothing,
-            var_name: None,
+            var_name: var_name,
             access_container: TokenContainer::new(),
         }
     }
@@ -52,7 +52,7 @@ where
     fn reset(&mut self) {
         self.state = ObjectAccessParserState::Nothing;
         self.access_container.clear();
-        self.var_name = None;
+        self.var_name = Token::End;
     }
 
     fn parse(
@@ -78,11 +78,6 @@ where
                     match c {
                         '[' => {
                             parser_data.inc_char();
-                            let token = Token::Var(char_container.flush());
-                            {
-                                controller.get_logger_mut().parser_add_token(&token);
-                            }
-                            self.var_name = Some(token);
                             ObjectAccessParserState::Access
                         }
                         _ => return Err(Error::CheckMismatch(c, ci, li)),
@@ -118,7 +113,7 @@ where
                             token_container.add_token(
                                 controller,
                                 Token::ObjectAccess(
-                                    Box::new(self.var_name.clone().unwrap()),
+                                    Box::new(self.var_name.clone()),
                                     Box::new(token),
                                 ),
                             );

@@ -21,6 +21,7 @@ pub enum Error {
     InvalidRef(char, usize, usize),
     InvalidFunctionBody(char, usize, usize),
     InvalidSystemCommand(char, usize, usize),
+    InvalidPass(char, usize, usize),
     InvalidFunctionCall(char, usize, usize),
     InvalidObjectAccess(char, usize, usize),
 }

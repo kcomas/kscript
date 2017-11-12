@@ -450,7 +450,7 @@ fn assign_fucntion_run_output() {
 #[test]
 fn var_assign_access() {
     let kscript = create(
-        "a = @[3, 2, 1]; b = %[\"key\": \"value\"]; a[0] > 1; b[\"key\"] > 1",
+        "a = @[3, 2, 1]; B = %[\"key\": \"value\"]; a[0] > 1; B[\"key\"] > 1",
         VoidLogger::new(LoggerMode::Void),
     );
 
@@ -468,7 +468,7 @@ fn var_assign_access() {
         ])
     );
     assert_eq!(tokens[3], Token::End);
-    assert_eq!(tokens[4], Token::Var("b".to_string()));
+    assert_eq!(tokens[4], Token::Const("B".to_string()));
     assert_eq!(tokens[5], Token::Assign);
     assert_eq!(
         tokens[6],
@@ -491,7 +491,7 @@ fn var_assign_access() {
     assert_eq!(
         tokens[12],
         Token::ObjectAccess(
-            Box::new(Token::Var("b".to_string())),
+            Box::new(Token::Const("B".to_string())),
             Box::new(Token::String("key".to_string())),
         )
     );

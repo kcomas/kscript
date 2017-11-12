@@ -2,6 +2,7 @@
 mod controller;
 pub mod logger;
 pub mod parser;
+pub mod builder;
 mod error;
 mod util;
 

@@ -22,6 +22,7 @@ pub enum VarParserState {
 pub struct VarParser {
     state: VarParserState,
     load_calls: bool,
+    pass_token: Option<Token>,
 }
 
 impl VarParser {
@@ -29,6 +30,7 @@ impl VarParser {
         VarParser {
             state: VarParserState::Nothing,
             load_calls: true,
+            pass_token: None,
         }
     }
 
@@ -36,6 +38,7 @@ impl VarParser {
         VarParser {
             state: VarParserState::Nothing,
             load_calls: false,
+            pass_token: None,
         }
     }
 }
@@ -57,6 +60,7 @@ where
 
     fn reset(&mut self) {
         self.state = VarParserState::Nothing;
+        self.pass_token = None;
     }
 
     fn parse(
@@ -98,6 +102,7 @@ where
                         '|' | '[' => {
                             match self.load_calls {
                                 true => {
+                                    self.pass_token = Some(Token::Var(char_container.flush()));
                                     match c {
                                         '|' => VarParserState::FunctionCall,
                                         '[' => VarParserState::ObjectAccess,
@@ -129,6 +134,7 @@ where
                         '|' | '[' => {
                             match self.load_calls {
                                 true => {
+                                    self.pass_token = Some(Token::Const(char_container.flush()));
                                     match c {
                                         '|' => VarParserState::FunctionCall,
                                         '[' => VarParserState::ObjectAccess,
@@ -150,8 +156,14 @@ where
                     }
                 }
                 VarParserState::FunctionCall => {
+                    if let None = self.pass_token {
+                        return Err(Error::InvalidPass(c, ci, li));
+                    }
+
                     let mut call_parser: [Box<SubParser<T>>; 1] =
-                        [Box::new(FunctionCallParser::new())];
+                        [
+                            Box::new(FunctionCallParser::new(self.pass_token.clone().unwrap())),
+                        ];
 
                     let _ = do_parse_single(
                         c,
@@ -166,8 +178,14 @@ where
                     return Ok(false);
                 }
                 VarParserState::ObjectAccess => {
+                    if let None = self.pass_token {
+                        return Err(Error::InvalidPass(c, ci, li));
+                    }
+
                     let mut access_parser: [Box<SubParser<T>>; 1] =
-                        [Box::new(ObjectAccessParser::new())];
+                        [
+                            Box::new(ObjectAccessParser::new(self.pass_token.clone().unwrap())),
+                        ];
 
                     let _ = do_parse_single(
                         c,
