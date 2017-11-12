@@ -9,6 +9,7 @@ mod util;
 use self::controller::Controller;
 use self::logger::Logger;
 use self::parser::ParserRunner;
+use self::builder::BuilderRunner;
 use self::parser::token_container::TokenContainer;
 use self::error::Error;
 use self::util::load_file_to_string;
@@ -38,9 +39,17 @@ where
     }
 
     pub fn run(&mut self, text_str: &str) -> Result<(), Error> {
-        let mut parser_runner = ParserRunner::new(&mut self.controller);
-        self.token_container = None;
-        self.token_container = Some(parser_runner.run(text_str)?);
+        {
+            let mut parser_runner = ParserRunner::new(&mut self.controller);
+            self.token_container = None;
+            self.token_container = Some(parser_runner.run(text_str)?);
+        }
+        if let Some(ref container) = self.token_container {
+            println!("{:#?}", container.get_tokens());
+        }
+        {
+            let mut builder_runner = BuilderRunner::new(&mut self.controller);
+        }
         Ok(())
     }
 

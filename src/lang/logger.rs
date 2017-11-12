@@ -19,6 +19,8 @@ pub enum LoggerEvent {
     ParserOutParser(String),
     ParserAddToken(Token),
     ParserEnd,
+    BuilderStart,
+    BuilderEnd,
 }
 
 pub trait Logger {
@@ -28,10 +30,10 @@ pub trait Logger {
         &LoggerMode::Void
     }
 
-    fn add_event(&mut self, _event: LoggerEvent) {}
+    fn set_event(&mut self, _event: LoggerEvent) {}
 
-    fn get_last_event(&self) -> Option<&LoggerEvent> {
-        None
+    fn get_last_event(&self) -> &Option<LoggerEvent> {
+        &None
     }
 
     fn write(&self) {
@@ -39,7 +41,7 @@ pub trait Logger {
             return;
         }
 
-        if let Some(ref event) = self.get_last_event() {
+        if let Some(ref event) = *self.get_last_event() {
             match *self.get_mode() {
                 LoggerMode::Void => {}
                 LoggerMode::Stdout => println!("{:?}", event),
@@ -62,6 +64,10 @@ pub trait Logger {
     fn parser_out_parser(&mut self, _parser_name: &str) {}
 
     fn parser_end(&mut self) {}
+
+    fn builder_start(&mut self) {}
+
+    fn builder_end(&mut self) {}
 }
 
 #[derive(Debug)]
@@ -76,14 +82,14 @@ impl Logger for VoidLogger {
 #[derive(Debug)]
 pub struct DebugLogger {
     mode: LoggerMode,
-    events: Vec<LoggerEvent>,
+    last_event: Option<LoggerEvent>,
 }
 
 impl Logger for DebugLogger {
     fn new(mode: LoggerMode) -> DebugLogger {
         DebugLogger {
             mode: mode,
-            events: Vec::new(),
+            last_event: None,
         }
     }
 
@@ -91,41 +97,51 @@ impl Logger for DebugLogger {
         &self.mode
     }
 
-    fn add_event(&mut self, event: LoggerEvent) {
-        self.events.push(event);
+    fn set_event(&mut self, event: LoggerEvent) {
+        self.last_event = Some(event);
     }
 
-    fn get_last_event(&self) -> Option<&LoggerEvent> {
-        self.events.last()
+    fn get_last_event(&self) -> &Option<LoggerEvent> {
+        &self.last_event
     }
 
     fn parser_start(&mut self) {
-        self.add_event(LoggerEvent::ParserStart);
+        self.set_event(LoggerEvent::ParserStart);
         self.write();
     }
 
     fn parser_next_char(&mut self, c: char, c_index: usize, l_index: usize) {
-        self.add_event(LoggerEvent::ParserNextChar(c, c_index, l_index));
+        self.set_event(LoggerEvent::ParserNextChar(c, c_index, l_index));
         self.write();
     }
 
     fn parser_in_parser(&mut self, parser_name: &str) {
-        self.add_event(LoggerEvent::ParserInParser(parser_name.to_string()));
+        self.set_event(LoggerEvent::ParserInParser(parser_name.to_string()));
         self.write();
     }
 
     fn parser_add_token(&mut self, token: &Token) {
-        self.add_event(LoggerEvent::ParserAddToken(token.clone()));
+        self.set_event(LoggerEvent::ParserAddToken(token.clone()));
         self.write();
     }
 
     fn parser_out_parser(&mut self, parser_name: &str) {
-        self.add_event(LoggerEvent::ParserOutParser(parser_name.to_string()));
+        self.set_event(LoggerEvent::ParserOutParser(parser_name.to_string()));
         self.write();
     }
 
     fn parser_end(&mut self) {
-        self.add_event(LoggerEvent::ParserEnd);
+        self.set_event(LoggerEvent::ParserEnd);
+        self.write();
+    }
+
+    fn builder_start(&mut self) {
+        self.set_event(LoggerEvent::BuilderStart);
+        self.write();
+    }
+
+    fn builder_end(&mut self) {
+        self.set_event(LoggerEvent::BuilderEnd);
         self.write();
     }
 }
