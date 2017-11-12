@@ -277,6 +277,33 @@ fn assign_conditional_true_false() {
 }
 
 #[test]
+fn nested_conditionial() {
+    let kscript = create("a = ? ?b==1| ? c== 2", VoidLogger::new(LoggerMode::Void));
+
+    let tokens = get_tokens(&kscript);
+
+    assert_eq!(tokens.len(), 3);
+    assert_eq!(tokens[0], Token::Var("a".to_string()));
+    assert_eq!(tokens[1], Token::Assign);
+    assert_eq!(
+        tokens[2],
+        Token::Conditional(
+            Box::new(Token::Conditional(
+                Box::new(Token::Var("b".to_string())),
+                Box::new(Token::Equals),
+                Box::new(Token::Integer(1)),
+            )),
+            Box::new(Token::Or),
+            Box::new(Token::Conditional(
+                Box::new(Token::Var("c".to_string())),
+                Box::new(Token::Equals),
+                Box::new(Token::Integer(2)),
+            )),
+        )
+    );
+}
+
+#[test]
 fn assign_loop_print() {
     let kscript = create(
         "a = 1; $a<5{a = (a + 1)} a > 1",
@@ -365,4 +392,14 @@ fn assign_system_command() {
     assert_eq!(tokens[6], Token::Var("b".to_string()));
     assert_eq!(tokens[7], Token::Assign);
     assert_eq!(tokens[8], Token::Integer(2));
+}
+
+#[test]
+fn assign_fucntion_run_output() {
+    let kscript = create(
+        "a = {|b, c| b = @[1]; c}; a|@[\"herp\", 'derp', %[\"key\": 1]], (1 + 2 * 4)| > 1",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let tokens = get_tokens(&kscript);
 }
