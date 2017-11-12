@@ -74,7 +74,9 @@ where
         )?;
 
         {
-            self.controller.get_logger_mut().parser_end();
+            let logger = self.controller.get_logger_mut();
+            logger.parser_end();
+            logger.parser_dump_tokens(token_container.get_tokens());
         }
 
 

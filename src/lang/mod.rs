@@ -44,9 +44,6 @@ where
             self.token_container = None;
             self.token_container = Some(parser_runner.run(text_str)?);
         }
-        if let Some(ref container) = self.token_container {
-            println!("{:#?}", container.get_tokens());
-        }
         {
             let mut builder_runner = BuilderRunner::new(&mut self.controller);
         }
