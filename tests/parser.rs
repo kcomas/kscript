@@ -446,3 +446,55 @@ fn assign_fucntion_run_output() {
     assert_eq!(tokens[5], Token::IoWrite);
     assert_eq!(tokens[6], Token::Integer(1));
 }
+
+#[test]
+fn var_assign_access() {
+    let kscript = create(
+        "a = @[3, 2, 1]; b = %[\"key\": \"value\"]; a[0] > 1; b[\"key\"] > 1",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let tokens = get_tokens(&kscript);
+
+    assert_eq!(tokens.len(), 15);
+    assert_eq!(tokens[0], Token::Var("a".to_string()));
+    assert_eq!(tokens[1], Token::Assign);
+    assert_eq!(
+        tokens[2],
+        Token::Array(vec![
+            Token::Integer(3),
+            Token::Integer(2),
+            Token::Integer(1),
+        ])
+    );
+    assert_eq!(tokens[3], Token::End);
+    assert_eq!(tokens[4], Token::Var("b".to_string()));
+    assert_eq!(tokens[5], Token::Assign);
+    assert_eq!(
+        tokens[6],
+        Token::Dict(
+            vec![Token::String("key".to_string())],
+            vec![Token::String("value".to_string())],
+        )
+    );
+    assert_eq!(tokens[7], Token::End);
+    assert_eq!(
+        tokens[8],
+        Token::ObjectAccess(
+            Box::new(Token::Var("a".to_string())),
+            Box::new(Token::Integer(0)),
+        )
+    );
+    assert_eq!(tokens[9], Token::IoWrite);
+    assert_eq!(tokens[10], Token::Integer(1));
+    assert_eq!(tokens[11], Token::End);
+    assert_eq!(
+        tokens[12],
+        Token::ObjectAccess(
+            Box::new(Token::Var("b".to_string())),
+            Box::new(Token::String("key".to_string())),
+        )
+    );
+    assert_eq!(tokens[13], Token::IoWrite);
+    assert_eq!(tokens[14], Token::Integer(1));
+}
