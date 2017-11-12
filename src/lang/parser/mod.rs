@@ -79,7 +79,6 @@ where
             logger.parser_dump_tokens(token_container.get_tokens());
         }
 
-
         Ok(token_container)
     }
 }
