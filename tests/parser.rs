@@ -402,4 +402,47 @@ fn assign_fucntion_run_output() {
     );
 
     let tokens = get_tokens(&kscript);
+
+    assert_eq!(tokens.len(), 7);
+    assert_eq!(tokens[0], Token::Var("a".to_string()));
+    assert_eq!(tokens[1], Token::Assign);
+    assert_eq!(
+        tokens[2],
+        Token::Function(
+            vec![Token::Var("b".to_string()), Token::Var("c".to_string())],
+            vec![
+                Token::Var("b".to_string()),
+                Token::Assign,
+                Token::Array(vec![Token::Integer(1)]),
+                Token::End,
+                Token::Var("c".to_string()),
+            ],
+        )
+    );
+    assert_eq!(tokens[3], Token::End);
+    assert_eq!(
+        tokens[4],
+        Token::FunctionCall(
+            Box::new(Token::Var("a".to_string())),
+            vec![
+                Token::Array(vec![
+                    Token::String("herp".to_string()),
+                    Token::File("derp".to_string()),
+                    Token::Dict(
+                        vec![Token::String("key".to_string())],
+                        vec![Token::Integer(1)]
+                    ),
+                ]),
+                Token::Math(vec![
+                    Token::Integer(1),
+                    Token::Addition,
+                    Token::Integer(2),
+                    Token::Multiply,
+                    Token::Integer(4),
+                ]),
+            ],
+        )
+    );
+    assert_eq!(tokens[5], Token::IoWrite);
+    assert_eq!(tokens[6], Token::Integer(1));
 }
