@@ -14,6 +14,7 @@ use super::util::{do_parse_single, do_parse, top_level_parsers};
 pub enum FunctionParserState {
     Nothing,
     MabeArguments,
+    DefArguments,
     LoadArguments,
     LoadBody,
 }
@@ -62,10 +63,11 @@ where
         char_container: &mut CharContainer,
         token_container: &mut TokenContainer,
     ) -> Result<bool, Error> {
-        while !parser_data.is_done() {
-            let mut arg_parsers: [Box<SubParser<T>>; 2] =
-                [Box::new(RefParser::new()), Box::new(VarParser::new())];
+        let mut arg_parsers: [Box<SubParser<T>>; 2] =
+            [Box::new(RefParser::new()), Box::new(VarParser::new_arg())];
 
+
+        while !parser_data.is_done() {
             let (c, ci, li) = parser_data.get_as_tuple();
             {
                 controller.get_logger_mut().parser_next_char(c, ci, li);
@@ -86,15 +88,24 @@ where
                             parser_data.inc_char();
                             FunctionParserState::MabeArguments
                         }
-                        '(' => {
+                        '|' => {
                             parser_data.inc_char();
                             FunctionParserState::LoadArguments
+                        }
+                        _ => return Err(Error::InvalidFunctionArguments(c, ci, li)),
+                    }
+                }
+                FunctionParserState::DefArguments => {
+                    match c {
+                        ' ' | '\n' => {
+                            parser_data.inc_char();
+                            FunctionParserState::DefArguments
                         }
                         ',' => {
                             parser_data.inc_char();
                             FunctionParserState::LoadArguments
                         }
-                        ')' => {
+                        '|' => {
                             parser_data.inc_char();
                             FunctionParserState::LoadBody
                         }
@@ -113,10 +124,15 @@ where
                     )?;
 
                     match used {
-                        true => FunctionParserState::MabeArguments,
+                        true => FunctionParserState::DefArguments,
                         false => {
-                            parser_data.inc_char();
-                            FunctionParserState::LoadArguments
+                            match parser_data.get_current_char() {
+                                '|' => FunctionParserState::DefArguments,
+                                _ => {
+                                    parser_data.inc_char();
+                                    FunctionParserState::LoadArguments
+                                }
+                            }
                         }
                     }
                 }

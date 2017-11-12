@@ -317,7 +317,7 @@ fn assign_loop_print() {
 #[test]
 fn var_assign_var_function() {
     let kscript = create(
-        "a = 1; b = { (a, &e, c) e = c; d }",
+        "a = 1; b = {|a, &e, c| e = c; d }",
         VoidLogger::new(LoggerMode::Void),
     );
 

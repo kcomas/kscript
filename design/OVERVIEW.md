@@ -52,11 +52,11 @@ An apl-ish scripting language to be used like bash
 
 ### Functions
 * Does not have access to the parent scope
-* Defined by ```{ (arguments) actions }```
+* Defined by ```{ |arguments| actions }```
 * Arguments are separated by comma
 * Can take in variables via reference or copy
-    * Eg ```(a, &b)``` a is passed by copy and b by reference
-* Are called by ```variable(args)```
+    * Eg ```|a, &b|``` a is passed by copy and b by reference
+* Are called by ```variable|args|```
 
 ### Variable Naming
 * Variable can only be named with alpha characters of upper or lower case

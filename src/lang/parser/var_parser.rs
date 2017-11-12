@@ -4,23 +4,37 @@ use super::token_container::TokenContainer;
 use super::parser_container::ParserContainer;
 use super::char_container::CharContainer;
 use super::sub_parser::SubParser;
+use super::function_call_parser::FunctionCallParser;
 use super::super::logger::Logger;
 use super::super::controller::Controller;
 use super::super::error::Error;
+use super::util::do_parse_single;
 
 pub enum VarParserState {
     Nothing,
     Variable,
     Constant,
+    FunctionCall,
 }
 
 pub struct VarParser {
     state: VarParserState,
+    load_calls: bool,
 }
 
 impl VarParser {
     pub fn new() -> VarParser {
-        VarParser { state: VarParserState::Nothing }
+        VarParser {
+            state: VarParserState::Nothing,
+            load_calls: true,
+        }
+    }
+
+    pub fn new_arg() -> VarParser {
+        VarParser {
+            state: VarParserState::Nothing,
+            load_calls: false,
+        }
     }
 }
 
@@ -79,6 +93,16 @@ where
                             VarParserState::Variable
                         }
                         'A'...'Z' => return Err(Error::InvalidVariableChar(c, ci, li)),
+                        '|' => {
+                            match self.load_calls {
+                                true => VarParserState::FunctionCall,
+                                false => {
+                                    let token = Token::Var(char_container.flush());
+                                    token_container.add_token(controller, token);
+                                    return Ok(false);
+                                }
+                            }
+                        }
                         _ => {
                             let token = Token::Var(char_container.flush());
                             token_container.add_token(controller, token);
@@ -94,12 +118,38 @@ where
                             VarParserState::Constant
                         }
                         'a'...'z' => return Err(Error::InvalidConstantChar(c, ci, li)),
+                        '|' => {
+                            match self.load_calls {
+                                true => VarParserState::FunctionCall,
+                                false => {
+                                    let token = Token::Const(char_container.flush());
+                                    token_container.add_token(controller, token);
+                                    return Ok(false);
+                                }
+                            }
+                        }
                         _ => {
                             let token = Token::Const(char_container.flush());
                             token_container.add_token(controller, token);
                             return Ok(false);
                         }
                     }
+                }
+                VarParserState::FunctionCall => {
+                    let mut call_parser: [Box<SubParser<T>>; 1] =
+                        [Box::new(FunctionCallParser::new())];
+
+                    let (_exit, _used) = do_parse_single(
+                        c,
+                        parser_data,
+                        controller,
+                        1,
+                        &mut call_parser,
+                        char_container,
+                        token_container,
+                    )?;
+
+                    return Ok(false);
                 }
             };
         }

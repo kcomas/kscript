@@ -131,6 +131,7 @@ pub fn object_value_parsers<T: Logger>() -> ([Box<SubParser<T>>; 11], usize) {
             Box::new(NumberParser::new()),
             Box::new(BoolParser::new()),
             Box::new(VarParser::new()),
+            Box::new(FunctionParser::new()),
             Box::new(MathParser::new()),
             Box::new(CommentParser::new()),
             Box::new(FileParser::new()),
@@ -138,7 +139,6 @@ pub fn object_value_parsers<T: Logger>() -> ([Box<SubParser<T>>; 11], usize) {
             Box::new(ConditionalParser::new()),
             Box::new(ArrayParser::new()),
             Box::new(DictParser::new()),
-            Box::new(FunctionParser::new()),
         ],
         11,
     )

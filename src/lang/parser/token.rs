@@ -40,5 +40,6 @@ pub enum Token {
     Loop(Box<Token>, Vec<Token>),
     Ref(Box<Token>),
     Function(Vec<Token>, Vec<Token>),
+    FunctionCall(Box<Token>, Vec<Token>),
     System(SystemCommand),
 }
