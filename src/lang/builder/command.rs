@@ -17,9 +17,11 @@ pub enum DataHolder {
 
 #[derive(Debug, Clone)]
 pub enum Command {
-    SetRegisterValue(DataHolder),
-    ClearRegitser,
-    Run,
-    Assign(DataHolder),
-    IoWrite(DataHolder),
+    AddRegister,
+    SetRegisterValue(usize, DataHolder),
+    ClearRegitsers,
+    // target source
+    Run(usize, usize),
+    Assign(DataHolder, usize),
+    IoWrite(DataHolder, usize),
 }
