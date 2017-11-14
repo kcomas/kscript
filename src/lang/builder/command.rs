@@ -4,6 +4,7 @@ pub enum DataType {
     Integer(i64),
     Float(f64),
     String(String),
+    File(String),
     Array(Vec<DataType>),
 }
 
@@ -15,13 +16,10 @@ pub enum DataHolder {
 }
 
 #[derive(Debug, Clone)]
-pub enum Action {
-    Declare(DataHolder),
-    Run(DataHolder),
-}
-
-#[derive(Debug, Clone)]
 pub enum Command {
-    DoAction(Action),
-    Assign(Action, Action),
+    SetRegisterValue(DataHolder),
+    ClearRegitser,
+    Run,
+    Assign(DataHolder),
+    IoWrite(DataHolder),
 }

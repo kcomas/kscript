@@ -47,6 +47,8 @@ pub enum Token {
     Function(Vec<Token>, Vec<Token>),
     FunctionCall(Box<Token>, Vec<Token>),
     System(SystemCommand),
+    // used to denote value in register
+    Reg,
 }
 
 impl Token {
