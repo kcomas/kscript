@@ -19,7 +19,6 @@ pub enum DataHolder {
 pub enum Command {
     AddRegister,
     SetRegisterValue(usize, DataHolder),
-    ClearRegitsers,
     // target source
     Run(usize, usize),
     Assign(DataHolder, usize),
