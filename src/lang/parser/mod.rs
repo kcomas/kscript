@@ -36,6 +36,7 @@ use self::parser_container::ParserContainer;
 use self::char_container::CharContainer;
 use super::error::Error;
 use self::util::{do_parse, top_level_parsers};
+use self::token::Token;
 
 pub struct ParserRunner<'a, T: Logger + 'a> {
     controller: &'a mut Controller<T>,
@@ -72,6 +73,12 @@ where
             &mut self.char_container,
             &mut token_container,
         )?;
+
+        {
+            token_container.add_token(&mut self.controller, Token::End);
+        }
+
+
 
         {
             let logger = self.controller.get_logger_mut();

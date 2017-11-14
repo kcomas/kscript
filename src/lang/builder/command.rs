@@ -5,22 +5,22 @@ pub enum DataType {
     Float(f64),
     String(String),
     File(String),
-    Array(Vec<DataType>),
 }
 
 #[derive(Debug, Clone)]
 pub enum DataHolder {
     Var(String),
     Const(String),
-    Annon(DataType),
+    Anon(DataType),
+    Array(Vec<DataHolder>),
 }
 
 #[derive(Debug, Clone)]
 pub enum Command {
-    AddRegister,
-    SetRegisterValue(usize, DataHolder),
+    SetRegister(usize, DataHolder),
+    ClearRegisters,
     // target source
     Run(usize, usize),
-    Assign(DataHolder, usize),
-    IoWrite(DataHolder, usize),
+    Assign(usize, usize),
+    IoWrite(usize, usize),
 }

@@ -1,4 +1,5 @@
 
+use super::super::builder::command::{DataType, DataHolder};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum SystemCommand {
@@ -66,6 +67,30 @@ impl Token {
             Token::Assign | Token::IoWrite => 1,
             Token::Run => 2,
             _ => 0,
+        }
+    }
+
+    pub fn set_as_register(&mut self, reg_counter: usize) {
+        *self = Token::Reg(reg_counter);
+    }
+
+    pub fn to_data_holder(&self) -> Option<DataHolder> {
+        match *self {
+            Token::Var(ref name) => Some(DataHolder::Var(name.clone())),
+            Token::Const(ref name) => Some(DataHolder::Const(name.clone())),
+            Token::String(ref string) => Some(DataHolder::Anon(DataType::String(string.clone()))),
+            Token::Integer(int) => Some(DataHolder::Anon(DataType::Integer(int))),
+            Token::Float(float) => Some(DataHolder::Anon(DataType::Float(float))),
+            Token::Array(ref arr) => {
+                let mut container: Vec<DataHolder> = Vec::new();
+                for token in arr.iter() {
+                    if let Some(item) = token.to_data_holder() {
+                        container.push(item);
+                    }
+                }
+                Some(DataHolder::Array(container))
+            }
+            _ => None,
         }
     }
 }
