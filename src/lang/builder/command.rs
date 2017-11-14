@@ -1,5 +1,4 @@
 
-
 #[derive(Debug, Clone)]
 pub enum DataType {
     Integer(i64),

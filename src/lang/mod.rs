@@ -14,7 +14,6 @@ use self::parser::token_container::TokenContainer;
 use self::error::Error;
 use self::util::load_file_to_string;
 
-#[derive(Debug)]
 pub struct Kscript<T: Logger> {
     controller: Controller<T>,
     token_container: Option<TokenContainer>,
@@ -46,6 +45,11 @@ where
         }
         {
             let mut builder_runner = BuilderRunner::new(&mut self.controller);
+            if let Some(ref mut token_container) = self.token_container {
+                builder_runner.run(token_container)?;
+            } else {
+                return Err(Error::ImpossibleState);
+            }
         }
         Ok(())
     }

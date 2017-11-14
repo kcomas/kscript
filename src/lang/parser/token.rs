@@ -48,3 +48,22 @@ pub enum Token {
     FunctionCall(Box<Token>, Vec<Token>),
     System(SystemCommand),
 }
+
+impl Token {
+    pub fn is_end(&self) -> bool {
+        match *self {
+            Token::End => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_operator_with_presedence(&self) -> u64 {
+        // if it is greater then zero it is an operator
+        // higher number is higher presedene
+        match *self {
+            Token::Assign | Token::IoWrite => 1,
+            Token::Run => 2,
+            _ => 0,
+        }
+    }
+}

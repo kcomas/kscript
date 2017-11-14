@@ -1,5 +1,6 @@
 
 use super::parser::token::Token;
+use super::builder::command::Command;
 
 #[derive(Debug, Clone)]
 pub enum LoggerMode {
@@ -11,7 +12,7 @@ pub enum LoggerMode {
 }
 
 #[derive(Debug, Clone)]
-pub enum LoggerEvent<'a, 'b, 'c, 'd> {
+pub enum LoggerEvent<'a, 'b, 'c, 'd, 'e> {
     ParserStart,
     // char, index, line
     ParserNextChar(char, usize, usize),
@@ -21,6 +22,7 @@ pub enum LoggerEvent<'a, 'b, 'c, 'd> {
     ParserDumpTokens(&'d Vec<Token>),
     ParserEnd,
     BuilderStart,
+    BuilderAddCommand(&'e Command),
     BuilderEnd,
 }
 
@@ -55,6 +57,8 @@ pub trait Logger {
     fn parser_end(&self) {}
 
     fn builder_start(&self) {}
+
+    fn builder_add_command(&self, _command: &Command) {}
 
     fn builder_end(&self) {}
 }
@@ -112,6 +116,10 @@ impl Logger for DebugLogger {
 
     fn builder_start(&self) {
         self.write(&LoggerEvent::BuilderStart);
+    }
+
+    fn builder_add_command(&self, command: &Command) {
+        self.write(&LoggerEvent::BuilderAddCommand(command));
     }
 
     fn builder_end(&self) {

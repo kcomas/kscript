@@ -3,7 +3,6 @@ use super::super::controller::Controller;
 use super::super::logger::Logger;
 use super::token::Token;
 
-#[derive(Debug)]
 pub struct TokenContainer {
     tokens: Vec<Token>,
     current_token: usize,
@@ -48,12 +47,23 @@ impl TokenContainer {
         self.tokens.get(i)
     }
 
+    pub fn get_mut(&mut self, i: usize) -> Option<&mut Token> {
+        self.tokens.get_mut(i)
+    }
+
     pub fn len(&self) -> usize {
         self.tokens.len()
     }
 
-    pub fn get_current_token(&self) -> Option<&Token> {
-        self.get(self.current_token)
+    pub fn get_current_token(&self) -> &Token {
+        match self.get(self.current_token) {
+            Some(ref token) => token,
+            None => &Token::Used,
+        }
+    }
+
+    pub fn is_current_token_end(&self) -> bool {
+        self.get_current_token().is_end()
     }
 
     pub fn inc_token(&mut self) {
@@ -64,5 +74,13 @@ impl TokenContainer {
         if !self.is_done() {
             self.tokens[self.current_token] = Token::Used;
         }
+    }
+
+    pub fn reset(&mut self) {
+        self.current_token = 0;
+    }
+
+    pub fn current_position(&self) -> usize {
+        self.current_token
     }
 }
