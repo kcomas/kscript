@@ -498,3 +498,35 @@ fn var_assign_access() {
     assert_eq!(tokens[13], Token::IoWrite);
     assert_eq!(tokens[14], Token::Integer(1));
 }
+
+#[test]
+fn assign_run_io_out() {
+    let kscript = create(
+        "a = !@[\"ls\", \"-lh\"]; a[1] > 1",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let tokens = get_tokens(&kscript);
+
+    assert_eq!(tokens.len(), 8);
+    assert_eq!(tokens[0], Token::Var("a".to_string()));
+    assert_eq!(tokens[1], Token::Assign);
+    assert_eq!(tokens[2], Token::Run);
+    assert_eq!(
+        tokens[3],
+        Token::Array(vec![
+            Token::String("ls".to_string()),
+            Token::String("-lh".to_string()),
+        ])
+    );
+    assert_eq!(tokens[4], Token::End);
+    assert_eq!(
+        tokens[5],
+        Token::ObjectAccess(
+            Box::new(Token::Var("a".to_string())),
+            Box::new(Token::Integer(1)),
+        )
+    );
+    assert_eq!(tokens[6], Token::IoWrite);
+    assert_eq!(tokens[7], Token::Integer(1));
+}

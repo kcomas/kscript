@@ -15,7 +15,7 @@ impl ParserContainer {
     }
 
     pub fn is_done(&self) -> bool {
-        self.current_char == self.text_vec.len() + 1
+        self.current_char >= self.text_vec.len() + 1
     }
 
     pub fn get_as_tuple(&self) -> (char, usize, usize) {

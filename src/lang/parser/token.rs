@@ -7,12 +7,14 @@ pub enum SystemCommand {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Token {
+    Used,
     End,
     Const(String),
     Var(String),
     Integer(i64),
     Float(f64),
     Assign,
+    Run,
     Addition,
     Subtract,
     Multiply,

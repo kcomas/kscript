@@ -127,6 +127,13 @@ An apl-ish scripting language to be used like bash
 ### Less then or equal to \<=
 * Only applies to numbers
 
+## Single Commands
+* Takes single argument
+
+### Run Commands ! @["commands", "...args"]
+* Take an array of the command and the args and run
+* Returns an array of [exit_code, STDOUT, STDERR]
+
 ## If statement
 * ```?comparision{true statments}{false statements}```
 * ```?comparision```
