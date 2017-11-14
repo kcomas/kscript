@@ -38,11 +38,7 @@ where
     }
 
     pub fn run(&mut self, text_str: &str) -> Result<(), Error> {
-        {
-            let mut parser_runner = ParserRunner::new(&mut self.controller);
-            self.token_container = None;
-            self.token_container = Some(parser_runner.run(text_str)?);
-        }
+        self.run_build_tokens(text_str)?;
         {
             let mut builder_runner = BuilderRunner::new(&mut self.controller);
             if let Some(ref mut token_container) = self.token_container {
@@ -59,5 +55,12 @@ where
             Ok(ref file_string) => self.run(file_string),
             Err(file_error) => Err(Error::FileLoadFail(file_error)),
         }
+    }
+
+    pub fn run_build_tokens(&mut self, text_str: &str) -> Result<(), Error> {
+        let mut parser_runner = ParserRunner::new(&mut self.controller);
+        self.token_container = None;
+        self.token_container = Some(parser_runner.run(text_str)?);
+        Ok(())
     }
 }

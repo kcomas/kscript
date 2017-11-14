@@ -7,7 +7,7 @@ use kscript::lang::parser::token::{Token, SystemCommand};
 
 fn create<T: Logger>(program: &str, logger: T) -> Kscript<T> {
     let mut kscript = Kscript::new(logger);
-    if let Err(kerror) = kscript.run(program) {
+    if let Err(kerror) = kscript.run_build_tokens(program) {
         panic!("{:?}", kerror);
     }
     kscript
