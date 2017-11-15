@@ -60,15 +60,7 @@ where
 
         if let Some(token) = token_container.get_slice_token_mut() {
             *token = Token::Used;
-            {
-                command_container.add_command(
-                    controller,
-                    Command::Assign(
-                        left_counter,
-                        right_counter,
-                    ),
-                );
-            }
+            command_container.add_command(controller, Command::Assign(left_counter, right_counter));
             return Ok(());
         }
 

@@ -44,15 +44,7 @@ where
     ) -> Result<(), Error> {
         // check the token to the right
         if let Some(reg_counter) = token_container.get_right_register_and_use() {
-            {
-                command_container.add_command(
-                    controller,
-                    Command::Run(
-                        *current_register,
-                        reg_counter,
-                    ),
-                );
-            }
+            command_container.add_command(controller, Command::Run(*current_register, reg_counter));
         } else {
             return Err(Error::InvalidRightRegisterAccess);
         }
