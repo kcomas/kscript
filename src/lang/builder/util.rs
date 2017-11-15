@@ -8,6 +8,7 @@ use super::command::Command;
 use super::sub_builder::SubBuilder;
 use super::single_command_builder::SingleCommandBuilder;
 use super::double_command_builder::DoubleCommandBuilder;
+use super::io_builder::IoBuilder;
 
 pub fn set_type_registers<T: Logger>(
     controller: &mut Controller<T>,
@@ -93,12 +94,32 @@ pub fn set_operator_registers<T: Logger>(
     Ok(())
 }
 
-pub fn top_level_builders<T: Logger>() -> ([Box<SubBuilder<T>>; 2], usize) {
+pub fn top_level_builders<T: Logger>() -> ([Box<SubBuilder<T>>; 3], usize) {
     (
         [
             Box::new(SingleCommandBuilder::new()),
             Box::new(DoubleCommandBuilder::new()),
+            Box::new(IoBuilder::new()),
         ],
-        2,
+        3,
     )
+}
+
+pub fn get_left_and_right(token_container: &mut TokenContainer) -> Result<(usize, usize), Error> {
+    let left_counter;
+    let right_counter;
+
+    if let Some(reg_counter) = token_container.get_right_register_and_use() {
+        right_counter = reg_counter;
+    } else {
+        return Err(Error::InvalidRightRegisterAccess);
+    }
+
+    if let Some(reg_counter) = token_container.get_left_register_and_use() {
+        left_counter = reg_counter;
+    } else {
+        return Err(Error::InvalidLeftRegisterAccess);
+    }
+
+    Ok((left_counter, right_counter))
 }

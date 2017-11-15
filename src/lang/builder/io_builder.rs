@@ -9,21 +9,21 @@ use super::sub_builder::SubBuilder;
 use super::command::Command;
 use super::util::get_left_and_right;
 
-pub struct DoubleCommandBuilder {}
+pub struct IoBuilder {}
 
-impl DoubleCommandBuilder {
-    pub fn new() -> DoubleCommandBuilder {
-        DoubleCommandBuilder {}
+impl IoBuilder {
+    pub fn new() -> IoBuilder {
+        IoBuilder {}
     }
 }
 
-impl<T> SubBuilder<T> for DoubleCommandBuilder
+impl<T> SubBuilder<T> for IoBuilder
 where
     T: Logger,
 {
     fn check(&self, token: &Token) -> bool {
         match *token {
-            Token::Assign => true,
+            Token::IoWrite => true,
             _ => false,
         }
     }
@@ -33,7 +33,7 @@ where
     }
 
     fn identify(&self) -> &str {
-        "Assign Builder"
+        "Io Builder"
     }
 
     fn build(
@@ -48,11 +48,11 @@ where
 
         if let Some(token) = token_container.get_slice_token_mut() {
             match *token {
-                Token::Assign => {
+                Token::IoWrite => {
                     *token = Token::Used;
                     command_container.add_command(
                         controller,
-                        Command::Assign(
+                        Command::IoWrite(
                             left_counter,
                             right_counter,
                         ),
@@ -62,6 +62,7 @@ where
             }
             return Ok(());
         }
+
         Err(Error::TokenMismatch)
     }
 }
