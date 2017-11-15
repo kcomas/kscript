@@ -39,8 +39,13 @@ where
             // check if the token is an operator
             if token_container.is_current_token_end() {
                 token_container.update_slice_end();
-                let mut current_register =
-                    set_type_registers(self.controller, token_container, &mut command_container)?;
+                let mut current_register: usize = 0;
+                set_type_registers(
+                    self.controller,
+                    token_container,
+                    &mut command_container,
+                    &mut current_register,
+                )?;
                 token_container.reset_slice_position();
                 // set operators
                 set_operator_registers(

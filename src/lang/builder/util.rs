@@ -13,8 +13,8 @@ pub fn set_type_registers<T: Logger>(
     controller: &mut Controller<T>,
     token_container: &mut TokenContainer,
     command_container: &mut CommandContainer,
-) -> Result<usize, Error> {
-    let mut current_register: usize = 0;
+    current_register: &mut usize,
+) -> Result<(), Error> {
     while token_container.in_slice() {
         if let Some(ref mut token) = token_container.get_slice_token_mut() {
             {
@@ -23,15 +23,15 @@ pub fn set_type_registers<T: Logger>(
             if let Some(data_holder) = token.to_data_holder() {
                 command_container.add_command(
                     controller,
-                    Command::SetRegister(current_register, data_holder),
+                    Command::SetRegister(*current_register, data_holder),
                 );
-                token.set_as_register(current_register);
-                current_register += 1;
+                token.set_as_register(*current_register);
+                *current_register += 1;
             }
         }
         token_container.inc_slice_position();
     }
-    Ok(current_register)
+    Ok(())
 }
 
 pub fn set_operator_registers<T: Logger>(
