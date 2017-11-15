@@ -64,8 +64,8 @@ where
                 command_container.add_command(
                     controller,
                     Command::Assign(
-                        right_counter,
                         left_counter,
+                        right_counter,
                     ),
                 );
             }
