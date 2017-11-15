@@ -21,12 +21,10 @@ pub fn set_type_registers<T: Logger>(
                 controller.get_logger_mut().builder_check_token(token);
             }
             if let Some(data_holder) = token.to_data_holder() {
-                {
-                    command_container.add_command(
-                        controller,
-                        Command::SetRegister(current_register, data_holder),
-                    );
-                }
+                command_container.add_command(
+                    controller,
+                    Command::SetRegister(current_register, data_holder),
+                );
                 token.set_as_register(current_register);
                 current_register += 1;
             }
