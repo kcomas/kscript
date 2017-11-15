@@ -12,7 +12,7 @@ use super::logger::Logger;
 use super::error::Error;
 use super::parser::token_container::TokenContainer;
 use self::command_container::CommandContainer;
-use self::util::{set_type_registers, set_operator_registers, top_level_builders};
+use self::util::{create_commands, top_level_builders};
 
 pub struct BuilderRunner<'a, T: Logger + 'a> {
     controller: &'a mut Controller<T>,
@@ -37,32 +37,13 @@ where
 
         let mut current_register: usize = 0;
 
-        while !token_container.is_done() {
-            // check if the token is an operator
-            if token_container.is_current_token_end() {
-                token_container.update_slice_end();
-                set_type_registers(
-                    self.controller,
-                    token_container,
-                    &mut command_container,
-                    &mut current_register,
-                )?;
-                token_container.reset_slice_position();
-                // set operators
-                set_operator_registers(
-                    self.controller,
-                    token_container,
-                    &mut command_container,
-                    &mut current_register,
-                    &mut builders,
-                )?;
-                token_container.set_current_end_as_used();
-                // skip the used
-                token_container.inc_token();
-                token_container.update_slice_start();
-            }
-            token_container.inc_token();
-        }
+        create_commands(
+            &mut self.controller,
+            token_container,
+            &mut command_container,
+            &mut current_register,
+            &mut builders,
+        )?;
 
         {
             let logger = self.controller.get_logger_mut();

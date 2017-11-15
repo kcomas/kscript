@@ -97,6 +97,47 @@ pub fn set_operator_registers<T: Logger>(
     Ok(())
 }
 
+pub fn create_commands<T: Logger>(
+    controller: &mut Controller<T>,
+    token_container: &mut TokenContainer,
+    command_container: &mut CommandContainer,
+    current_register: &mut usize,
+    builders: &mut [Box<SubBuilder<T>>],
+) -> Result<(), Error> {
+    while !token_container.is_done() {
+        // check if the token is an operator
+        if token_container.is_current_token_end() {
+            token_container.update_slice_end();
+            set_type_registers(
+                controller,
+                token_container,
+                command_container,
+                current_register,
+            )?;
+            token_container.reset_slice_position();
+            // set operators
+            set_operator_registers(
+                controller,
+                token_container,
+                command_container,
+                current_register,
+                builders,
+            )?;
+            // check if the last command is a clear
+            if !command_container.is_last_clear() {
+                command_container.add_command(controller, Command::ClearRegisters);
+            }
+            token_container.set_current_end_as_used();
+            // skip the used
+            token_container.inc_token();
+            token_container.update_slice_start();
+        }
+        token_container.inc_token();
+    }
+    Ok(())
+}
+
+
 pub fn top_level_builders<T: Logger>() -> [Box<SubBuilder<T>>; 3] {
     [
         Box::new(SingleCommandBuilder::new()),

@@ -22,4 +22,14 @@ impl CommandContainer {
     pub fn get_commands(&self) -> &Vec<Command> {
         &self.commands
     }
+
+    pub fn is_last_clear(&self) -> bool {
+        if let Some(command) = self.commands.last() {
+            return match *command {
+                Command::ClearRegisters => true,
+                _ => false,
+            };
+        };
+        false
+    }
 }
