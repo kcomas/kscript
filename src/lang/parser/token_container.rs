@@ -102,7 +102,7 @@ impl TokenContainer {
     }
 
     pub fn in_slice(&self) -> bool {
-        self.current_slice.position < self.current_slice.end
+        self.current_slice.position <= self.current_slice.end
     }
 
     pub fn get_slice_token(&self) -> Option<&Token> {
