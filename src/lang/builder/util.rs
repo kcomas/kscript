@@ -6,7 +6,7 @@ use super::super::parser::token_container::TokenContainer;
 use super::command_container::CommandContainer;
 use super::command::Command;
 use super::sub_builder::SubBuilder;
-use super::run_builder::RunBuilder;
+use super::single_command_builder::SingleCommandBuilder;
 use super::assign_builder::AssignBuilder;
 
 pub fn set_type_registers<T: Logger>(
@@ -95,7 +95,10 @@ pub fn set_operator_registers<T: Logger>(
 
 pub fn top_level_builders<T: Logger>() -> ([Box<SubBuilder<T>>; 2], usize) {
     (
-        [Box::new(RunBuilder::new()), Box::new(AssignBuilder::new())],
+        [
+            Box::new(SingleCommandBuilder::new()),
+            Box::new(AssignBuilder::new()),
+        ],
         2,
     )
 }

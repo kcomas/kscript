@@ -1,4 +1,3 @@
-
 use super::super::parser::token::Token;
 use super::super::parser::token_container::TokenContainer;
 use super::command_container::CommandContainer;
@@ -8,15 +7,15 @@ use super::super::error::Error;
 use super::sub_builder::SubBuilder;
 use super::command::Command;
 
-pub struct RunBuilder {}
+pub struct SingleCommandBuilder {}
 
-impl RunBuilder {
-    pub fn new() -> RunBuilder {
-        RunBuilder {}
+impl SingleCommandBuilder {
+    pub fn new() -> SingleCommandBuilder {
+        SingleCommandBuilder {}
     }
 }
 
-impl<T> SubBuilder<T> for RunBuilder
+impl<T> SubBuilder<T> for SingleCommandBuilder
 where
     T: Logger,
 {

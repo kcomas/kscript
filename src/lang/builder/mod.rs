@@ -2,7 +2,7 @@
 pub mod command;
 pub mod command_container;
 pub mod sub_builder;
-pub mod run_builder;
+pub mod single_command_builder;
 pub mod assign_builder;
 mod util;
 
