@@ -18,4 +18,8 @@ impl CommandContainer {
         }
         self.commands.push(command);
     }
+
+    pub fn get_commands(&self) -> &Vec<Command> {
+        &self.commands
+    }
 }

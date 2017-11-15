@@ -12,19 +12,22 @@ pub enum LoggerMode {
 }
 
 #[derive(Debug, Clone)]
-pub enum LoggerEvent<'a, 'b, 'c, 'd, 'e, 'f> {
+pub enum LoggerEvent<'a, 'b, 'c, 'd, 'e, 'f, 'g, 'h, 'i> {
     ParserStart,
     // char, index, line
     ParserNextChar(char, usize, usize),
     ParserInParser(&'a str),
     ParserOutParser(&'b str),
     ParserAddToken(&'c Token),
-    ParserDumpTokens(&'d Vec<Token>),
     ParserEnd,
+    ParserDumpTokens(&'d Vec<Token>),
     BuilderStart,
-    BuilderCheckToken(&'e Token),
-    BuilderAddCommand(&'f Command),
+    BuilderInBuilder(&'e str),
+    BuilderOutBuilder(&'f str),
+    BuilderCheckToken(&'g Token),
+    BuilderAddCommand(&'h Command),
     BuilderEnd,
+    BuilderDumpCommands(&'i Vec<Command>),
 }
 
 pub trait Logger {
@@ -53,17 +56,23 @@ pub trait Logger {
 
     fn parser_out_parser(&self, _parser_name: &str) {}
 
-    fn parser_dump_tokens(&self, _tokens: &Vec<Token>) {}
-
     fn parser_end(&self) {}
 
+    fn parser_dump_tokens(&self, _tokens: &Vec<Token>) {}
+
     fn builder_start(&self) {}
+
+    fn builder_in_builder(&self, _builder_name: &str) {}
 
     fn builder_check_token(&self, _token: &Token) {}
 
     fn builder_add_command(&self, _command: &Command) {}
 
+    fn builder_out_builder(&self, _builder_name: &str) {}
+
     fn builder_end(&self) {}
+
+    fn builder_dump_commands(&self, _commands: &Vec<Command>) {}
 }
 
 #[derive(Debug)]
@@ -109,16 +118,20 @@ impl Logger for DebugLogger {
         self.write(&LoggerEvent::ParserOutParser(parser_name));
     }
 
-    fn parser_dump_tokens(&self, tokens: &Vec<Token>) {
-        self.write(&LoggerEvent::ParserDumpTokens(tokens));
-    }
-
     fn parser_end(&self) {
         self.write(&LoggerEvent::ParserEnd);
     }
 
+    fn parser_dump_tokens(&self, tokens: &Vec<Token>) {
+        self.write(&LoggerEvent::ParserDumpTokens(tokens));
+    }
+
     fn builder_start(&self) {
         self.write(&LoggerEvent::BuilderStart);
+    }
+
+    fn builder_in_builder(&self, builder_name: &str) {
+        self.write(&LoggerEvent::BuilderInBuilder(builder_name));
     }
 
     fn builder_check_token(&self, token: &Token) {
@@ -129,7 +142,15 @@ impl Logger for DebugLogger {
         self.write(&LoggerEvent::BuilderAddCommand(command));
     }
 
+    fn builder_out_builder(&self, builder_name: &str) {
+        self.write(&LoggerEvent::BuilderOutBuilder(builder_name));
+    }
+
     fn builder_end(&self) {
         self.write(&LoggerEvent::BuilderEnd);
+    }
+
+    fn builder_dump_commands(&self, commands: &Vec<Command>) {
+        self.write(&LoggerEvent::BuilderDumpCommands(commands));
     }
 }

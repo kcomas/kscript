@@ -24,4 +24,7 @@ pub enum Error {
     InvalidPass(char, usize, usize),
     InvalidFunctionCall(char, usize, usize),
     InvalidObjectAccess(char, usize, usize),
+    InvalidTokenAccess,
+    TokenMismatch,
+    InvalidRegisterAccess,
 }

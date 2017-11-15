@@ -78,8 +78,6 @@ where
             token_container.add_token(&mut self.controller, Token::End);
         }
 
-
-
         {
             let logger = self.controller.get_logger_mut();
             logger.parser_end();

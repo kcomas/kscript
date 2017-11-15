@@ -74,6 +74,13 @@ impl Token {
         *self = Token::Reg(reg_counter);
     }
 
+    pub fn is_register(&self) -> Option<usize> {
+        match *self {
+            Token::Reg(reg_counter) => Some(reg_counter),
+            _ => None,
+        }
+    }
+
     pub fn to_data_holder(&self) -> Option<DataHolder> {
         match *self {
             Token::Var(ref name) => Some(DataHolder::Var(name.clone())),
@@ -89,6 +96,17 @@ impl Token {
                     }
                 }
                 Some(DataHolder::Array(container))
+            }
+            Token::ObjectAccess(ref target, ref accessor) => {
+                let t_holder = target.to_data_holder();
+                let a_holder = accessor.to_data_holder();
+                if t_holder.is_some() && a_holder.is_some() {
+                    return Some(DataHolder::ObjectAccess(
+                        Box::new(t_holder.unwrap()),
+                        Box::new(a_holder.unwrap()),
+                    ));
+                }
+                None
             }
             _ => None,
         }

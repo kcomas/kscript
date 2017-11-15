@@ -13,6 +13,7 @@ pub enum DataHolder {
     Const(String),
     Anon(DataType),
     Array(Vec<DataHolder>),
+    ObjectAccess(Box<DataHolder>, Box<DataHolder>),
 }
 
 #[derive(Debug, Clone)]

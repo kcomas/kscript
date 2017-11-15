@@ -105,6 +105,11 @@ impl TokenContainer {
         self.current_slice.position < self.current_slice.end
     }
 
+    pub fn get_slice_token(&self) -> Option<&Token> {
+        let pos = self.current_slice.position;
+        self.get(pos)
+    }
+
     pub fn get_slice_token_mut(&mut self) -> Option<&mut Token> {
         let pos = self.current_slice.position;
         self.get_mut(pos)
@@ -112,5 +117,17 @@ impl TokenContainer {
 
     pub fn inc_slice_position(&mut self) {
         self.current_slice.position += 1;
+    }
+
+    pub fn get_right_register_and_use(&mut self) -> Option<usize> {
+        // get the right value if register and set to used
+        let pos = self.current_slice.position + 1;
+        if let Some(token) = self.get_mut(pos) {
+            if let Some(reg_counter) = token.is_register() {
+                *token = Token::Used;
+                return Some(reg_counter);
+            }
+        }
+        None
     }
 }
