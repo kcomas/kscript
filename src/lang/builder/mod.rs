@@ -11,9 +11,7 @@ use super::logger::Logger;
 use super::error::Error;
 use super::parser::token_container::TokenContainer;
 use self::command_container::CommandContainer;
-use self::util::{set_type_registers, set_operator_registers};
-use self::sub_builder::SubBuilder;
-use self::run_builder::RunBuilder;
+use self::util::{set_type_registers, set_operator_registers, top_level_builders};
 use self::command::Command;
 
 pub struct BuilderRunner<'a, T: Logger + 'a> {
@@ -35,7 +33,7 @@ where
 
         let mut command_container = CommandContainer::new();
 
-        let mut builders: [Box<SubBuilder<T>>; 1] = [Box::new(RunBuilder::new())];
+        let (mut builders, num_builders) = top_level_builders();
 
         while !token_container.is_done() {
             // check if the token is an operator
@@ -51,7 +49,7 @@ where
                     &mut command_container,
                     &mut current_register,
                     &mut builders,
-                    1,
+                    num_builders,
                 )?;
                 {
                     command_container.add_command(self.controller, Command::ClearRegisters);

@@ -26,5 +26,6 @@ pub enum Error {
     InvalidObjectAccess(char, usize, usize),
     InvalidTokenAccess,
     TokenMismatch,
-    InvalidRegisterAccess,
+    InvalidRightRegisterAccess,
+    InvalidLeftRegisterAccess,
 }

@@ -53,12 +53,12 @@ where
                     ),
                 );
             }
-            *current_register += 1;
         } else {
-            return Err(Error::InvalidRegisterAccess);
+            return Err(Error::InvalidRightRegisterAccess);
         }
-        if let Some(ref mut token) = token_container.get_slice_token_mut() {
+        if let Some(token) = token_container.get_slice_token_mut() {
             token.set_as_register(*current_register);
+            *current_register += 1;
             return Ok(());
         }
         Err(Error::TokenMismatch)
