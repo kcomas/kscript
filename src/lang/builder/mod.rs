@@ -33,7 +33,7 @@ where
 
         let mut command_container = CommandContainer::new();
 
-        let (mut builders, num_builders) = top_level_builders();
+        let mut builders = top_level_builders();
 
         let mut current_register: usize = 0;
 
@@ -55,7 +55,6 @@ where
                     &mut command_container,
                     &mut current_register,
                     &mut builders,
-                    num_builders,
                 )?;
                 token_container.set_current_end_as_used();
                 // skip the used

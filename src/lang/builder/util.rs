@@ -41,14 +41,13 @@ pub fn set_operator_registers<T: Logger>(
     command_container: &mut CommandContainer,
     current_register: &mut usize,
     builders: &mut [Box<SubBuilder<T>>],
-    num_builders: usize,
 ) -> Result<(), Error> {
     loop {
         let mut highest_presedence: u64 = 0;
         let mut builder_presedence_index: usize = 0;
         let mut token_index: usize = 0;
         while token_container.in_slice() {
-            for i in 0..num_builders {
+            for i in 0..builders.len() {
                 if let Some(ref token) = token_container.get_slice_token() {
                     if builders[i].check(token) {
                         let pres = builders[i].presedence();
@@ -98,15 +97,12 @@ pub fn set_operator_registers<T: Logger>(
     Ok(())
 }
 
-pub fn top_level_builders<T: Logger>() -> ([Box<SubBuilder<T>>; 3], usize) {
-    (
-        [
-            Box::new(SingleCommandBuilder::new()),
-            Box::new(DoubleCommandBuilder::new()),
-            Box::new(IoBuilder::new()),
-        ],
-        3,
-    )
+pub fn top_level_builders<T: Logger>() -> [Box<SubBuilder<T>>; 3] {
+    [
+        Box::new(SingleCommandBuilder::new()),
+        Box::new(DoubleCommandBuilder::new()),
+        Box::new(IoBuilder::new()),
+    ]
 }
 
 pub fn get_left_and_right(token_container: &mut TokenContainer) -> Result<(usize, usize), Error> {

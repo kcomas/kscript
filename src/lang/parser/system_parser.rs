@@ -88,10 +88,9 @@ where
                         c,
                         parser_data,
                         controller,
-                        1,
-                        &mut number_parser,
                         char_container,
                         &mut self.command_container,
+                        &mut number_parser,
                     )?;
 
                     match used {

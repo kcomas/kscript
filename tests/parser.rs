@@ -25,7 +25,7 @@ fn var_assign_integer() {
 
     let tokens = get_tokens(&kscript);
 
-    assert_eq!(tokens.len(), 3);
+    assert_eq!(tokens.len(), 4);
     assert_eq!(tokens[0], Token::Var("test".to_string()));
     assert_eq!(tokens[1], Token::Assign);
     assert_eq!(tokens[2], Token::Integer(1234));
@@ -37,7 +37,7 @@ fn constant_assign_float() {
 
     let tokens = get_tokens(&kscript);
 
-    assert_eq!(tokens.len(), 3);
+    assert_eq!(tokens.len(), 4);
     assert_eq!(tokens[0], Token::Const("TEST".to_string()));
     assert_eq!(tokens[1], Token::Assign);
     assert_eq!(tokens[2], Token::Float(1234.123));
@@ -52,7 +52,7 @@ fn var_assign_math() {
 
     let tokens = get_tokens(&kscript);
 
-    assert_eq!(tokens.len(), 3);
+    assert_eq!(tokens.len(), 4);
     assert_eq!(tokens[0], Token::Var("a".to_string()));
     assert_eq!(tokens[1], Token::Assign);
     assert_eq!(
@@ -83,7 +83,7 @@ fn math_io_integer() {
 
     let tokens = get_tokens(&kscript);
 
-    assert_eq!(tokens.len(), 3);
+    assert_eq!(tokens.len(), 4);
     assert_eq!(
         tokens[0],
         Token::Math(vec![Token::Integer(2), Token::Multiply, Token::Integer(3)])
@@ -101,7 +101,7 @@ fn comment_op_comment() {
 
     let tokens = get_tokens(&kscript);
 
-    assert_eq!(tokens.len(), 5);
+    assert_eq!(tokens.len(), 6);
     assert_eq!(tokens[0], Token::Comment(" this is a comment".to_string()));
     assert_eq!(tokens[1], Token::Var("a".to_string()));
     assert_eq!(tokens[2], Token::Assign);
@@ -115,7 +115,7 @@ fn var_assign_file() {
 
     let tokens = get_tokens(&kscript);
 
-    assert_eq!(tokens.len(), 3);
+    assert_eq!(tokens.len(), 4);
     assert_eq!(tokens[0], Token::Var("myfile".to_string()));
     assert_eq!(tokens[1], Token::Assign);
     assert_eq!(tokens[2], Token::File("hello".to_string()));
@@ -127,7 +127,7 @@ fn var_assign_string() {
 
     let tokens = get_tokens(&kscript);
 
-    assert_eq!(tokens.len(), 3);
+    assert_eq!(tokens.len(), 4);
     assert_eq!(tokens[0], Token::Var("mystr".to_string()));
     assert_eq!(tokens[1], Token::Assign);
     assert_eq!(tokens[2], Token::String("test # str".to_string()));
@@ -142,7 +142,7 @@ fn var_assign_array() {
 
     let tokens = get_tokens(&kscript);
 
-    assert_eq!(tokens.len(), 3);
+    assert_eq!(tokens.len(), 4);
     assert_eq!(tokens[0], Token::Var("a".to_string()));
     assert_eq!(tokens[1], Token::Assign);
     assert_eq!(
@@ -174,7 +174,7 @@ fn var_assign_dict() {
 
     let tokens = get_tokens(&kscript);
 
-    assert_eq!(tokens.len(), 3);
+    assert_eq!(tokens.len(), 4);
     assert_eq!(tokens[0], Token::Var("d".to_string()));
     assert_eq!(tokens[1], Token::Assign);
     assert_eq!(
@@ -209,7 +209,7 @@ fn var_assign_bool_const_assign_bool() {
 
     let tokens = get_tokens(&kscript);
 
-    assert_eq!(tokens.len(), 7);
+    assert_eq!(tokens.len(), 8);
     assert_eq!(tokens[0], Token::Var("test".to_string()));
     assert_eq!(tokens[1], Token::Assign);
     assert_eq!(tokens[2], Token::Bool(true));
@@ -228,7 +228,7 @@ fn vars_const_with_numbers() {
 
     let tokens = get_tokens(&kscript);
 
-    assert_eq!(tokens.len(), 11);
+    assert_eq!(tokens.len(), 12);
     assert_eq!(tokens[0], Token::Var("py3".to_string()));
     assert_eq!(tokens[1], Token::Assign);
     assert_eq!(tokens[2], Token::Integer(3));
@@ -251,7 +251,7 @@ fn assign_conditional_true_false() {
 
     let tokens = get_tokens(&kscript);
 
-    assert_eq!(tokens.len(), 3);
+    assert_eq!(tokens.len(), 4);
     assert_eq!(tokens[0], Token::Var("a".to_string()));
     assert_eq!(tokens[1], Token::Assign);
     assert_eq!(
@@ -282,7 +282,7 @@ fn nested_conditionial() {
 
     let tokens = get_tokens(&kscript);
 
-    assert_eq!(tokens.len(), 3);
+    assert_eq!(tokens.len(), 4);
     assert_eq!(tokens[0], Token::Var("a".to_string()));
     assert_eq!(tokens[1], Token::Assign);
     assert_eq!(
@@ -312,7 +312,7 @@ fn assign_loop_print() {
 
     let tokens = get_tokens(&kscript);
 
-    assert_eq!(tokens.len(), 8);
+    assert_eq!(tokens.len(), 9);
     assert_eq!(tokens[0], Token::Var("a".to_string()));
     assert_eq!(tokens[1], Token::Assign);
     assert_eq!(tokens[2], Token::Integer(1));
@@ -350,7 +350,7 @@ fn var_assign_var_function() {
 
     let tokens = get_tokens(&kscript);
 
-    assert_eq!(tokens.len(), 7);
+    assert_eq!(tokens.len(), 8);
     assert_eq!(tokens[0], Token::Var("a".to_string()));
     assert_eq!(tokens[1], Token::Assign);
     assert_eq!(tokens[2], Token::Integer(1));
@@ -382,7 +382,7 @@ fn assign_system_command() {
 
     let tokens = get_tokens(&kscript);
 
-    assert_eq!(tokens.len(), 9);
+    assert_eq!(tokens.len(), 10);
     assert_eq!(tokens[0], Token::Var("a".to_string()));
     assert_eq!(tokens[1], Token::Assign);
     assert_eq!(tokens[2], Token::Integer(1));
@@ -403,7 +403,7 @@ fn assign_fucntion_run_output() {
 
     let tokens = get_tokens(&kscript);
 
-    assert_eq!(tokens.len(), 7);
+    assert_eq!(tokens.len(), 8);
     assert_eq!(tokens[0], Token::Var("a".to_string()));
     assert_eq!(tokens[1], Token::Assign);
     assert_eq!(
@@ -456,7 +456,7 @@ fn var_assign_access() {
 
     let tokens = get_tokens(&kscript);
 
-    assert_eq!(tokens.len(), 15);
+    assert_eq!(tokens.len(), 16);
     assert_eq!(tokens[0], Token::Var("a".to_string()));
     assert_eq!(tokens[1], Token::Assign);
     assert_eq!(
@@ -508,7 +508,7 @@ fn assign_run_io_out() {
 
     let tokens = get_tokens(&kscript);
 
-    assert_eq!(tokens.len(), 8);
+    assert_eq!(tokens.len(), 9);
     assert_eq!(tokens[0], Token::Var("a".to_string()));
     assert_eq!(tokens[1], Token::Assign);
     assert_eq!(tokens[2], Token::Run);

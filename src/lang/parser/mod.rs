@@ -59,7 +59,7 @@ where
             self.controller.get_logger_mut().parser_start();
         }
 
-        let (mut parsers, total_parsers) = top_level_parsers();
+        let mut parsers = top_level_parsers();
 
         let mut token_container = TokenContainer::new();
 
@@ -68,10 +68,9 @@ where
         do_parse(
             &mut parser_data,
             self.controller,
-            total_parsers,
-            &mut parsers,
             &mut self.char_container,
             &mut token_container,
+            &mut parsers,
         )?;
 
         {

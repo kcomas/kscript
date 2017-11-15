@@ -56,7 +56,7 @@ where
         char_container: &mut CharContainer,
         token_container: &mut TokenContainer,
     ) -> Result<bool, Error> {
-        let (mut parsers, num_parsers) = object_value_parsers();
+        let mut parsers = object_value_parsers();
 
         while !parser_data.is_done() {
             let (c, ci, li) = parser_data.get_as_tuple();
@@ -103,10 +103,9 @@ where
                         c,
                         parser_data,
                         controller,
-                        num_parsers,
-                        &mut parsers,
                         char_container,
                         &mut self.array_container,
+                        &mut parsers,
                     )?;
 
                     match used {

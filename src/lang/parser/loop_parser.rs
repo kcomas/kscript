@@ -91,15 +91,14 @@ where
                     }
                 }
                 LoopParserState::Statements => {
-                    let (mut parsers, num_parsers) = top_level_parsers();
+                    let mut parsers = top_level_parsers();
 
                     do_parse(
                         parser_data,
                         controller,
-                        num_parsers,
-                        &mut parsers,
                         char_container,
                         &mut self.statements,
+                        &mut parsers,
                     )?;
 
                     if self.statements.len() == 0 {

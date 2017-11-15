@@ -61,7 +61,7 @@ where
         char_container: &mut CharContainer,
         token_container: &mut TokenContainer,
     ) -> Result<bool, Error> {
-        let (mut parsers, num_parsers) = object_value_parsers();
+        let mut parsers = object_value_parsers();
         let mut string_parser: [Box<SubParser<T>>; 1] = [Box::new(StringParser::new())];
 
         while !parser_data.is_done() {
@@ -114,10 +114,9 @@ where
                         c,
                         parser_data,
                         controller,
-                        1,
-                        &mut string_parser,
                         char_container,
                         &mut self.key_container,
+                        &mut string_parser,
                     )?;
 
                     match used {
@@ -133,10 +132,9 @@ where
                         c,
                         parser_data,
                         controller,
-                        num_parsers,
-                        &mut parsers,
                         char_container,
                         &mut self.value_container,
+                        &mut parsers,
                     )?;
 
                     match used {

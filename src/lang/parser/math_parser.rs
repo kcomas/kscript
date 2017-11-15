@@ -63,10 +63,9 @@ where
                 do_parse(
                     parser_data,
                     controller,
-                    5,
-                    &mut parsers,
                     char_container,
                     &mut self.math_container,
+                    &mut parsers,
                 )?;
 
                 token_container.add_token(

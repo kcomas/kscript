@@ -28,12 +28,11 @@ pub fn do_parse_single<T: Logger>(
     c: char,
     parser_data: &mut ParserContainer,
     controller: &mut Controller<T>,
-    num_parsers: usize,
-    parsers: &mut [Box<SubParser<T>>],
     char_container: &mut CharContainer,
     token_container: &mut TokenContainer,
+    parsers: &mut [Box<SubParser<T>>],
 ) -> Result<(bool, bool), Error> {
-    for i in 0..num_parsers {
+    for i in 0..parsers.len() {
         if parsers[i].check(c) {
             // use parser
             {
@@ -68,10 +67,9 @@ pub fn do_parse_single<T: Logger>(
 pub fn do_parse<T: Logger>(
     parser_data: &mut ParserContainer,
     controller: &mut Controller<T>,
-    num_parsers: usize,
-    parsers: &mut [Box<SubParser<T>>],
     char_container: &mut CharContainer,
     token_container: &mut TokenContainer,
+    parsers: &mut [Box<SubParser<T>>],
 ) -> Result<(), Error> {
     while !parser_data.is_done() {
         let (c, ci, li) = parser_data.get_as_tuple();
@@ -83,10 +81,9 @@ pub fn do_parse<T: Logger>(
             c,
             parser_data,
             controller,
-            num_parsers,
-            parsers,
             char_container,
             token_container,
+            parsers,
         )?;
 
         if exit {
@@ -100,61 +97,52 @@ pub fn do_parse<T: Logger>(
     Ok(())
 }
 
-pub fn top_level_parsers<T: Logger>() -> ([Box<SubParser<T>>; 17], usize) {
-    (
-        [
-            Box::new(EndParser::new()),
-            Box::new(NumberParser::new()),
-            Box::new(BoolParser::new()),
-            Box::new(VarParser::new()),
-            Box::new(IoParser::new()),
-            Box::new(OperatorParser::new()),
-            Box::new(MathParser::new()),
-            Box::new(CommentParser::new()),
-            Box::new(FileParser::new()),
-            Box::new(StringParser::new()),
-            Box::new(SystemParser::new()),
-            Box::new(ArrayParser::new()),
-            Box::new(DictParser::new()),
-            Box::new(ConditionalParser::new()),
-            Box::new(BlockEndParser::new()),
-            Box::new(LoopParser::new()),
-            Box::new(FunctionParser::new()),
-        ],
-        17,
-    )
+pub fn top_level_parsers<T: Logger>() -> [Box<SubParser<T>>; 17] {
+    [
+        Box::new(EndParser::new()),
+        Box::new(NumberParser::new()),
+        Box::new(BoolParser::new()),
+        Box::new(VarParser::new()),
+        Box::new(IoParser::new()),
+        Box::new(OperatorParser::new()),
+        Box::new(MathParser::new()),
+        Box::new(CommentParser::new()),
+        Box::new(FileParser::new()),
+        Box::new(StringParser::new()),
+        Box::new(SystemParser::new()),
+        Box::new(ArrayParser::new()),
+        Box::new(DictParser::new()),
+        Box::new(ConditionalParser::new()),
+        Box::new(BlockEndParser::new()),
+        Box::new(LoopParser::new()),
+        Box::new(FunctionParser::new()),
+    ]
 }
 
-pub fn object_value_parsers<T: Logger>() -> ([Box<SubParser<T>>; 11], usize) {
-    (
-        [
-            Box::new(NumberParser::new()),
-            Box::new(BoolParser::new()),
-            Box::new(VarParser::new()),
-            Box::new(FunctionParser::new()),
-            Box::new(MathParser::new()),
-            Box::new(CommentParser::new()),
-            Box::new(FileParser::new()),
-            Box::new(StringParser::new()),
-            Box::new(ConditionalParser::new()),
-            Box::new(ArrayParser::new()),
-            Box::new(DictParser::new()),
-        ],
-        11,
-    )
+pub fn object_value_parsers<T: Logger>() -> [Box<SubParser<T>>; 11] {
+    [
+        Box::new(NumberParser::new()),
+        Box::new(BoolParser::new()),
+        Box::new(VarParser::new()),
+        Box::new(FunctionParser::new()),
+        Box::new(MathParser::new()),
+        Box::new(CommentParser::new()),
+        Box::new(FileParser::new()),
+        Box::new(StringParser::new()),
+        Box::new(ConditionalParser::new()),
+        Box::new(ArrayParser::new()),
+        Box::new(DictParser::new()),
+    ]
 }
 
-pub fn conditional_parsers<T: Logger>() -> ([Box<SubParser<T>>; 7], usize) {
-    (
-        [
-            Box::new(NumberParser::new()),
-            Box::new(BoolParser::new()),
-            Box::new(VarParser::new()),
-            Box::new(MathParser::new()),
-            Box::new(FileParser::new()),
-            Box::new(StringParser::new()),
-            Box::new(ConditionalParser::new()),
-        ],
-        7,
-    )
+pub fn conditional_parsers<T: Logger>() -> [Box<SubParser<T>>; 7] {
+    [
+        Box::new(NumberParser::new()),
+        Box::new(BoolParser::new()),
+        Box::new(VarParser::new()),
+        Box::new(MathParser::new()),
+        Box::new(FileParser::new()),
+        Box::new(StringParser::new()),
+        Box::new(ConditionalParser::new()),
+    ]
 }

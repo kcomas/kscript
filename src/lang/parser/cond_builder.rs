@@ -35,7 +35,7 @@ impl CondBuilder {
         parser_data: &mut ParserContainer,
         char_container: &mut CharContainer,
     ) -> Result<Token, Error> {
-        let (mut parsers, num_parsers) = conditional_parsers();
+        let mut parsers = conditional_parsers();
         let mut operator_parsers: [Box<SubParser<T>>; 1] = [Box::new(OperatorParser::new())];
 
         while !parser_data.is_done() {
@@ -49,10 +49,9 @@ impl CondBuilder {
                         c,
                         parser_data,
                         controller,
-                        num_parsers,
-                        &mut parsers,
                         char_container,
                         &mut self.cond_container,
+                        &mut parsers,
                     )?;
 
                     match used {
@@ -68,10 +67,9 @@ impl CondBuilder {
                         c,
                         parser_data,
                         controller,
-                        1,
-                        &mut operator_parsers,
                         char_container,
                         &mut self.cond_container,
+                        &mut operator_parsers,
                     )?;
 
                     match used {
@@ -87,10 +85,9 @@ impl CondBuilder {
                         c,
                         parser_data,
                         controller,
-                        num_parsers,
-                        &mut parsers,
                         char_container,
                         &mut self.cond_container,
+                        &mut parsers,
                     )?;
 
                     match used {

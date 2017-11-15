@@ -102,15 +102,14 @@ where
                     }
                 }
                 ConditionalParserState::TrueStatements => {
-                    let (mut parsers, num_parsers) = top_level_parsers();
+                    let mut parsers = top_level_parsers();
 
                     do_parse(
                         parser_data,
                         controller,
-                        num_parsers,
-                        &mut parsers,
                         char_container,
                         &mut self.true_statements,
+                        &mut parsers,
                     )?;
 
                     ConditionalParserState::MabeFalse
@@ -144,15 +143,14 @@ where
                     }
                 }
                 ConditionalParserState::FalseStatements => {
-                    let (mut parsers, num_parsers) = top_level_parsers();
+                    let mut parsers = top_level_parsers();
 
                     do_parse(
                         parser_data,
                         controller,
-                        num_parsers,
-                        &mut parsers,
                         char_container,
                         &mut self.false_statements,
+                        &mut parsers,
                     )?;
 
                     if self.false_statements.len() == 0 {
