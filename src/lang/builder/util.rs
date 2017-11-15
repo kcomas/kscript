@@ -7,7 +7,7 @@ use super::command_container::CommandContainer;
 use super::command::Command;
 use super::sub_builder::SubBuilder;
 use super::single_command_builder::SingleCommandBuilder;
-use super::assign_builder::AssignBuilder;
+use super::double_command_builder::DoubleCommandBuilder;
 
 pub fn set_type_registers<T: Logger>(
     controller: &mut Controller<T>,
@@ -97,7 +97,7 @@ pub fn top_level_builders<T: Logger>() -> ([Box<SubBuilder<T>>; 2], usize) {
     (
         [
             Box::new(SingleCommandBuilder::new()),
-            Box::new(AssignBuilder::new()),
+            Box::new(DoubleCommandBuilder::new()),
         ],
         2,
     )

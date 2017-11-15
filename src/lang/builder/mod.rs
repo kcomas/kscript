@@ -3,7 +3,7 @@ pub mod command;
 pub mod command_container;
 pub mod sub_builder;
 pub mod single_command_builder;
-pub mod assign_builder;
+pub mod double_command_builder;
 mod util;
 
 use super::controller::Controller;

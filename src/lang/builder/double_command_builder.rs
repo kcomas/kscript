@@ -8,15 +8,15 @@ use super::super::error::Error;
 use super::sub_builder::SubBuilder;
 use super::command::Command;
 
-pub struct AssignBuilder {}
+pub struct DoubleCommandBuilder {}
 
-impl AssignBuilder {
-    pub fn new() -> AssignBuilder {
-        AssignBuilder {}
+impl DoubleCommandBuilder {
+    pub fn new() -> DoubleCommandBuilder {
+        DoubleCommandBuilder {}
     }
 }
 
-impl<T> SubBuilder<T> for AssignBuilder
+impl<T> SubBuilder<T> for DoubleCommandBuilder
 where
     T: Logger,
 {
@@ -45,7 +45,6 @@ where
         let left_counter;
         let right_counter;
 
-
         if let Some(reg_counter) = token_container.get_right_register_and_use() {
             right_counter = reg_counter;
         } else {
@@ -59,8 +58,19 @@ where
         }
 
         if let Some(token) = token_container.get_slice_token_mut() {
-            *token = Token::Used;
-            command_container.add_command(controller, Command::Assign(left_counter, right_counter));
+            match *token {
+                Token::Assign => {
+                    *token = Token::Used;
+                    command_container.add_command(
+                        controller,
+                        Command::Assign(
+                            left_counter,
+                            right_counter,
+                        ),
+                    );
+                }
+                _ => return Err(Error::TokenMismatch),
+            }
             return Ok(());
         }
 
