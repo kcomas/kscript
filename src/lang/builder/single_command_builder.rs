@@ -34,6 +34,10 @@ where
         "Run Builder"
     }
 
+    fn do_clear(&self) -> bool {
+        false
+    }
+
     fn build(
         &mut self,
         controller: &mut Controller<T>,

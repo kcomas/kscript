@@ -36,6 +36,10 @@ where
         "Io Builder"
     }
 
+    fn do_clear(&self) -> bool {
+        true
+    }
+
     fn build(
         &mut self,
         controller: &mut Controller<T>,
@@ -53,8 +57,8 @@ where
                     command_container.add_command(
                         controller,
                         Command::IoWrite(
-                            left_counter,
                             right_counter,
+                            left_counter,
                         ),
                     );
                 }

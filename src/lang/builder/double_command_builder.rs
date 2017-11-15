@@ -36,6 +36,10 @@ where
         "Assign Builder"
     }
 
+    fn do_clear(&self) -> bool {
+        true
+    }
+
     fn build(
         &mut self,
         controller: &mut Controller<T>,

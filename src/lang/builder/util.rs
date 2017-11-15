@@ -86,6 +86,10 @@ pub fn set_operator_registers<T: Logger>(
                         .identify(),
                 );
             }
+            if builders[builder_presedence_index].do_clear() {
+                command_container.add_command(controller, Command::ClearRegisters);
+                *current_register = 0;
+            }
             token_container.reset_slice_position();
         } else {
             break;

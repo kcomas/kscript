@@ -15,6 +15,8 @@ pub trait SubBuilder<T: Logger> {
 
     fn reset(&mut self) {}
 
+    fn do_clear(&self) -> bool;
+
     fn build(
         &mut self,
         controller: &mut Controller<T>,
