@@ -37,3 +37,23 @@ fn var_assign_integer() {
     assert_eq!(commands[2], Command::Assign(0, 1));
     last_is_clear(&commands);
 }
+
+#[test]
+fn constant_assign_float() {
+    let kscript = create_builder("TEST = 1234.123", VoidLogger::new(LoggerMode::Void));
+
+    let commands = get_commands(&kscript);
+
+    assert_eq!(commands.len(), 4);
+
+    assert_eq!(
+        commands[0],
+        Command::SetRegister(0, DataHolder::Const("TEST".to_string()))
+    );
+    assert_eq!(
+        commands[1],
+        Command::SetRegister(1, DataHolder::Anon(DataType::Float(1234.123)))
+    );
+    assert_eq!(commands[2], Command::Assign(0, 1));
+    last_is_clear(&commands);
+}
