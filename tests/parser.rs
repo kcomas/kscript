@@ -1,23 +1,10 @@
 
 extern crate kscript;
+mod util;
 
-use kscript::lang::Kscript;
 use kscript::lang::logger::{Logger, VoidLogger, LoggerMode};
 use kscript::lang::parser::token::{Token, SystemCommand};
-
-fn create<T: Logger>(program: &str, logger: T) -> Kscript<T> {
-    let mut kscript = Kscript::new(logger);
-    if let Err(kerror) = kscript.run_build_tokens(program) {
-        panic!("{:?}", kerror);
-    }
-    kscript
-}
-
-fn get_tokens<T: Logger>(kscript: &Kscript<T>) -> &Vec<Token> {
-    let mabe_token_container = kscript.get_token_container();
-    let token_container = mabe_token_container.unwrap();
-    token_container.get_tokens()
-}
+use self::util::{create, get_tokens};
 
 #[test]
 fn var_assign_integer() {
