@@ -3,12 +3,57 @@ use super::super::controller::Controller;
 use super::super::logger::Logger;
 use super::super::error::Error;
 use super::super::parser::token_container::TokenContainer;
+use super::super::parser::token::Token;
 use super::command_container::CommandContainer;
-use super::command::Command;
+use super::command::{Command, DataHolder, DataType};
 use super::sub_builder::SubBuilder;
 use super::single_command_builder::SingleCommandBuilder;
 use super::double_command_builder::DoubleCommandBuilder;
 use super::io_builder::IoBuilder;
+
+pub fn token_to_data_type<T: Logger>(
+    controller: &mut Controller<T>,
+    command_container: &mut CommandContainer,
+    current_register: &mut usize,
+    token: &Token,
+) -> Option<DataHolder> {
+    match *token {
+        Token::Var(ref name) => Some(DataHolder::Var(name.clone())),
+        Token::Const(ref name) => Some(DataHolder::Const(name.clone())),
+        Token::String(ref string) => Some(DataHolder::Anon(DataType::String(string.clone()))),
+        Token::Integer(int) => Some(DataHolder::Anon(DataType::Integer(int))),
+        Token::Float(float) => Some(DataHolder::Anon(DataType::Float(float))),
+        Token::Array(ref arr) => {
+            let mut container: Vec<DataHolder> = Vec::new();
+            for token in arr.iter() {
+                if let Some(item) = token_to_data_type(
+                    controller,
+                    command_container,
+                    current_register,
+                    token,
+                )
+                {
+                    container.push(item);
+                }
+            }
+            Some(DataHolder::Array(container))
+        }
+        Token::ObjectAccess(ref target, ref accessor) => {
+            let t_holder =
+                token_to_data_type(controller, command_container, current_register, target);
+            let a_holder =
+                token_to_data_type(controller, command_container, current_register, accessor);
+            if t_holder.is_some() && a_holder.is_some() {
+                return Some(DataHolder::ObjectAccess(
+                    Box::new(t_holder.unwrap()),
+                    Box::new(a_holder.unwrap()),
+                ));
+            }
+            None
+        }
+        _ => None,
+    }
+}
 
 pub fn set_type_registers<T: Logger>(
     controller: &mut Controller<T>,
@@ -21,7 +66,9 @@ pub fn set_type_registers<T: Logger>(
             {
                 controller.get_logger_mut().builder_check_token(token);
             }
-            if let Some(data_holder) = token.to_data_holder() {
+            if let Some(data_holder) =
+                token_to_data_type(controller, command_container, current_register, token)
+            {
                 command_container.add_command(
                     controller,
                     Command::SetRegister(*current_register, data_holder),
