@@ -1,14 +1,28 @@
 
 extern crate kscript;
-mod util;
 
+use kscript::lang::Kscript;
 use kscript::lang::logger::{Logger, VoidLogger, LoggerMode};
 use kscript::lang::parser::token::{Token, SystemCommand};
-use self::util::{create, get_tokens};
+
+pub fn create_parser<T: Logger>(program: &str, logger: T) -> Kscript<T> {
+    let mut kscript = Kscript::new(logger);
+    kscript.run_build_tokens(program).unwrap();
+    kscript
+}
+
+
+pub fn get_tokens<T: Logger>(kscript: &Kscript<T>) -> &Vec<Token> {
+    kscript.get_token_container().unwrap().get_tokens()
+}
+
+pub fn last_is_end(tokens: &Vec<Token>) {
+    assert_eq!(*tokens.last().unwrap(), Token::End);
+}
 
 #[test]
 fn var_assign_integer() {
-    let kscript = create("test = 1234", VoidLogger::new(LoggerMode::Void));
+    let kscript = create_parser("test = 1234", VoidLogger::new(LoggerMode::Void));
 
     let tokens = get_tokens(&kscript);
 
@@ -16,11 +30,12 @@ fn var_assign_integer() {
     assert_eq!(tokens[0], Token::Var("test".to_string()));
     assert_eq!(tokens[1], Token::Assign);
     assert_eq!(tokens[2], Token::Integer(1234));
+    last_is_end(&tokens);
 }
 
 #[test]
 fn constant_assign_float() {
-    let kscript = create("TEST = 1234.123", VoidLogger::new(LoggerMode::Void));
+    let kscript = create_parser("TEST = 1234.123", VoidLogger::new(LoggerMode::Void));
 
     let tokens = get_tokens(&kscript);
 
@@ -28,11 +43,12 @@ fn constant_assign_float() {
     assert_eq!(tokens[0], Token::Const("TEST".to_string()));
     assert_eq!(tokens[1], Token::Assign);
     assert_eq!(tokens[2], Token::Float(1234.123));
+    last_is_end(&tokens);
 }
 
 #[test]
 fn var_assign_math() {
-    let kscript = create(
+    let kscript = create_parser(
         "a = (1.234 * ((2 + 4.3) % 2) + 1 ^ 5)",
         VoidLogger::new(LoggerMode::Void),
     );
@@ -62,11 +78,12 @@ fn var_assign_math() {
             Token::Integer(5),
         ])
     );
+    last_is_end(&tokens);
 }
 
 #[test]
 fn math_io_integer() {
-    let kscript = create("(2 * 3) > 1", VoidLogger::new(LoggerMode::Void));
+    let kscript = create_parser("(2 * 3) > 1", VoidLogger::new(LoggerMode::Void));
 
     let tokens = get_tokens(&kscript);
 
@@ -77,11 +94,12 @@ fn math_io_integer() {
     );
     assert_eq!(tokens[1], Token::IoWrite);
     assert_eq!(tokens[2], Token::Integer(1));
+    last_is_end(&tokens);
 }
 
 #[test]
 fn comment_op_comment() {
-    let kscript = create(
+    let kscript = create_parser(
         "# this is a comment\n a = 1 # another comment",
         VoidLogger::new(LoggerMode::Void),
     );
@@ -94,11 +112,12 @@ fn comment_op_comment() {
     assert_eq!(tokens[2], Token::Assign);
     assert_eq!(tokens[3], Token::Integer(1));
     assert_eq!(tokens[4], Token::Comment(" another comment".to_string()));
+    last_is_end(&tokens);
 }
 
 #[test]
 fn var_assign_file() {
-    let kscript = create("myfile = 'hello'", VoidLogger::new(LoggerMode::Void));
+    let kscript = create_parser("myfile = 'hello'", VoidLogger::new(LoggerMode::Void));
 
     let tokens = get_tokens(&kscript);
 
@@ -106,11 +125,12 @@ fn var_assign_file() {
     assert_eq!(tokens[0], Token::Var("myfile".to_string()));
     assert_eq!(tokens[1], Token::Assign);
     assert_eq!(tokens[2], Token::File("hello".to_string()));
+    last_is_end(&tokens);
 }
 
 #[test]
 fn var_assign_string() {
-    let kscript = create("mystr = \"test # str\"", VoidLogger::new(LoggerMode::Void));
+    let kscript = create_parser("mystr = \"test # str\"", VoidLogger::new(LoggerMode::Void));
 
     let tokens = get_tokens(&kscript);
 
@@ -118,11 +138,12 @@ fn var_assign_string() {
     assert_eq!(tokens[0], Token::Var("mystr".to_string()));
     assert_eq!(tokens[1], Token::Assign);
     assert_eq!(tokens[2], Token::String("test # str".to_string()));
+    last_is_end(&tokens);
 }
 
 #[test]
 fn var_assign_array() {
-    let kscript = create(
+    let kscript = create_parser(
         "a = @[1, @[1.34, \"herp\"], (1 + 2 * 3), 1234]",
         VoidLogger::new(LoggerMode::Void),
     );
@@ -150,11 +171,12 @@ fn var_assign_array() {
             Token::Integer(1234),
         ])
     );
+    last_is_end(&tokens);
 }
 
 #[test]
 fn var_assign_dict() {
-    let kscript = create(
+    let kscript = create_parser(
         "d = %[\"asdf\": 1234, \"sub\": %[\"merp\": 3.45], \"arr\": @[1, 2, 4], \"herp\": \"derp\"]",
         VoidLogger::new(LoggerMode::Void),
     );
@@ -188,11 +210,12 @@ fn var_assign_dict() {
             ],
         )
     );
+    last_is_end(&tokens);
 }
 
 #[test]
 fn var_assign_bool_const_assign_bool() {
-    let kscript = create("test = t; TESTD = f", VoidLogger::new(LoggerMode::Void));
+    let kscript = create_parser("test = t; TESTD = f", VoidLogger::new(LoggerMode::Void));
 
     let tokens = get_tokens(&kscript);
 
@@ -204,11 +227,12 @@ fn var_assign_bool_const_assign_bool() {
     assert_eq!(tokens[4], Token::Const("TESTD".to_string()));
     assert_eq!(tokens[5], Token::Assign);
     assert_eq!(tokens[6], Token::Bool(false));
+    last_is_end(&tokens);
 }
 
 #[test]
 fn vars_const_with_numbers() {
-    let kscript = create(
+    let kscript = create_parser(
         "py3 = 3; 23a = 3.12; 1S3 = 4",
         VoidLogger::new(LoggerMode::Void),
     );
@@ -227,11 +251,12 @@ fn vars_const_with_numbers() {
     assert_eq!(tokens[8], Token::Const("1S3".to_string()));
     assert_eq!(tokens[9], Token::Assign);
     assert_eq!(tokens[10], Token::Integer(4));
+    last_is_end(&tokens);
 }
 
 #[test]
 fn assign_conditional_true_false() {
-    let kscript = create(
+    let kscript = create_parser(
         "a = ?1 == 2{a = 3}{b = \"test\"}",
         VoidLogger::new(LoggerMode::Void),
     );
@@ -261,11 +286,12 @@ fn assign_conditional_true_false() {
             ],
         )
     );
+    last_is_end(&tokens);
 }
 
 #[test]
 fn nested_conditionial() {
-    let kscript = create("a = ? ?b==1| ? c== 2", VoidLogger::new(LoggerMode::Void));
+    let kscript = create_parser("a = ? ?b==1| ? c== 2", VoidLogger::new(LoggerMode::Void));
 
     let tokens = get_tokens(&kscript);
 
@@ -288,11 +314,12 @@ fn nested_conditionial() {
             )),
         )
     );
+    last_is_end(&tokens);
 }
 
 #[test]
 fn assign_loop_print() {
-    let kscript = create(
+    let kscript = create_parser(
         "a = 1; $a<5{a = (a + 1)} a > 1",
         VoidLogger::new(LoggerMode::Void),
     );
@@ -326,11 +353,12 @@ fn assign_loop_print() {
     assert_eq!(tokens[5], Token::Var("a".to_string()));
     assert_eq!(tokens[6], Token::IoWrite);
     assert_eq!(tokens[7], Token::Integer(1));
+    last_is_end(&tokens);
 }
 
 #[test]
 fn var_assign_var_function() {
-    let kscript = create(
+    let kscript = create_parser(
         "a = 1; b = {|a, &e, c| e = c; d }",
         VoidLogger::new(LoggerMode::Void),
     );
@@ -360,12 +388,13 @@ fn var_assign_var_function() {
                 Token::Var("d".to_string()),
             ],
         )
-    )
+    );
+    last_is_end(&tokens);
 }
 
 #[test]
 fn assign_system_command() {
-    let kscript = create("a = 1; \\\\1; b = 2", VoidLogger::new(LoggerMode::Void));
+    let kscript = create_parser("a = 1; \\\\1; b = 2", VoidLogger::new(LoggerMode::Void));
 
     let tokens = get_tokens(&kscript);
 
@@ -379,11 +408,12 @@ fn assign_system_command() {
     assert_eq!(tokens[6], Token::Var("b".to_string()));
     assert_eq!(tokens[7], Token::Assign);
     assert_eq!(tokens[8], Token::Integer(2));
+    last_is_end(&tokens);
 }
 
 #[test]
 fn assign_fucntion_run_output() {
-    let kscript = create(
+    let kscript = create_parser(
         "a = {|b, c| b = @[1]; c}; a|@[\"herp\", 'derp', %[\"key\": 1]], (1 + 2 * 4)| > 1",
         VoidLogger::new(LoggerMode::Void),
     );
@@ -432,11 +462,12 @@ fn assign_fucntion_run_output() {
     );
     assert_eq!(tokens[5], Token::IoWrite);
     assert_eq!(tokens[6], Token::Integer(1));
+    last_is_end(&tokens);
 }
 
 #[test]
 fn var_assign_access() {
-    let kscript = create(
+    let kscript = create_parser(
         "a = @[3, 2, 1]; B = %[\"key\": \"value\"]; a[0] > 1; B[\"key\"] > 1",
         VoidLogger::new(LoggerMode::Void),
     );
@@ -484,11 +515,12 @@ fn var_assign_access() {
     );
     assert_eq!(tokens[13], Token::IoWrite);
     assert_eq!(tokens[14], Token::Integer(1));
+    last_is_end(&tokens);
 }
 
 #[test]
 fn assign_run_io_out() {
-    let kscript = create(
+    let kscript = create_parser(
         "a = !@[\"ls\", \"-lh\"]; a[1] > 1",
         VoidLogger::new(LoggerMode::Void),
     );
@@ -516,4 +548,5 @@ fn assign_run_io_out() {
     );
     assert_eq!(tokens[6], Token::IoWrite);
     assert_eq!(tokens[7], Token::Integer(1));
+    last_is_end(&tokens);
 }

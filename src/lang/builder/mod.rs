@@ -26,7 +26,7 @@ where
         BuilderRunner { controller: controller }
     }
 
-    pub fn run(&mut self, token_container: &mut TokenContainer) -> Result<(), Error> {
+    pub fn run(&mut self, token_container: &mut TokenContainer) -> Result<CommandContainer, Error> {
         {
             self.controller.get_logger_mut().builder_start();
         }
@@ -51,6 +51,6 @@ where
             logger.builder_dump_commands(command_container.get_commands());
         }
 
-        Ok(())
+        Ok(command_container)
     }
 }

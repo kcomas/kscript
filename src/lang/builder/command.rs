@@ -1,5 +1,5 @@
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum DataType {
     Integer(i64),
     Float(f64),
@@ -7,7 +7,7 @@ pub enum DataType {
     File(String),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum DataHolder {
     Var(String),
     Const(String),
@@ -16,7 +16,7 @@ pub enum DataHolder {
     ObjectAccess(Box<DataHolder>, Box<DataHolder>),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Command {
     SetRegister(usize, DataHolder),
     ClearRegisters,
