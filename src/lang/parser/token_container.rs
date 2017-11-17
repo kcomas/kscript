@@ -121,6 +121,10 @@ impl TokenContainer {
         self.current_slice.position <= self.current_slice.end
     }
 
+    pub fn is_last_slice_token(&self) -> bool {
+        self.current_slice.position == self.current_slice.end
+    }
+
     pub fn get_slice_token(&self) -> Option<&Token> {
         let pos = self.current_slice.position;
         self.get(pos)

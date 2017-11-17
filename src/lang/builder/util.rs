@@ -64,7 +64,9 @@ pub fn token_to_data_type<T: Logger>(
                 current_register,
                 &mut math_builders,
             )?;
-            Ok(Some(DataHolder::Math(*current_register)))
+            let dh = DataHolder::Math(*current_register);
+            *current_register += 1;
+            Ok(Some(dh))
         }
         _ => Ok(None),
     }
@@ -77,6 +79,7 @@ pub fn set_type_registers<T: Logger>(
     current_register: &mut usize,
 ) -> Result<(), Error> {
     while token_container.in_slice() {
+        let is_last_token = token_container.is_last_slice_token();
         if let Some(ref mut token) = token_container.get_slice_token_mut() {
             {
                 controller.get_logger_mut().builder_check_token(token);
@@ -89,7 +92,9 @@ pub fn set_type_registers<T: Logger>(
                     Command::SetRegister(*current_register, data_holder),
                 );
                 token.set_as_register(*current_register);
-                *current_register += 1;
+                if !is_last_token {
+                    *current_register += 1;
+                }
             }
         }
         token_container.inc_slice_position();
