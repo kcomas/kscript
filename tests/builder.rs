@@ -45,7 +45,6 @@ fn constant_assign_float() {
     let commands = get_commands(&kscript);
 
     assert_eq!(commands.len(), 4);
-
     assert_eq!(
         commands[0],
         Command::SetRegister(0, DataHolder::Const("TEST".to_string()))

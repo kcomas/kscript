@@ -59,7 +59,7 @@ An apl-ish scripting language to be used like bash
 * Are called by ```variable|args|```
 
 ### Variable Naming
-* Variable can only be named with alpha characters of upper or lower case
+* Variable can only be named with alpha characters of upper or lower case and numbers
 * Upper case variables are constants and exported as environment variables
 * Lower case variables are fixed typed reassign-able variables
 
@@ -130,7 +130,7 @@ An apl-ish scripting language to be used like bash
 ## Single Commands
 * Takes single argument
 
-### Run Commands ! @["commands", "...args"]
+### Run Commands ```! @["commands", "...args"]```
 * Take an array of the command and the args and run
 * Returns an array of [exit_code, STDOUT, STDERR]
 
