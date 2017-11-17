@@ -9,21 +9,21 @@ use super::sub_builder::SubBuilder;
 use super::command::Command;
 use super::util::get_left_and_right;
 
-pub struct IoBuilder {}
+pub struct AddSubBuilder {}
 
-impl IoBuilder {
-    pub fn new() -> IoBuilder {
-        IoBuilder {}
+impl AddSubBuilder {
+    pub fn new() -> AddSubBuilder {
+        AddSubBuilder {}
     }
 }
 
-impl<T> SubBuilder<T> for IoBuilder
+impl<T> SubBuilder<T> for AddSubBuilder
 where
     T: Logger,
 {
     fn check(&self, token: &Token) -> bool {
         match *token {
-            Token::IoWrite => true,
+            Token::Addition | Token::Subtract => true,
             _ => false,
         }
     }
@@ -33,11 +33,11 @@ where
     }
 
     fn identify(&self) -> &str {
-        "Io Builder"
+        "Add Sub Builder"
     }
 
     fn do_clear(&self) -> bool {
-        true
+        false
     }
 
     fn build(
@@ -45,17 +45,29 @@ where
         controller: &mut Controller<T>,
         token_container: &mut TokenContainer,
         command_container: &mut CommandContainer,
-        _current_register: &mut usize,
+        current_register: &mut usize,
     ) -> Result<(), Error> {
         let (left_counter, right_counter) = get_left_and_right(token_container)?;
 
         if let Some(token) = token_container.get_slice_token_mut() {
             match *token {
-                Token::IoWrite => {
-                    *token = Token::Used;
+                Token::Addition => {
+                    *current_register += 1;
                     command_container.add_command(
                         controller,
-                        Command::IoWrite(
+                        Command::Addition(
+                            *current_register,
+                            left_counter,
+                            right_counter,
+                        ),
+                    );
+                }
+                Token::Subtract => {
+                    *current_register += 1;
+                    command_container.add_command(
+                        controller,
+                        Command::Subtract(
+                            *current_register,
                             left_counter,
                             right_counter,
                         ),
@@ -63,6 +75,7 @@ where
                 }
                 _ => return Err(Error::TokenMismatch),
             }
+            token.set_as_register(*current_register);
             return Ok(());
         }
         Err(Error::TokenMismatch)

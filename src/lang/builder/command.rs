@@ -14,14 +14,20 @@ pub enum DataHolder {
     Anon(DataType),
     Array(Vec<DataHolder>),
     ObjectAccess(Box<DataHolder>, Box<DataHolder>),
+    // the result in a register
+    Math(usize),
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Command {
     SetRegister(usize, DataHolder),
     ClearRegisters,
-    // target source
+    // left right
     Run(usize, usize),
     Assign(usize, usize),
     IoWrite(usize, usize),
+    // math do op and assigin to new register
+    // result left right
+    Addition(usize, usize, usize),
+    Subtract(usize, usize, usize),
 }

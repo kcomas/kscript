@@ -28,6 +28,18 @@ impl TokenContainer {
         }
     }
 
+    pub fn from_token_vec(tokens: Vec<Token>) -> TokenContainer {
+        TokenContainer {
+            tokens: tokens,
+            current_token: 0,
+            current_slice: CurrentSlice {
+                start: 0,
+                end: 0,
+                position: 0,
+            },
+        }
+    }
+
     pub fn is_done(&self) -> bool {
         self.current_token >= self.tokens.len()
     }
@@ -76,6 +88,10 @@ impl TokenContainer {
 
     pub fn is_current_token_end(&self) -> bool {
         self.get_current_token().is_end()
+    }
+
+    pub fn is_current_token_last(&self) -> bool {
+        self.current_token == self.tokens.len() - 1
     }
 
     pub fn set_current_end_as_used(&mut self) {

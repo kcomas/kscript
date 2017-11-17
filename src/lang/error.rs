@@ -28,4 +28,5 @@ pub enum Error {
     TokenMismatch,
     InvalidRightRegisterAccess,
     InvalidLeftRegisterAccess,
+    UnableToBuildDataType,
 }

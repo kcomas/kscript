@@ -1,4 +1,6 @@
 
+use super::token_container::TokenContainer;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum SystemCommand {
     Exit(u32),
@@ -75,6 +77,13 @@ impl Token {
     pub fn is_register(&self) -> Option<usize> {
         match *self {
             Token::Reg(reg_counter) => Some(reg_counter),
+            _ => None,
+        }
+    }
+
+    pub fn unwrap_to_container(&self) -> Option<TokenContainer> {
+        match *self {
+            Token::Math(ref tokens) => Some(TokenContainer::from_token_vec(tokens.clone())),
             _ => None,
         }
     }

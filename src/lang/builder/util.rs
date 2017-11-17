@@ -9,6 +9,7 @@ use super::command::{Command, DataHolder, DataType};
 use super::sub_builder::SubBuilder;
 use super::single_command_builder::SingleCommandBuilder;
 use super::double_command_builder::DoubleCommandBuilder;
+use super::add_sub_builder::AddSubBuilder;
 use super::io_builder::IoBuilder;
 
 pub fn token_to_data_type<T: Logger>(
@@ -16,13 +17,13 @@ pub fn token_to_data_type<T: Logger>(
     command_container: &mut CommandContainer,
     current_register: &mut usize,
     token: &Token,
-) -> Option<DataHolder> {
+) -> Result<Option<DataHolder>, Error> {
     match *token {
-        Token::Var(ref name) => Some(DataHolder::Var(name.clone())),
-        Token::Const(ref name) => Some(DataHolder::Const(name.clone())),
-        Token::String(ref string) => Some(DataHolder::Anon(DataType::String(string.clone()))),
-        Token::Integer(int) => Some(DataHolder::Anon(DataType::Integer(int))),
-        Token::Float(float) => Some(DataHolder::Anon(DataType::Float(float))),
+        Token::Var(ref name) => Ok(Some(DataHolder::Var(name.clone()))),
+        Token::Const(ref name) => Ok(Some(DataHolder::Const(name.clone()))),
+        Token::String(ref string) => Ok(Some(DataHolder::Anon(DataType::String(string.clone())))),
+        Token::Integer(int) => Ok(Some(DataHolder::Anon(DataType::Integer(int)))),
+        Token::Float(float) => Ok(Some(DataHolder::Anon(DataType::Float(float)))),
         Token::Array(ref arr) => {
             let mut container: Vec<DataHolder> = Vec::new();
             for token in arr.iter() {
@@ -31,27 +32,39 @@ pub fn token_to_data_type<T: Logger>(
                     command_container,
                     current_register,
                     token,
-                )
+                )?
                 {
                     container.push(item);
                 }
             }
-            Some(DataHolder::Array(container))
+            Ok(Some((DataHolder::Array(container))))
         }
         Token::ObjectAccess(ref target, ref accessor) => {
             let t_holder =
-                token_to_data_type(controller, command_container, current_register, target);
+                token_to_data_type(controller, command_container, current_register, target)?;
             let a_holder =
-                token_to_data_type(controller, command_container, current_register, accessor);
+                token_to_data_type(controller, command_container, current_register, accessor)?;
             if t_holder.is_some() && a_holder.is_some() {
-                return Some(DataHolder::ObjectAccess(
+                return Ok(Some(DataHolder::ObjectAccess(
                     Box::new(t_holder.unwrap()),
                     Box::new(a_holder.unwrap()),
-                ));
+                )));
             }
-            None
+            Err(Error::UnableToBuildDataType)
         }
-        _ => None,
+        Token::Math(ref math_tokens) => {
+            let mut math_container = TokenContainer::from_token_vec(math_tokens.clone());
+            let mut math_builders = math_builders();
+            create_commands(
+                controller,
+                &mut math_container,
+                command_container,
+                current_register,
+                &mut math_builders,
+            )?;
+            Ok(Some(DataHolder::Math(*current_register)))
+        }
+        _ => Ok(None),
     }
 }
 
@@ -67,7 +80,7 @@ pub fn set_type_registers<T: Logger>(
                 controller.get_logger_mut().builder_check_token(token);
             }
             if let Some(data_holder) =
-                token_to_data_type(controller, command_container, current_register, token)
+                token_to_data_type(controller, command_container, current_register, token)?
             {
                 command_container.add_command(
                     controller,
@@ -153,7 +166,7 @@ pub fn create_commands<T: Logger>(
 ) -> Result<(), Error> {
     while !token_container.is_done() {
         // check if the token is an operator
-        if token_container.is_current_token_end() {
+        if token_container.is_current_token_end() || token_container.is_current_token_last() {
             token_container.update_slice_end();
             set_type_registers(
                 controller,
@@ -191,6 +204,10 @@ pub fn top_level_builders<T: Logger>() -> [Box<SubBuilder<T>>; 3] {
         Box::new(DoubleCommandBuilder::new()),
         Box::new(IoBuilder::new()),
     ]
+}
+
+pub fn math_builders<T: Logger>() -> [Box<SubBuilder<T>>; 1] {
+    [Box::new(AddSubBuilder::new())]
 }
 
 pub fn get_left_and_right(token_container: &mut TokenContainer) -> Result<(usize, usize), Error> {
