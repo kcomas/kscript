@@ -30,4 +30,7 @@ pub enum Command {
     // result left right
     Addition(usize, usize, usize),
     Subtract(usize, usize, usize),
+    Multiply(usize, usize, usize),
+    Divide(usize, usize, usize),
+    Modulus(usize, usize, usize),
 }

@@ -9,35 +9,35 @@ use super::sub_builder::SubBuilder;
 use super::command::Command;
 use super::util::get_left_and_right;
 
-pub struct DoubleCommandBuilder {}
+pub struct MulDivModBuilder {}
 
-impl DoubleCommandBuilder {
-    pub fn new() -> DoubleCommandBuilder {
-        DoubleCommandBuilder {}
+impl MulDivModBuilder {
+    pub fn new() -> MulDivModBuilder {
+        MulDivModBuilder {}
     }
 }
 
-impl<T> SubBuilder<T> for DoubleCommandBuilder
+impl<T> SubBuilder<T> for MulDivModBuilder
 where
     T: Logger,
 {
     fn check(&self, token: &Token) -> bool {
         match *token {
-            Token::Assign => true,
+            Token::Multiply | Token::Divide | Token::Modulus => true,
             _ => false,
         }
     }
 
     fn presedence(&self) -> u64 {
-        1
+        2
     }
 
     fn identify(&self) -> &str {
-        "Assign Builder"
+        "Mul Div Mod Builder"
     }
 
     fn do_clear(&self) -> bool {
-        true
+        false
     }
 
     fn build(
@@ -45,18 +45,38 @@ where
         controller: &mut Controller<T>,
         token_container: &mut TokenContainer,
         command_container: &mut CommandContainer,
-        _current_register: &mut usize,
+        current_register: &mut usize,
     ) -> Result<(), Error> {
-
         let (left_counter, right_counter) = get_left_and_right(token_container)?;
 
         if let Some(token) = token_container.get_slice_token_mut() {
+            *current_register += 1;
             match *token {
-                Token::Assign => {
-                    *token = Token::Used;
+                Token::Multiply => {
                     command_container.add_command(
                         controller,
-                        Command::Assign(
+                        Command::Multiply(
+                            *current_register,
+                            left_counter,
+                            right_counter,
+                        ),
+                    );
+                }
+                Token::Divide => {
+                    command_container.add_command(
+                        controller,
+                        Command::Divide(
+                            *current_register,
+                            left_counter,
+                            right_counter,
+                        ),
+                    );
+                }
+                Token::Modulus => {
+                    command_container.add_command(
+                        controller,
+                        Command::Modulus(
+                            *current_register,
                             left_counter,
                             right_counter,
                         ),
@@ -64,6 +84,7 @@ where
                 }
                 _ => return Err(Error::TokenMismatch),
             };
+            token.set_as_register(*current_register);
             return Ok(());
         }
         Err(Error::TokenMismatch)

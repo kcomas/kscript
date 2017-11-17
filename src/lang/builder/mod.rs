@@ -6,6 +6,7 @@ pub mod single_command_builder;
 pub mod double_command_builder;
 pub mod io_builder;
 pub mod add_sub_builder;
+pub mod mul_div_mod_builder;
 mod util;
 
 use super::controller::Controller;

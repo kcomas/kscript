@@ -50,9 +50,9 @@ where
         let (left_counter, right_counter) = get_left_and_right(token_container)?;
 
         if let Some(token) = token_container.get_slice_token_mut() {
+            *current_register += 1;
             match *token {
                 Token::Addition => {
-                    *current_register += 1;
                     command_container.add_command(
                         controller,
                         Command::Addition(
@@ -63,7 +63,6 @@ where
                     );
                 }
                 Token::Subtract => {
-                    *current_register += 1;
                     command_container.add_command(
                         controller,
                         Command::Subtract(
@@ -71,10 +70,10 @@ where
                             left_counter,
                             right_counter,
                         ),
-                    );
+                    )
                 }
                 _ => return Err(Error::TokenMismatch),
-            }
+            };
             token.set_as_register(*current_register);
             return Ok(());
         }

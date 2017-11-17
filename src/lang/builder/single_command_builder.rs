@@ -64,7 +64,7 @@ where
                     );
                 }
                 _ => return Err(Error::TokenMismatch),
-            }
+            };
             token.set_as_register(*current_register);
             *current_register += 1;
             return Ok(());

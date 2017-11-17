@@ -9,8 +9,9 @@ use super::command::{Command, DataHolder, DataType};
 use super::sub_builder::SubBuilder;
 use super::single_command_builder::SingleCommandBuilder;
 use super::double_command_builder::DoubleCommandBuilder;
-use super::add_sub_builder::AddSubBuilder;
 use super::io_builder::IoBuilder;
+use super::add_sub_builder::AddSubBuilder;
+use super::mul_div_mod_builder::MulDivModBuilder;
 
 pub fn token_to_data_type<T: Logger>(
     controller: &mut Controller<T>,
@@ -165,8 +166,18 @@ pub fn create_commands<T: Logger>(
     builders: &mut [Box<SubBuilder<T>>],
 ) -> Result<(), Error> {
     while !token_container.is_done() {
+        let mut run = false;
+        let mut use_clear = true;
+        if token_container.is_current_token_end() {
+            run = true;
+            use_clear = true;
+        }
+        if token_container.is_current_token_last() {
+            run = true;
+            use_clear = false;
+        }
         // check if the token is an operator
-        if token_container.is_current_token_end() || token_container.is_current_token_last() {
+        if run {
             token_container.update_slice_end();
             set_type_registers(
                 controller,
@@ -184,7 +195,7 @@ pub fn create_commands<T: Logger>(
                 builders,
             )?;
             // check if the last command is a clear
-            if !command_container.is_last_clear() {
+            if !command_container.is_last_clear() && use_clear {
                 command_container.add_command(controller, Command::ClearRegisters);
             }
             token_container.set_current_end_as_used();
@@ -206,8 +217,11 @@ pub fn top_level_builders<T: Logger>() -> [Box<SubBuilder<T>>; 3] {
     ]
 }
 
-pub fn math_builders<T: Logger>() -> [Box<SubBuilder<T>>; 1] {
-    [Box::new(AddSubBuilder::new())]
+pub fn math_builders<T: Logger>() -> [Box<SubBuilder<T>>; 2] {
+    [
+        Box::new(AddSubBuilder::new()),
+        Box::new(MulDivModBuilder::new()),
+    ]
 }
 
 pub fn get_left_and_right(token_container: &mut TokenContainer) -> Result<(usize, usize), Error> {
