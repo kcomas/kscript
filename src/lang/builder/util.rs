@@ -12,6 +12,7 @@ use super::double_command_builder::DoubleCommandBuilder;
 use super::io_builder::IoBuilder;
 use super::add_sub_builder::AddSubBuilder;
 use super::mul_div_mod_builder::MulDivModBuilder;
+use super::exponent_builder::ExponentBuilder;
 
 pub fn token_to_data_type<T: Logger>(
     controller: &mut Controller<T>,
@@ -217,10 +218,11 @@ pub fn top_level_builders<T: Logger>() -> [Box<SubBuilder<T>>; 3] {
     ]
 }
 
-pub fn math_builders<T: Logger>() -> [Box<SubBuilder<T>>; 2] {
+pub fn math_builders<T: Logger>() -> [Box<SubBuilder<T>>; 3] {
     [
         Box::new(AddSubBuilder::new()),
         Box::new(MulDivModBuilder::new()),
+        Box::new(ExponentBuilder::new()),
     ]
 }
 

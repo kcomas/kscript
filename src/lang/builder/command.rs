@@ -33,4 +33,5 @@ pub enum Command {
     Multiply(usize, usize, usize),
     Divide(usize, usize, usize),
     Modulus(usize, usize, usize),
+    Exponent(usize, usize, usize),
 }
