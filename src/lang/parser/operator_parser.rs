@@ -29,7 +29,7 @@ where
 {
     fn check(&self, c: char) -> bool {
         match c {
-            '=' | '>' | '<' | '|' | '&' | '!' => true,
+            '=' | '>' | '<' | '^' | '&' | '!' => true,
             _ => false,
         }
     }
@@ -71,7 +71,7 @@ where
                             token_container.add_token(controller, Token::Less);
                             return Ok(false);
                         }
-                        '|' => {
+                        '^' => {
                             parser_data.inc_char();
                             token_container.add_token(controller, Token::Or);
                             return Ok(false);

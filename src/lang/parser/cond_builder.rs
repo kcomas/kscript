@@ -57,7 +57,7 @@ impl CondBuilder {
                     match used {
                         true => {
                             match parser_data.get_current_char() {
-                                ' ' | '\n' | '[' => CondBuilderState::ItemA,
+                                '[' | '|' => CondBuilderState::ItemA,
                                 _ => CondBuilderState::Conditional,
                             }
                         }
@@ -98,7 +98,7 @@ impl CondBuilder {
                     match used {
                         true => {
                             match parser_data.get_current_char() {
-                                ' ' | '\n' | '[' => CondBuilderState::ItemB,
+                                '[' | '|' => CondBuilderState::ItemB,
                                 _ => {
                                     let token =
                                         Token::Conditional(

@@ -291,7 +291,7 @@ fn assign_conditional_true_false() {
 
 #[test]
 fn nested_conditionial() {
-    let kscript = create_parser("a = ? ?b==1 | ? c== 2", VoidLogger::new(LoggerMode::Void));
+    let kscript = create_parser("a = ? ?b==1^? c== 2", VoidLogger::new(LoggerMode::Void));
 
     let tokens = get_tokens(&kscript);
 
@@ -317,7 +317,17 @@ fn nested_conditionial() {
     last_is_end(&tokens);
 }
 
-// c=@[@[2]];a=??a==@[1][0]|?@[]==c[0][0]
+#[test]
+fn nested_conditionals_with_nesed_data() {
+    let kscript = create_parser(
+        "c=@[@[2]];a=??a=={|a| a}|1|^?@[]==c[0][0]",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let tokens = get_tokens(&kscript);
+
+    assert_eq!(tokens.len(), 8);
+}
 
 
 #[test]
