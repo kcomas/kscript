@@ -64,7 +64,7 @@ where
         token_container: &mut TokenContainer,
     ) -> Result<bool, Error> {
         let mut arg_parsers: [Box<SubParser<T>>; 2] =
-            [Box::new(RefParser::new()), Box::new(VarParser::new_arg())];
+            [Box::new(RefParser::new()), Box::new(VarParser::new())];
 
 
         while !parser_data.is_done() {

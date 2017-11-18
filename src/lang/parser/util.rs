@@ -19,6 +19,7 @@ use super::conditional_parser::ConditionalParser;
 use super::block_end_parser::BlockEndParser;
 use super::loop_parser::LoopParser;
 use super::function_parser::FunctionParser;
+use super::function_call_parser::FunctionCallParser;
 use super::system_parser::SystemParser;
 use super::parser_container::ParserContainer;
 use super::char_container::CharContainer;
@@ -98,12 +99,14 @@ pub fn do_parse<T: Logger>(
     Ok(())
 }
 
-pub fn top_level_parsers<T: Logger>() -> [Box<SubParser<T>>; 18] {
+pub fn top_level_parsers<T: Logger>() -> [Box<SubParser<T>>; 19] {
     [
         Box::new(EndParser::new()),
         Box::new(NumberParser::new()),
         Box::new(BoolParser::new()),
         Box::new(VarParser::new()),
+        Box::new(ObjectAccessParser::new()),
+        Box::new(FunctionCallParser::new()),
         Box::new(IoParser::new()),
         Box::new(OperatorParser::new()),
         Box::new(MathParser::new()),
@@ -113,7 +116,6 @@ pub fn top_level_parsers<T: Logger>() -> [Box<SubParser<T>>; 18] {
         Box::new(SystemParser::new()),
         Box::new(ArrayParser::new()),
         Box::new(DictParser::new()),
-        Box::new(ObjectAccessParser::new()),
         Box::new(ConditionalParser::new()),
         Box::new(BlockEndParser::new()),
         Box::new(LoopParser::new()),
@@ -121,12 +123,13 @@ pub fn top_level_parsers<T: Logger>() -> [Box<SubParser<T>>; 18] {
     ]
 }
 
-pub fn object_value_parsers<T: Logger>() -> [Box<SubParser<T>>; 12] {
+pub fn object_value_parsers<T: Logger>() -> [Box<SubParser<T>>; 13] {
     [
         Box::new(NumberParser::new()),
         Box::new(BoolParser::new()),
         Box::new(VarParser::new()),
         Box::new(ObjectAccessParser::new()),
+        Box::new(FunctionCallParser::new()),
         Box::new(FunctionParser::new()),
         Box::new(MathParser::new()),
         Box::new(CommentParser::new()),
@@ -138,15 +141,18 @@ pub fn object_value_parsers<T: Logger>() -> [Box<SubParser<T>>; 12] {
     ]
 }
 
-pub fn conditional_parsers<T: Logger>() -> [Box<SubParser<T>>; 8] {
+pub fn conditional_parsers<T: Logger>() -> [Box<SubParser<T>>; 11] {
     [
         Box::new(NumberParser::new()),
         Box::new(BoolParser::new()),
         Box::new(VarParser::new()),
         Box::new(ObjectAccessParser::new()),
+        Box::new(FunctionCallParser::new()),
         Box::new(MathParser::new()),
         Box::new(FileParser::new()),
         Box::new(StringParser::new()),
         Box::new(ConditionalParser::new()),
+        Box::new(ArrayParser::new()),
+        Box::new(DictParser::new()),
     ]
 }

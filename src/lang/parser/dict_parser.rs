@@ -123,6 +123,7 @@ where
                         true => DictParserState::IsDict,
                         false => {
                             match c {
+                                // empty dict
                                 ']' => DictParserState::IsDict,
                                 _ => {
                                     parser_data.inc_char();

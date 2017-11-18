@@ -17,15 +17,13 @@ pub enum FunctionCallParserState {
 
 pub struct FunctionCallParser {
     state: FunctionCallParserState,
-    var_name: Token,
     arg_container: TokenContainer,
 }
 
 impl FunctionCallParser {
-    pub fn new(var_name: Token) -> FunctionCallParser {
+    pub fn new() -> FunctionCallParser {
         FunctionCallParser {
             state: FunctionCallParserState::Nothing,
-            var_name: var_name,
             arg_container: TokenContainer::new(),
         }
     }
@@ -49,7 +47,6 @@ where
     fn reset(&mut self) {
         self.state = FunctionCallParserState::Nothing;
         self.arg_container.clear();
-        self.var_name = Token::End;
     }
 
     fn parse(
@@ -88,8 +85,12 @@ where
                         }
                         '|' => {
                             parser_data.inc_char();
+                            let prev_token = match token_container.pop() {
+                                Some(prev_t) => prev_t,
+                                _ => return Err(Error::InvalidFunctionCall(c, ci, li)),
+                            };
                             let token = Token::FunctionCall(
-                                Box::new(self.var_name.clone()),
+                                Box::new(prev_token),
                                 self.arg_container.get_tokens().clone(),
                             );
                             token_container.add_token(controller, token);

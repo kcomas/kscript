@@ -112,6 +112,7 @@ where
                         true => ArrayParserState::IsArray,
                         false => {
                             match c {
+                                // empty arr
                                 ']' => ArrayParserState::IsArray,
                                 _ => {
                                     parser_data.inc_char();

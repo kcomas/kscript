@@ -55,7 +55,12 @@ impl CondBuilder {
                     )?;
 
                     match used {
-                        true => CondBuilderState::Conditional,
+                        true => {
+                            match parser_data.get_current_char() {
+                                ' ' | '\n' | '[' => CondBuilderState::ItemA,
+                                _ => CondBuilderState::Conditional,
+                            }
+                        }
                         false => {
                             parser_data.inc_char();
                             CondBuilderState::ItemA
@@ -92,16 +97,22 @@ impl CondBuilder {
 
                     match used {
                         true => {
-                            let token = Token::Conditional(
-                                Box::new(self.cond_container.get(0).unwrap().clone()),
-                                Box::new(self.cond_container.get(1).unwrap().clone()),
-                                Box::new(self.cond_container.get(2).unwrap().clone()),
-                            );
-                            {
-                                controller.get_logger_mut().parser_add_token(&token);
+                            match parser_data.get_current_char() {
+                                ' ' | '\n' | '[' => CondBuilderState::ItemB,
+                                _ => {
+                                    let token =
+                                        Token::Conditional(
+                                            Box::new(self.cond_container.get(0).unwrap().clone()),
+                                            Box::new(self.cond_container.get(1).unwrap().clone()),
+                                            Box::new(self.cond_container.get(2).unwrap().clone()),
+                                        );
+                                    {
+                                        controller.get_logger_mut().parser_add_token(&token);
+                                    }
+                                    self.cond_container.clear();
+                                    return Ok(token);
+                                }
                             }
-                            self.cond_container.clear();
-                            return Ok(token);
                         }
                         false => {
                             parser_data.inc_char();

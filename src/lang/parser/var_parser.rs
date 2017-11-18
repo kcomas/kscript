@@ -4,40 +4,23 @@ use super::token_container::TokenContainer;
 use super::parser_container::ParserContainer;
 use super::char_container::CharContainer;
 use super::sub_parser::SubParser;
-use super::function_call_parser::FunctionCallParser;
 use super::super::logger::Logger;
 use super::super::controller::Controller;
 use super::super::error::Error;
-use super::util::do_parse_single;
 
 pub enum VarParserState {
     Nothing,
     Variable,
     Constant,
-    FunctionCall,
 }
 
 pub struct VarParser {
     state: VarParserState,
-    load_calls: bool,
-    pass_token: Option<Token>,
 }
 
 impl VarParser {
     pub fn new() -> VarParser {
-        VarParser {
-            state: VarParserState::Nothing,
-            load_calls: true,
-            pass_token: None,
-        }
-    }
-
-    pub fn new_arg() -> VarParser {
-        VarParser {
-            state: VarParserState::Nothing,
-            load_calls: false,
-            pass_token: None,
-        }
+        VarParser { state: VarParserState::Nothing }
     }
 }
 
@@ -58,7 +41,6 @@ where
 
     fn reset(&mut self) {
         self.state = VarParserState::Nothing;
-        self.pass_token = None;
     }
 
     fn parse(
@@ -97,22 +79,6 @@ where
                             VarParserState::Variable
                         }
                         'A'...'Z' => return Err(Error::InvalidVariableChar(c, ci, li)),
-                        '|' => {
-                            match self.load_calls {
-                                true => {
-                                    self.pass_token = Some(Token::Var(char_container.flush()));
-                                    match c {
-                                        '|' => VarParserState::FunctionCall,
-                                        _ => return Err(Error::CheckMismatch(c, ci, li)),
-                                    }
-                                }
-                                false => {
-                                    let token = Token::Var(char_container.flush());
-                                    token_container.add_token(controller, token);
-                                    return Ok(false);
-                                }
-                            }
-                        }
                         _ => {
                             let token = Token::Var(char_container.flush());
                             token_container.add_token(controller, token);
@@ -128,49 +94,12 @@ where
                             VarParserState::Constant
                         }
                         'a'...'z' => return Err(Error::InvalidConstantChar(c, ci, li)),
-                        '|' => {
-                            match self.load_calls {
-                                true => {
-                                    self.pass_token = Some(Token::Const(char_container.flush()));
-                                    match c {
-                                        '|' => VarParserState::FunctionCall,
-                                        _ => return Err(Error::CheckMismatch(c, ci, li)),
-                                    }
-                                }
-                                false => {
-                                    let token = Token::Const(char_container.flush());
-                                    token_container.add_token(controller, token);
-                                    return Ok(false);
-                                }
-                            }
-                        }
                         _ => {
                             let token = Token::Const(char_container.flush());
                             token_container.add_token(controller, token);
                             return Ok(false);
                         }
                     }
-                }
-                VarParserState::FunctionCall => {
-                    if let None = self.pass_token {
-                        return Err(Error::InvalidPass(c, ci, li));
-                    }
-
-                    let mut call_parser: [Box<SubParser<T>>; 1] =
-                        [
-                            Box::new(FunctionCallParser::new(self.pass_token.clone().unwrap())),
-                        ];
-
-                    let _ = do_parse_single(
-                        c,
-                        parser_data,
-                        controller,
-                        char_container,
-                        token_container,
-                        &mut call_parser,
-                    )?;
-
-                    return Ok(false);
                 }
             };
         }

@@ -291,7 +291,7 @@ fn assign_conditional_true_false() {
 
 #[test]
 fn nested_conditionial() {
-    let kscript = create_parser("a = ? ?b==1| ? c== 2", VoidLogger::new(LoggerMode::Void));
+    let kscript = create_parser("a = ? ?b==1 | ? c== 2", VoidLogger::new(LoggerMode::Void));
 
     let tokens = get_tokens(&kscript);
 
