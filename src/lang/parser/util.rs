@@ -123,7 +123,7 @@ pub fn top_level_parsers<T: Logger>() -> [Box<SubParser<T>>; 19] {
     ]
 }
 
-pub fn object_value_parsers<T: Logger>() -> [Box<SubParser<T>>; 13] {
+pub fn object_value_parsers<T: Logger>() -> [Box<SubParser<T>>; 14] {
     [
         Box::new(NumberParser::new()),
         Box::new(BoolParser::new()),
@@ -138,6 +138,7 @@ pub fn object_value_parsers<T: Logger>() -> [Box<SubParser<T>>; 13] {
         Box::new(ConditionalParser::new()),
         Box::new(ArrayParser::new()),
         Box::new(DictParser::new()),
+        Box::new(FunctionParser::new()),
     ]
 }
 
