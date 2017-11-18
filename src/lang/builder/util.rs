@@ -24,6 +24,7 @@ pub fn token_to_data_type<T: Logger>(
         Token::Var(ref name) => Ok(Some(DataHolder::Var(name.clone()))),
         Token::Const(ref name) => Ok(Some(DataHolder::Const(name.clone()))),
         Token::String(ref string) => Ok(Some(DataHolder::Anon(DataType::String(string.clone())))),
+        Token::File(ref file_name) => Ok(Some(DataHolder::Anon(DataType::File(file_name.clone())))),
         Token::Integer(int) => Ok(Some(DataHolder::Anon(DataType::Integer(int)))),
         Token::Float(float) => Ok(Some(DataHolder::Anon(DataType::Float(float)))),
         Token::Array(ref arr) => {

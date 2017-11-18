@@ -153,3 +153,22 @@ fn comment_op_comment() {
     assert_eq!(commands[2], Command::Assign(0, 1));
     last_is_clear(&commands);
 }
+
+#[test]
+fn var_assign_file() {
+    let kscript = create_builder("myfile = 'hello'", VoidLogger::new(LoggerMode::Void));
+
+    let commands = get_commands(&kscript);
+
+    assert_eq!(commands.len(), 4);
+    assert_eq!(
+        commands[0],
+        Command::SetRegister(0, DataHolder::Var("myfile".to_string()))
+    );
+    assert_eq!(
+        commands[1],
+        Command::SetRegister(1, DataHolder::Anon(DataType::File("hello".to_string())))
+    );
+    assert_eq!(commands[2], Command::Assign(0, 1));
+    last_is_clear(&commands);
+}
