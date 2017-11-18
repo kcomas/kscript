@@ -131,3 +131,25 @@ fn math_io_integer() {
     assert_eq!(commands[5], Command::IoWrite(3, 4));
     last_is_clear(&commands);
 }
+
+#[test]
+fn comment_op_comment() {
+    let kscript = create_builder(
+        "# this is a comment\n a = 1 # another comment",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let commands = get_commands(&kscript);
+
+    assert_eq!(commands.len(), 4);
+    assert_eq!(
+        commands[0],
+        Command::SetRegister(0, DataHolder::Var("a".to_string()))
+    );
+    assert_eq!(
+        commands[1],
+        Command::SetRegister(1, DataHolder::Anon(DataType::Integer(1)))
+    );
+    assert_eq!(commands[2], Command::Assign(0, 1));
+    last_is_clear(&commands);
+}
