@@ -172,3 +172,74 @@ fn var_assign_file() {
     assert_eq!(commands[2], Command::Assign(0, 1));
     last_is_clear(&commands);
 }
+
+#[test]
+fn var_assign_string() {
+    let kscript = create_builder("mystr = \"test # str\"", VoidLogger::new(LoggerMode::Void));
+
+    let commands = get_commands(&kscript);
+
+    assert_eq!(commands.len(), 4);
+    assert_eq!(
+        commands[0],
+        Command::SetRegister(0, DataHolder::Var("mystr".to_string()))
+    );
+    assert_eq!(
+        commands[1],
+        Command::SetRegister(
+            1,
+            DataHolder::Anon(DataType::String("test # str".to_string())),
+        )
+    );
+    assert_eq!(commands[2], Command::Assign(0, 1));
+    last_is_clear(&commands);
+}
+
+#[test]
+fn var_assign_array() {
+    let kscript = create_builder(
+        "a = @[1, @[1.34, \"herp\"], (1 + 2 * 3), 1234]",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let commands = get_commands(&kscript);
+
+    assert_eq!(commands.len(), 9);
+    assert_eq!(
+        commands[0],
+        Command::SetRegister(0, DataHolder::Var("a".to_string()))
+    );
+    assert_eq!(
+        commands[1],
+        Command::SetRegister(1, DataHolder::Anon(DataType::Integer(1)))
+    );
+    assert_eq!(
+        commands[2],
+        Command::SetRegister(2, DataHolder::Anon(DataType::Integer(2)))
+    );
+    assert_eq!(
+        commands[3],
+        Command::SetRegister(3, DataHolder::Anon(DataType::Integer(3)))
+    );
+    assert_eq!(commands[4], Command::Multiply(4, 2, 3));
+    assert_eq!(commands[5], Command::Addition(5, 1, 4));
+    assert_eq!(
+        commands[6],
+        Command::SetRegister(
+            6,
+            DataHolder::Array(vec![
+                DataHolder::Anon(DataType::Integer(1)),
+                DataHolder::Array(vec![
+                    DataHolder::Anon(DataType::Float(1.34)),
+                    DataHolder::Anon(
+                        DataType::String("herp".to_string())
+                    ),
+                ]),
+                DataHolder::Math(5),
+                DataHolder::Anon(DataType::Integer(1234)),
+            ]),
+        )
+    );
+    assert_eq!(commands[7], Command::Assign(0, 6));
+    last_is_clear(&commands);
+}
