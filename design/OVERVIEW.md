@@ -127,6 +127,10 @@ An apl-ish scripting language to be used like bash
 ### Less then or equal to \<=
 * Only applies to numbers
 
+### And &
+
+### Or ^
+
 ## Single Commands
 * Takes single argument
 
@@ -140,7 +144,7 @@ An apl-ish scripting language to be used like bash
     * This just returns a boolean
 
 ## Loops
-* ```$condition{while condition}```
+* ```$condition${while condition}```
 
 ## System Commands
 * All commands start with ```\```
