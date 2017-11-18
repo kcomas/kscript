@@ -13,6 +13,7 @@ use super::util::{do_parse, top_level_parsers};
 pub enum LoopParserState {
     Nothing,
     MabeStatements,
+    NowStatements,
     Statements,
 }
 
@@ -83,6 +84,15 @@ where
                             parser_data.inc_char();
                             LoopParserState::MabeStatements
                         }
+                        '$' => {
+                            parser_data.inc_char();
+                            LoopParserState::NowStatements
+                        }
+                        _ => return Err(Error::InvalidLoop(c, ci, li)),
+                    }
+                }
+                LoopParserState::NowStatements => {
+                    match c {
                         '{' => {
                             parser_data.inc_char();
                             LoopParserState::Statements

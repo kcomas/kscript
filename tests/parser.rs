@@ -377,7 +377,7 @@ fn function_in_dict() {
 #[test]
 fn assign_loop_print() {
     let kscript = create_parser(
-        "a = 1; $a<5{a = (a + 1)} a > 1",
+        "a = 1; $a<5${a = (a + 1)} a > 1",
         VoidLogger::new(LoggerMode::Void),
     );
 
