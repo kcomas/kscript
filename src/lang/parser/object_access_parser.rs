@@ -101,6 +101,7 @@ where
                 ObjectAccessParserState::Finish => {
                     match c {
                         ']' => {
+                            parser_data.inc_char();
                             if self.access_container.len() != 1 {
                                 return Err(Error::InvalidObjectAccess(c, ci, li));
                             }

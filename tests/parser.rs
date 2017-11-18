@@ -317,6 +317,9 @@ fn nested_conditionial() {
     last_is_end(&tokens);
 }
 
+// c=@[@[2]];a=??a==@[1][0]|?@[]==c[0][0]
+
+
 #[test]
 fn assign_loop_print() {
     let kscript = create_parser(

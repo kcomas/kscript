@@ -6,7 +6,7 @@ use kscript::lang::logger::{Logger, DebugLogger, LoggerMode};
 
 fn main() {
     let mut kscript = Kscript::new(DebugLogger::new(LoggerMode::Stdout));
-    if let Err(kerror) = kscript.run("a=??a==@[1][0]|?b==@[2][0]") {
+    if let Err(kerror) = kscript.run("c=@[@[2]];a=??a==@[1][0]|?@[]==c[0][0]") {
         eprintln!("Error {:?}", kerror);
     }
 }
