@@ -13,6 +13,7 @@ use super::file_parser::FileParser;
 use super::string_parser::StringParser;
 use super::array_parser::ArrayParser;
 use super::dict_parser::DictParser;
+use super::object_access_parser::ObjectAccessParser;
 use super::bool_parser::BoolParser;
 use super::conditional_parser::ConditionalParser;
 use super::block_end_parser::BlockEndParser;
@@ -97,7 +98,7 @@ pub fn do_parse<T: Logger>(
     Ok(())
 }
 
-pub fn top_level_parsers<T: Logger>() -> [Box<SubParser<T>>; 17] {
+pub fn top_level_parsers<T: Logger>() -> [Box<SubParser<T>>; 18] {
     [
         Box::new(EndParser::new()),
         Box::new(NumberParser::new()),
@@ -112,6 +113,7 @@ pub fn top_level_parsers<T: Logger>() -> [Box<SubParser<T>>; 17] {
         Box::new(SystemParser::new()),
         Box::new(ArrayParser::new()),
         Box::new(DictParser::new()),
+        Box::new(ObjectAccessParser::new()),
         Box::new(ConditionalParser::new()),
         Box::new(BlockEndParser::new()),
         Box::new(LoopParser::new()),
@@ -119,11 +121,12 @@ pub fn top_level_parsers<T: Logger>() -> [Box<SubParser<T>>; 17] {
     ]
 }
 
-pub fn object_value_parsers<T: Logger>() -> [Box<SubParser<T>>; 11] {
+pub fn object_value_parsers<T: Logger>() -> [Box<SubParser<T>>; 12] {
     [
         Box::new(NumberParser::new()),
         Box::new(BoolParser::new()),
         Box::new(VarParser::new()),
+        Box::new(ObjectAccessParser::new()),
         Box::new(FunctionParser::new()),
         Box::new(MathParser::new()),
         Box::new(CommentParser::new()),
@@ -135,11 +138,12 @@ pub fn object_value_parsers<T: Logger>() -> [Box<SubParser<T>>; 11] {
     ]
 }
 
-pub fn conditional_parsers<T: Logger>() -> [Box<SubParser<T>>; 7] {
+pub fn conditional_parsers<T: Logger>() -> [Box<SubParser<T>>; 8] {
     [
         Box::new(NumberParser::new()),
         Box::new(BoolParser::new()),
         Box::new(VarParser::new()),
+        Box::new(ObjectAccessParser::new()),
         Box::new(MathParser::new()),
         Box::new(FileParser::new()),
         Box::new(StringParser::new()),

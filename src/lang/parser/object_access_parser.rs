@@ -20,15 +20,13 @@ pub enum ObjectAccessParserState {
 
 pub struct ObjectAccessParser {
     state: ObjectAccessParserState,
-    var_name: Token,
     access_container: TokenContainer,
 }
 
 impl ObjectAccessParser {
-    pub fn new(var_name: Token) -> ObjectAccessParser {
+    pub fn new() -> ObjectAccessParser {
         ObjectAccessParser {
             state: ObjectAccessParserState::Nothing,
-            var_name: var_name,
             access_container: TokenContainer::new(),
         }
     }
@@ -52,7 +50,6 @@ where
     fn reset(&mut self) {
         self.state = ObjectAccessParserState::Nothing;
         self.access_container.clear();
-        self.var_name = Token::End;
     }
 
     fn parse(
@@ -108,11 +105,16 @@ where
                                 return Err(Error::InvalidObjectAccess(c, ci, li));
                             }
 
+                            let prev_token = match token_container.pop() {
+                                Some(prev_t) => prev_t,
+                                _ => return Err(Error::InvalidObjectAccess(c, ci, li)),
+                            };
+
                             let token = self.access_container.get(0).unwrap().clone();
                             token_container.add_token(
                                 controller,
                                 Token::ObjectAccess(
-                                    Box::new(self.var_name.clone()),
+                                    Box::new(prev_token),
                                     Box::new(token),
                                 ),
                             );

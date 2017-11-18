@@ -86,6 +86,10 @@ impl TokenContainer {
         }
     }
 
+    pub fn pop(&mut self) -> Option<Token> {
+        self.tokens.pop()
+    }
+
     pub fn is_current_token_end(&self) -> bool {
         self.get_current_token().is_end()
     }

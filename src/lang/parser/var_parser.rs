@@ -5,7 +5,6 @@ use super::parser_container::ParserContainer;
 use super::char_container::CharContainer;
 use super::sub_parser::SubParser;
 use super::function_call_parser::FunctionCallParser;
-use super::object_access_parser::ObjectAccessParser;
 use super::super::logger::Logger;
 use super::super::controller::Controller;
 use super::super::error::Error;
@@ -16,7 +15,6 @@ pub enum VarParserState {
     Variable,
     Constant,
     FunctionCall,
-    ObjectAccess,
 }
 
 pub struct VarParser {
@@ -99,13 +97,12 @@ where
                             VarParserState::Variable
                         }
                         'A'...'Z' => return Err(Error::InvalidVariableChar(c, ci, li)),
-                        '|' | '[' => {
+                        '|' => {
                             match self.load_calls {
                                 true => {
                                     self.pass_token = Some(Token::Var(char_container.flush()));
                                     match c {
                                         '|' => VarParserState::FunctionCall,
-                                        '[' => VarParserState::ObjectAccess,
                                         _ => return Err(Error::CheckMismatch(c, ci, li)),
                                     }
                                 }
@@ -131,13 +128,12 @@ where
                             VarParserState::Constant
                         }
                         'a'...'z' => return Err(Error::InvalidConstantChar(c, ci, li)),
-                        '|' | '[' => {
+                        '|' => {
                             match self.load_calls {
                                 true => {
                                     self.pass_token = Some(Token::Const(char_container.flush()));
                                     match c {
                                         '|' => VarParserState::FunctionCall,
-                                        '[' => VarParserState::ObjectAccess,
                                         _ => return Err(Error::CheckMismatch(c, ci, li)),
                                     }
                                 }
@@ -172,27 +168,6 @@ where
                         char_container,
                         token_container,
                         &mut call_parser,
-                    )?;
-
-                    return Ok(false);
-                }
-                VarParserState::ObjectAccess => {
-                    if let None = self.pass_token {
-                        return Err(Error::InvalidPass(c, ci, li));
-                    }
-
-                    let mut access_parser: [Box<SubParser<T>>; 1] =
-                        [
-                            Box::new(ObjectAccessParser::new(self.pass_token.clone().unwrap())),
-                        ];
-
-                    let _ = do_parse_single(
-                        c,
-                        parser_data,
-                        controller,
-                        char_container,
-                        token_container,
-                        &mut access_parser,
                     )?;
 
                     return Ok(false);
