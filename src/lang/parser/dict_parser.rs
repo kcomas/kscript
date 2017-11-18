@@ -122,8 +122,13 @@ where
                     match used {
                         true => DictParserState::IsDict,
                         false => {
-                            parser_data.inc_char();
-                            DictParserState::LoadKey
+                            match c {
+                                ']' => DictParserState::IsDict,
+                                _ => {
+                                    parser_data.inc_char();
+                                    DictParserState::LoadKey
+                                }
+                            }
                         }
                     }
                 }

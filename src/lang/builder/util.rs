@@ -1,4 +1,5 @@
 
+use std::collections::HashMap;
 use super::super::controller::Controller;
 use super::super::logger::Logger;
 use super::super::error::Error;
@@ -41,6 +42,26 @@ pub fn token_to_data_type<T: Logger>(
                 }
             }
             Ok(Some((DataHolder::Array(container))))
+        }
+        Token::Dict(ref keys, ref values) => {
+            let mut container = HashMap::new();
+            for i in 0..keys.len() {
+                let key = match keys[i] {
+                    Token::String(ref string) => string.clone(),
+                    _ => return Err(Error::InvalidDictionaryKey),
+                };
+
+                if let Some(value) = token_to_data_type(
+                    controller,
+                    command_container,
+                    current_register,
+                    &values[i],
+                )?
+                {
+                    container.insert(key, value);
+                }
+            }
+            Ok(Some(DataHolder::Dict(container)))
         }
         Token::ObjectAccess(ref target, ref accessor) => {
             let t_holder =

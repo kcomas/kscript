@@ -111,8 +111,13 @@ where
                     match used {
                         true => ArrayParserState::IsArray,
                         false => {
-                            parser_data.inc_char();
-                            ArrayParserState::LoadItem
+                            match c {
+                                ']' => ArrayParserState::IsArray,
+                                _ => {
+                                    parser_data.inc_char();
+                                    ArrayParserState::LoadItem
+                                }
+                            }
                         }
                     }
                 }

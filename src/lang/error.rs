@@ -29,4 +29,5 @@ pub enum Error {
     InvalidRightRegisterAccess,
     InvalidLeftRegisterAccess,
     UnableToBuildDataType,
+    InvalidDictionaryKey,
 }
