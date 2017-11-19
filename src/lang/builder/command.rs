@@ -1,6 +1,8 @@
 
 use std::collections::HashMap;
 
+pub type Kmap = HashMap<String, DataHolder>;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum DataType {
     Integer(i64),
@@ -15,7 +17,7 @@ pub enum DataHolder {
     Const(String),
     Anon(DataType),
     Array(Vec<DataHolder>),
-    Dict(HashMap<String, DataHolder>),
+    Dict(Kmap),
     ObjectAccess(Box<DataHolder>, Box<DataHolder>),
     // the result in a register
     Math(usize),

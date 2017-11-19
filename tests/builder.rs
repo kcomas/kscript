@@ -1,6 +1,7 @@
 
 extern crate kscript;
 
+use std::collections::HashMap;
 use kscript::lang::Kscript;
 use kscript::lang::builder::command::{Command, DataHolder, DataType};
 use kscript::lang::logger::{Logger, VoidLogger, LoggerMode};
@@ -241,5 +242,45 @@ fn var_assign_array() {
         )
     );
     assert_eq!(commands[7], Command::Assign(0, 6));
+    last_is_clear(&commands);
+}
+
+#[test]
+fn var_assign_dict() {
+    let kscript = create_builder(
+        "d = %[\"asdf\": 1234, \"sub\": %[\"merp\": 3.45], \"arr\": @[1, 2, 4], \"herp\": \"derp\"]",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let commands = get_commands(&kscript);
+
+    assert_eq!(commands.len(), 4);
+    assert_eq!(
+        commands[0],
+        Command::SetRegister(0, DataHolder::Var("d".to_string()))
+    );
+
+    let mut map = HashMap::new();
+    let mut sub = HashMap::new();
+    sub.insert("merp".to_string(), DataHolder::Anon(DataType::Float(3.45)));
+    map.insert(
+        "asdf".to_string(),
+        DataHolder::Anon(DataType::Integer(1234)),
+    );
+    map.insert("sub".to_string(), DataHolder::Dict(sub));
+    map.insert(
+        "arr".to_string(),
+        DataHolder::Array(vec![
+            DataHolder::Anon(DataType::Integer(1)),
+            DataHolder::Anon(DataType::Integer(2)),
+            DataHolder::Anon(DataType::Integer(4)),
+        ]),
+    );
+    map.insert(
+        "herp".to_string(),
+        DataHolder::Anon(DataType::String("derp".to_string())),
+    );
+    assert_eq!(commands[1], Command::SetRegister(1, DataHolder::Dict(map)));
+    assert_eq!(commands[2], Command::Assign(0, 1));
     last_is_clear(&commands);
 }
