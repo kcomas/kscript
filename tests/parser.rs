@@ -368,13 +368,34 @@ fn nested_conditionals_with_nesed_data() {
 #[test]
 fn function_in_dict() {
     let kscript = create_parser(
-        "d=%[\"test\":{|d|(d=d+1);d}][\"test\"]|2|",
+        "d=%[\"test\":{|d|d=(d+1);d}][\"test\"]|2|",
         VoidLogger::new(LoggerMode::Void),
     );
 
     let tokens = get_tokens(&kscript);
 
     assert_eq!(tokens.len(), 4);
+    assert_eq!(tokens[0], Token::Var("d".to_string()));
+    assert_eq!(tokens[1], Token::Assign);
+    let f = Token::Function(
+        vec![Token::Var("d".to_string())],
+        vec![
+            Token::Var("d".to_string()),
+            Token::Assign,
+            Token::Math(vec![
+                Token::Var("d".to_string()),
+                Token::Addition,
+                Token::Integer(1),
+            ]),
+            Token::End,
+            Token::Var("d".to_string()),
+        ],
+    );
+    let d = Token::Dict(vec![Token::String("test".to_string())], vec![f]);
+    let a = Token::ObjectAccess(Box::new(d), Box::new(Token::String("test".to_string())));
+    let c = Token::FunctionCall(Box::new(a), vec![Token::Integer(2)]);
+    assert_eq!(tokens[2], c);
+    last_is_end(&tokens);
 }
 
 
