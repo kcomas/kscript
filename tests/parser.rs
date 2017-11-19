@@ -257,17 +257,15 @@ fn vars_const_with_numbers() {
 #[test]
 fn assign_conditional_true_false() {
     let kscript = create_parser(
-        "a = ?1 == 2{a = 3}{b = \"test\"}",
+        "?1 == 2{a = 3}{b = \"test\"}",
         VoidLogger::new(LoggerMode::Void),
     );
 
     let tokens = get_tokens(&kscript);
 
-    assert_eq!(tokens.len(), 4);
-    assert_eq!(tokens[0], Token::Var("a".to_string()));
-    assert_eq!(tokens[1], Token::Assign);
+    assert_eq!(tokens.len(), 2);
     assert_eq!(
-        tokens[2],
+        tokens[0],
         Token::If(
             Box::new(Token::Conditional(
                 Box::new(Token::Integer(1)),

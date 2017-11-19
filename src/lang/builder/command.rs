@@ -13,6 +13,17 @@ pub enum DataType {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+pub enum Comparison {
+    Equals,
+    EqualOrGreater,
+    EqualOrLess,
+    Greater,
+    Less,
+    And,
+    Or,
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub enum DataHolder {
     Var(String),
     Const(String),
@@ -22,6 +33,7 @@ pub enum DataHolder {
     ObjectAccess(Box<DataHolder>, Box<DataHolder>),
     // the result in a register
     Math(usize),
+    Conditional(Box<DataHolder>, Comparison, Box<DataHolder>),
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -40,4 +52,6 @@ pub enum Command {
     Divide(usize, usize, usize),
     Modulus(usize, usize, usize),
     Exponent(usize, usize, usize),
+    // coditional true commands false commands
+    If(DataHolder, Vec<Command>, Vec<Command>),
 }

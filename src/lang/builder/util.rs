@@ -92,6 +92,21 @@ pub fn token_to_data_type<T: Logger>(
             *current_register += 1;
             Ok(Some(dh))
         }
+        Token::Conditional(ref item_a, ref comparison, ref item_b) => {
+            let mabe_item_a =
+                token_to_data_type(controller, command_container, current_register, item_a)?;
+            let mabe_comp = comparison.to_comparison();
+            let mabe_item_b =
+                token_to_data_type(controller, command_container, current_register, item_b)?;
+            if mabe_item_a.is_some() && mabe_comp.is_some() && mabe_item_b.is_some() {
+                return Ok(Some(DataHolder::Conditional(
+                    Box::new(mabe_item_a.unwrap()),
+                    mabe_comp.unwrap(),
+                    Box::new(mabe_item_b.unwrap()),
+                )));
+            }
+            Err(Error::UnableToBuildDataType)
+        }
         _ => Ok(None),
     }
 }
@@ -238,7 +253,6 @@ pub fn create_commands<T: Logger>(
     Ok(())
 }
 
-
 pub fn top_level_builders<T: Logger>() -> [Box<SubBuilder<T>>; 4] {
     [
         Box::new(SingleCommandBuilder::new()),
@@ -273,4 +287,21 @@ pub fn get_left_and_right(token_container: &mut TokenContainer) -> Result<(usize
     }
 
     Ok((left_counter, right_counter))
+}
+
+pub fn create_new_command_container<T: Logger>(
+    controller: &mut Controller<T>,
+    token_container: &mut TokenContainer,
+    builders: &mut [Box<SubBuilder<T>>],
+) -> Result<CommandContainer, Error> {
+    let mut command_container = CommandContainer::new();
+    let mut current_register: usize = 0;
+    create_commands(
+        controller,
+        token_container,
+        &mut command_container,
+        &mut current_register,
+        builders,
+    )?;
+    Ok(command_container)
 }

@@ -30,4 +30,5 @@ pub enum Error {
     InvalidLeftRegisterAccess,
     UnableToBuildDataType,
     InvalidDictionaryKey,
+    InvalidConditonalToken,
 }

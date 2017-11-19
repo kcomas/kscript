@@ -1,5 +1,6 @@
 
 use super::token_container::TokenContainer;
+use super::super::builder::command::Comparison;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum SystemCommand {
@@ -84,6 +85,19 @@ impl Token {
     pub fn unwrap_to_container(&self) -> Option<TokenContainer> {
         match *self {
             Token::Math(ref tokens) => Some(TokenContainer::from_token_vec(tokens.clone())),
+            _ => None,
+        }
+    }
+
+    pub fn to_comparison(&self) -> Option<Comparison> {
+        match *self {
+            Token::Equals => Some(Comparison::Equals),
+            Token::EqualOrGreater => Some(Comparison::EqualOrGreater),
+            Token::EqualOrLess => Some(Comparison::EqualOrLess),
+            Token::Greater => Some(Comparison::Greater),
+            Token::Less => Some(Comparison::Less),
+            Token::And => Some(Comparison::And),
+            Token::Or => Some(Comparison::Or),
             _ => None,
         }
     }

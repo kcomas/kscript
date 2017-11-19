@@ -16,7 +16,7 @@ use super::logger::Logger;
 use super::error::Error;
 use super::parser::token_container::TokenContainer;
 use self::command_container::CommandContainer;
-use self::util::{create_commands, top_level_builders};
+use self::util::{create_new_command_container, top_level_builders};
 
 pub struct BuilderRunner<'a, T: Logger + 'a> {
     controller: &'a mut Controller<T>,
@@ -35,19 +35,10 @@ where
             self.controller.get_logger_mut().builder_start();
         }
 
-        let mut command_container = CommandContainer::new();
-
         let mut builders = top_level_builders();
 
-        let mut current_register: usize = 0;
-
-        create_commands(
-            &mut self.controller,
-            token_container,
-            &mut command_container,
-            &mut current_register,
-            &mut builders,
-        )?;
+        let command_container =
+            create_new_command_container(self.controller, token_container, &mut builders)?;
 
         {
             let logger = self.controller.get_logger_mut();
