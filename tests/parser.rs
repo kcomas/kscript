@@ -371,6 +371,10 @@ fn function_in_dict() {
         "d=%[\"test\":{|d|(d=d+1);d}][\"test\"]|2|",
         VoidLogger::new(LoggerMode::Void),
     );
+
+    let tokens = get_tokens(&kscript);
+
+    assert_eq!(tokens.len(), 4);
 }
 
 
