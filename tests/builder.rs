@@ -313,3 +313,44 @@ fn var_assign_bool_const_assign_bool() {
     assert_eq!(commands[6], Command::Assign(0, 1));
     last_is_clear(&commands);
 }
+
+#[test]
+fn vars_const_with_numbers() {
+    let kscript = create_builder(
+        "py3 = 3; 23a = 3.12; 1S3 = 4",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let commands = get_commands(&kscript);
+
+    assert_eq!(commands.len(), 12);
+    assert_eq!(
+        commands[0],
+        Command::SetRegister(0, DataHolder::Var("py3".to_string()))
+    );
+    assert_eq!(
+        commands[1],
+        Command::SetRegister(1, DataHolder::Anon(DataType::Integer(3)))
+    );
+    assert_eq!(commands[2], Command::Assign(0, 1));
+    assert_eq!(commands[3], Command::ClearRegisters);
+    assert_eq!(
+        commands[4],
+        Command::SetRegister(0, DataHolder::Var("23a".to_string()))
+    );
+    assert_eq!(
+        commands[5],
+        Command::SetRegister(1, DataHolder::Anon(DataType::Float(3.12)))
+    );
+    assert_eq!(commands[6], Command::Assign(0, 1));
+    assert_eq!(commands[7], Command::ClearRegisters);
+    assert_eq!(
+        commands[8],
+        Command::SetRegister(0, DataHolder::Const("1S3".to_string()))
+    );
+    assert_eq!(
+        commands[9],
+        Command::SetRegister(1, DataHolder::Anon(DataType::Integer(4)))
+    );
+    last_is_clear(&commands);
+}
