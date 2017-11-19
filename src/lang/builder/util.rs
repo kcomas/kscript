@@ -14,6 +14,7 @@ use super::io_builder::IoBuilder;
 use super::add_sub_builder::AddSubBuilder;
 use super::mul_div_mod_builder::MulDivModBuilder;
 use super::exponent_builder::ExponentBuilder;
+use super::if_builder::IfBuilder;
 
 pub fn token_to_data_type<T: Logger>(
     controller: &mut Controller<T>,
@@ -238,11 +239,12 @@ pub fn create_commands<T: Logger>(
 }
 
 
-pub fn top_level_builders<T: Logger>() -> [Box<SubBuilder<T>>; 3] {
+pub fn top_level_builders<T: Logger>() -> [Box<SubBuilder<T>>; 4] {
     [
         Box::new(SingleCommandBuilder::new()),
         Box::new(DoubleCommandBuilder::new()),
         Box::new(IoBuilder::new()),
+        Box::new(IfBuilder::new()),
     ]
 }
 

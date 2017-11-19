@@ -8,6 +8,7 @@ pub mod io_builder;
 pub mod add_sub_builder;
 pub mod mul_div_mod_builder;
 pub mod exponent_builder;
+pub mod if_builder;
 mod util;
 
 use super::controller::Controller;
