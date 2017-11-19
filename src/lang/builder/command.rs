@@ -9,6 +9,7 @@ pub enum DataType {
     Float(f64),
     String(String),
     File(String),
+    Bool(bool),
 }
 
 #[derive(Debug, Clone, PartialEq)]

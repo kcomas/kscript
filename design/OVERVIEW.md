@@ -33,6 +33,7 @@ An apl-ish scripting language to be used like bash
 
 ### Objects
 * Arrays and Dictionaries
+* Passed by deep copy
 
 #### Array
 * Arrays are always mixed typed of and can be initialized with other variables

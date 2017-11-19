@@ -284,3 +284,32 @@ fn var_assign_dict() {
     assert_eq!(commands[2], Command::Assign(0, 1));
     last_is_clear(&commands);
 }
+
+#[test]
+fn var_assign_bool_const_assign_bool() {
+    let kscript = create_builder("test = t; TESTD = f", VoidLogger::new(LoggerMode::Void));
+
+    let commands = get_commands(&kscript);
+
+    assert_eq!(commands.len(), 8);
+    assert_eq!(
+        commands[0],
+        Command::SetRegister(0, DataHolder::Var("test".to_string()))
+    );
+    assert_eq!(
+        commands[1],
+        Command::SetRegister(1, DataHolder::Anon(DataType::Bool(true)))
+    );
+    assert_eq!(commands[2], Command::Assign(0, 1));
+    assert_eq!(commands[3], Command::ClearRegisters);
+    assert_eq!(
+        commands[4],
+        Command::SetRegister(0, DataHolder::Const("TESTD".to_string()))
+    );
+    assert_eq!(
+        commands[5],
+        Command::SetRegister(1, DataHolder::Anon(DataType::Bool(false)))
+    );
+    assert_eq!(commands[6], Command::Assign(0, 1));
+    last_is_clear(&commands);
+}

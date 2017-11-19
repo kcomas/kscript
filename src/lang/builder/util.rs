@@ -28,6 +28,7 @@ pub fn token_to_data_type<T: Logger>(
         Token::File(ref file_name) => Ok(Some(DataHolder::Anon(DataType::File(file_name.clone())))),
         Token::Integer(int) => Ok(Some(DataHolder::Anon(DataType::Integer(int)))),
         Token::Float(float) => Ok(Some(DataHolder::Anon(DataType::Float(float)))),
+        Token::Bool(b) => Ok(Some(DataHolder::Anon(DataType::Bool(b)))),
         Token::Array(ref arr) => {
             let mut container: Vec<DataHolder> = Vec::new();
             for token in arr.iter() {
