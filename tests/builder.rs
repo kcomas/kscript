@@ -393,3 +393,42 @@ fn assign_conditional_true_false() {
     );
 
 }
+
+#[test]
+fn nested_conditionial() {
+    let kscript = create_builder("a = ? ?b==1^? c== 2", VoidLogger::new(LoggerMode::Void));
+
+    let commands = get_commands(&kscript);
+
+    assert_eq!(commands.len(), 4);
+    assert_eq!(
+        commands[0],
+        Command::SetRegister(0, DataHolder::Var("a".to_string()))
+    );
+
+    let left_conditional = DataHolder::Conditional(
+        Box::new(DataHolder::Var("b".to_string())),
+        Comparison::Equals,
+        Box::new(DataHolder::Anon(DataType::Integer(1))),
+    );
+
+    let right_conditional = DataHolder::Conditional(
+        Box::new(DataHolder::Var("c".to_string())),
+        Comparison::Equals,
+        Box::new(DataHolder::Anon(DataType::Integer(2))),
+    );
+
+    assert_eq!(
+        commands[1],
+        Command::SetRegister(
+            1,
+            DataHolder::Conditional(
+                Box::new(left_conditional),
+                Comparison::Or,
+                Box::new(right_conditional),
+            ),
+        )
+    );
+    assert_eq!(commands[2], Command::Assign(0, 1));
+    last_is_clear(&commands);
+}
