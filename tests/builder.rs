@@ -3,7 +3,7 @@ extern crate kscript;
 
 use std::collections::HashMap;
 use kscript::lang::Kscript;
-use kscript::lang::builder::command::{Command, DataHolder, DataType};
+use kscript::lang::builder::command::{Command, DataHolder, DataType, Comparison};
 use kscript::lang::logger::{Logger, VoidLogger, LoggerMode};
 
 pub fn create_builder<T: Logger>(program: &str, logger: T) -> Kscript<T> {
@@ -353,4 +353,43 @@ fn vars_const_with_numbers() {
         Command::SetRegister(1, DataHolder::Anon(DataType::Integer(4)))
     );
     last_is_clear(&commands);
+}
+
+#[test]
+fn assign_conditional_true_false() {
+    let kscript = create_builder(
+        "?1 == 2{a = 3}{b = \"test\"}",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let commands = get_commands(&kscript);
+
+    assert_eq!(commands.len(), 1);
+
+    let conditional = DataHolder::Conditional(
+        Box::new(DataHolder::Anon(DataType::Integer(1))),
+        Comparison::Equals,
+        Box::new(DataHolder::Anon(DataType::Integer(2))),
+    );
+
+    let true_commands = vec![
+        Command::SetRegister(0, DataHolder::Var("a".to_string())),
+        Command::SetRegister(1, DataHolder::Anon(DataType::Integer(3))),
+        Command::Assign(0, 1),
+        Command::ClearRegisters,
+    ];
+
+    let false_commands =
+        vec![
+            Command::SetRegister(0, DataHolder::Var("b".to_string())),
+            Command::SetRegister(1, DataHolder::Anon(DataType::String("test".to_string()))),
+            Command::Assign(0, 1),
+            Command::ClearRegisters,
+        ];
+
+    assert_eq!(
+        commands[0],
+        Command::If(conditional, true_commands, false_commands)
+    );
+
 }
