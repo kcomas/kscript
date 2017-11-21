@@ -2,7 +2,7 @@
 use super::parser::token::Token;
 use super::builder::command::Command;
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub enum LoggerMode {
     Void,
     Stdout,
@@ -11,7 +11,7 @@ pub enum LoggerMode {
     File(String),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub enum LoggerEvent<'a, 'b, 'c, 'd, 'e, 'f, 'g, 'h, 'i> {
     ParserStart,
     // char, index, line
