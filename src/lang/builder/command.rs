@@ -54,4 +54,5 @@ pub enum Command {
     Exponent(usize, usize, usize),
     // coditional true commands false commands
     If(DataHolder, Vec<Command>, Vec<Command>),
+    Loop(DataHolder, Vec<Command>),
 }

@@ -60,6 +60,15 @@ impl Token {
         }
     }
 
+    pub fn is_ending(&self) -> bool {
+        match *self {
+            Token::If(_, _, _) => true,
+            Token::Loop(_, _) => true,
+            Token::Function(_, _) => true,
+            _ => false,
+        }
+    }
+
     pub fn is_operator_with_presedence(&self) -> u64 {
         // if it is greater then zero it is an operator
         // higher number is higher presedene

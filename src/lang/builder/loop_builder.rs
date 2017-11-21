@@ -49,7 +49,7 @@ where
     ) -> Result<(), Error> {
         if let Some(token) = token_container.get_slice_token_mut() {
             match *token {
-                Token::Loop(ref mut conditional, ref statements) => {
+                Token::Loop(ref mut conditional, ref mut statements) => {
                     let mabe_cond = token_to_data_type(
                         controller,
                         command_container,
@@ -58,12 +58,24 @@ where
                     )?;
 
                     if let Some(is_cond) = mabe_cond {
+                        let mut builders = top_level_builders();
+                        let mut commands: Vec<Command> = Vec::new();
+                        let mut statement_container = TokenContainer::new(statements);
+                        let _ = create_new_command_container(
+                            controller,
+                            &mut statement_container,
+                            &mut builders,
+                            &mut commands,
+                        )?;
+                        command_container.add_command(controller, Command::Loop(is_cond, commands));
                     } else {
                         return Err(Error::InvalidConditonalToken);
                     }
                 }
                 _ => return Err(Error::TokenMismatch),
-            }
+            };
+            *token = Token::Used;
+            return Ok(());
         }
         Err(Error::TokenMismatch)
     }

@@ -82,6 +82,10 @@ impl<'a> TokenContainer<'a> {
         self.get_current_token().is_end()
     }
 
+    pub fn is_current_token_ending(&self) -> bool {
+        self.get_current_token().is_ending()
+    }
+
     pub fn is_current_token_last(&self) -> bool {
         self.current_token == self.tokens.len() - 1
     }

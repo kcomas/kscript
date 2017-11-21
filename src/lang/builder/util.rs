@@ -218,7 +218,7 @@ pub fn create_commands<T: Logger>(
             run = true;
             use_clear = true;
         }
-        if token_container.is_current_token_last() {
+        if token_container.is_current_token_last() || token_container.is_current_token_ending() {
             run = true;
             use_clear = false;
         }
@@ -245,8 +245,6 @@ pub fn create_commands<T: Logger>(
                 command_container.add_command(controller, Command::ClearRegisters);
             }
             token_container.set_current_end_as_used();
-            // skip the used
-            token_container.inc_token();
             token_container.update_slice_start();
         }
         token_container.inc_token();
@@ -254,13 +252,13 @@ pub fn create_commands<T: Logger>(
     Ok(())
 }
 
-pub fn top_level_builders<T: Logger>() -> [Box<SubBuilder<T>>; 4] {
+pub fn top_level_builders<T: Logger>() -> [Box<SubBuilder<T>>; 5] {
     [
         Box::new(SingleCommandBuilder::new()),
         Box::new(DoubleCommandBuilder::new()),
         Box::new(IoBuilder::new()),
         Box::new(IfBuilder::new()),
-        // Box::new(LoopBuilder::new()),
+        Box::new(LoopBuilder::new()),
     ]
 }
 

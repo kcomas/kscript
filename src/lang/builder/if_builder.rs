@@ -63,26 +63,24 @@ where
                         let mut builders = top_level_builders();
                         let mut true_commands: Vec<Command> = Vec::new();
                         let mut false_commands: Vec<Command> = Vec::new();
-                        {
-                            let mut true_container = TokenContainer::new(true_statements);
-                            let _ = create_new_command_container(
-                                controller,
-                                &mut true_container,
-                                &mut builders,
-                                &mut true_commands,
-                            )?;
-                            let mut false_container = TokenContainer::new(false_statements);
-                            let _ = create_new_command_container(
-                                controller,
-                                &mut false_container,
-                                &mut builders,
-                                &mut false_commands,
-                            )?;
-                            command_container.add_command(
-                                controller,
-                                Command::If(is_cond, true_commands, false_commands),
-                            );
-                        }
+                        let mut true_container = TokenContainer::new(true_statements);
+                        let _ = create_new_command_container(
+                            controller,
+                            &mut true_container,
+                            &mut builders,
+                            &mut true_commands,
+                        )?;
+                        let mut false_container = TokenContainer::new(false_statements);
+                        let _ = create_new_command_container(
+                            controller,
+                            &mut false_container,
+                            &mut builders,
+                            &mut false_commands,
+                        )?;
+                        command_container.add_command(
+                            controller,
+                            Command::If(is_cond, true_commands, false_commands),
+                        );
                     } else {
                         return Err(Error::InvalidConditonalToken);
                     }
