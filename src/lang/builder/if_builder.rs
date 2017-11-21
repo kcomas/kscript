@@ -65,7 +65,7 @@ where
                         let mut false_commands: Vec<Command> = Vec::new();
                         {
                             let mut true_container = TokenContainer::new(true_statements);
-                            create_new_command_container(
+                            let _ = create_new_command_container(
                                 controller,
                                 &mut true_container,
                                 &mut builders,
