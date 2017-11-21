@@ -3,7 +3,7 @@
 cargo test --tests
 TEST_STATUS=$?
 
-if (($TEST_STATUS != 0))
+if [[ $TEST_STATUS -ne 0 ]]
 then
     echo -e "\e[1;91mUnable To Commit, Tests Need to Pass\e[0m"
     exit ${TEST_STATUS}
