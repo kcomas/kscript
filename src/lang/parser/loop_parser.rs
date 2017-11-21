@@ -19,17 +19,11 @@ pub enum LoopParserState {
 
 pub struct LoopParser {
     state: LoopParserState,
-    cond: Option<Token>,
-    statements: TokenContainer,
 }
 
 impl LoopParser {
     pub fn new() -> LoopParser {
-        LoopParser {
-            state: LoopParserState::Nothing,
-            cond: None,
-            statements: TokenContainer::new(),
-        }
+        LoopParser { state: LoopParserState::Nothing }
     }
 }
 
@@ -50,8 +44,6 @@ where
 
     fn reset(&mut self) {
         self.state = LoopParserState::Nothing;
-        self.cond = None;
-        self.statements.clear();
     }
 
     fn parse(
@@ -61,70 +53,77 @@ where
         char_container: &mut CharContainer,
         token_container: &mut TokenContainer,
     ) -> Result<bool, Error> {
-        while !parser_data.is_done() {
-            let (c, ci, li) = parser_data.get_as_tuple();
-            {
-                controller.get_logger_mut().parser_next_char(c, ci, li);
+        let mut cond = None;
+        let mut loop_tokens: Vec<Token> = Vec::new();
+        let mut done = false;
+        {
+            let mut loop_statements = TokenContainer::new(&mut loop_tokens);
+            while !parser_data.is_done() {
+                let (c, ci, li) = parser_data.get_as_tuple();
+                {
+                    controller.get_logger_mut().parser_next_char(c, ci, li);
+                }
+                self.state = match self.state {
+                    LoopParserState::Nothing => {
+                        match c {
+                            '$' => {
+                                parser_data.inc_char();
+                                let mut cb = CondBuilder::new();
+                                cond = Some(cb.parse(controller, parser_data, char_container)?);
+                                LoopParserState::MabeStatements
+                            }
+                            _ => return Err(Error::CheckMismatch(c, ci, li)),
+                        }
+                    }
+                    LoopParserState::MabeStatements => {
+                        match c {
+                            ' ' | '\n' => {
+                                parser_data.inc_char();
+                                LoopParserState::MabeStatements
+                            }
+                            '$' => {
+                                parser_data.inc_char();
+                                LoopParserState::NowStatements
+                            }
+                            _ => return Err(Error::InvalidLoop(c, ci, li)),
+                        }
+                    }
+                    LoopParserState::NowStatements => {
+                        match c {
+                            '{' => {
+                                parser_data.inc_char();
+                                LoopParserState::Statements
+                            }
+                            _ => return Err(Error::InvalidLoop(c, ci, li)),
+                        }
+                    }
+                    LoopParserState::Statements => {
+                        let mut parsers = top_level_parsers();
+
+                        do_parse(
+                            parser_data,
+                            controller,
+                            char_container,
+                            &mut loop_statements,
+                            &mut parsers,
+                        )?;
+
+                        if loop_statements.len() == 0 {
+                            return Err(Error::InvalidIfBlock(c, ci, li));
+                        }
+                        done = true;
+                        break;
+                    }
+                };
             }
-            self.state = match self.state {
-                LoopParserState::Nothing => {
-                    match c {
-                        '$' => {
-                            parser_data.inc_char();
-                            let mut cond = CondBuilder::new();
-                            self.cond = Some(cond.parse(controller, parser_data, char_container)?);
-                            LoopParserState::MabeStatements
-                        }
-                        _ => return Err(Error::CheckMismatch(c, ci, li)),
-                    }
-                }
-                LoopParserState::MabeStatements => {
-                    match c {
-                        ' ' | '\n' => {
-                            parser_data.inc_char();
-                            LoopParserState::MabeStatements
-                        }
-                        '$' => {
-                            parser_data.inc_char();
-                            LoopParserState::NowStatements
-                        }
-                        _ => return Err(Error::InvalidLoop(c, ci, li)),
-                    }
-                }
-                LoopParserState::NowStatements => {
-                    match c {
-                        '{' => {
-                            parser_data.inc_char();
-                            LoopParserState::Statements
-                        }
-                        _ => return Err(Error::InvalidLoop(c, ci, li)),
-                    }
-                }
-                LoopParserState::Statements => {
-                    let mut parsers = top_level_parsers();
+        }
+        if done {
+            token_container.add_token(
+                controller,
+                Token::Loop(Box::new(cond.unwrap()), loop_tokens),
+            );
+            return Ok(false);
 
-                    do_parse(
-                        parser_data,
-                        controller,
-                        char_container,
-                        &mut self.statements,
-                        &mut parsers,
-                    )?;
-
-                    if self.statements.len() == 0 {
-                        return Err(Error::InvalidIfBlock(c, ci, li));
-                    }
-
-                    token_container.add_token(
-                        controller,
-                        Token::Loop(
-                            Box::new(self.cond.clone().unwrap()),
-                            self.statements.get_tokens().clone(),
-                        ),
-                    );
-                    return Ok(false);
-                }
-            };
         }
         Err(Error::ImpossibleState)
     }

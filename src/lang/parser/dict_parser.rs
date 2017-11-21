@@ -19,17 +19,11 @@ pub enum DictParserState {
 
 pub struct DictParser {
     state: DictParserState,
-    key_container: TokenContainer,
-    value_container: TokenContainer,
 }
 
 impl DictParser {
     pub fn new() -> DictParser {
-        DictParser {
-            state: DictParserState::Nothing,
-            key_container: TokenContainer::new(),
-            value_container: TokenContainer::new(),
-        }
+        DictParser { state: DictParserState::Nothing }
     }
 }
 
@@ -50,8 +44,6 @@ where
 
     fn reset(&mut self) {
         self.state = DictParserState::Nothing;
-        self.key_container.clear();
-        self.value_container.clear();
     }
 
     fn parse(
@@ -61,97 +53,105 @@ where
         char_container: &mut CharContainer,
         token_container: &mut TokenContainer,
     ) -> Result<bool, Error> {
+        let mut key_tokens: Vec<Token> = Vec::new();
+        let mut value_tokens: Vec<Token> = Vec::new();
         let mut parsers = object_value_parsers();
         let mut string_parser: [Box<SubParser<T>>; 1] = [Box::new(StringParser::new())];
+        let mut done = false;
 
-        while !parser_data.is_done() {
-            let (c, ci, li) = parser_data.get_as_tuple();
-            {
-                controller.get_logger_mut().parser_next_char(c, ci, li);
-            }
-            self.state = match self.state {
-                DictParserState::Nothing => {
-                    match c {
-                        '%' => {
-                            parser_data.inc_char();
-                            DictParserState::IsDict
-                        }
-                        _ => return Err(Error::CheckMismatch(c, ci, li)),
-                    }
+        {
+            let mut key_container = TokenContainer::new(&mut key_tokens);
+            let mut value_container = TokenContainer::new(&mut value_tokens);
+            while !parser_data.is_done() {
+                let (c, ci, li) = parser_data.get_as_tuple();
+                {
+                    controller.get_logger_mut().parser_next_char(c, ci, li);
                 }
-                DictParserState::IsDict => {
-                    match c {
-                        '[' => {
-                            parser_data.inc_char();
-                            DictParserState::LoadKey
+                self.state = match self.state {
+                    DictParserState::Nothing => {
+                        match c {
+                            '%' => {
+                                parser_data.inc_char();
+                                DictParserState::IsDict
+                            }
+                            _ => return Err(Error::CheckMismatch(c, ci, li)),
                         }
-                        ':' => {
-                            parser_data.inc_char();
-                            DictParserState::LoadValue
-                        }
-                        ',' => {
-                            parser_data.inc_char();
-                            DictParserState::LoadKey
-                        }
-                        ' ' | '\n' => {
-                            parser_data.inc_char();
-                            DictParserState::IsDict
-                        }
-                        ']' => {
-                            parser_data.inc_char();
-                            let dict_token = Token::Dict(
-                                self.key_container.get_tokens().clone(),
-                                self.value_container.get_tokens().clone(),
-                            );
-                            token_container.add_token(controller, dict_token);
-                            return Ok(false);
-                        }
-                        _ => return Err(Error::InvaliDictOp(c, ci, li)),
                     }
-                }
-                DictParserState::LoadKey => {
-                    let (_exit, used) = do_parse_single(
-                        c,
-                        parser_data,
-                        controller,
-                        char_container,
-                        &mut self.key_container,
-                        &mut string_parser,
-                    )?;
+                    DictParserState::IsDict => {
+                        match c {
+                            '[' => {
+                                parser_data.inc_char();
+                                DictParserState::LoadKey
+                            }
+                            ':' => {
+                                parser_data.inc_char();
+                                DictParserState::LoadValue
+                            }
+                            ',' => {
+                                parser_data.inc_char();
+                                DictParserState::LoadKey
+                            }
+                            ' ' | '\n' => {
+                                parser_data.inc_char();
+                                DictParserState::IsDict
+                            }
+                            ']' => {
+                                parser_data.inc_char();
+                                done = true;
+                                break;
+                            }
+                            _ => return Err(Error::InvaliDictOp(c, ci, li)),
+                        }
+                    }
+                    DictParserState::LoadKey => {
+                        let (_exit, used) = do_parse_single(
+                            c,
+                            parser_data,
+                            controller,
+                            char_container,
+                            &mut key_container,
+                            &mut string_parser,
+                        )?;
 
-                    match used {
-                        true => DictParserState::IsDict,
-                        false => {
-                            match c {
-                                // empty dict
-                                ']' => DictParserState::IsDict,
-                                _ => {
-                                    parser_data.inc_char();
-                                    DictParserState::LoadKey
+                        match used {
+                            true => DictParserState::IsDict,
+                            false => {
+                                match c {
+                                    // empty dict
+                                    ']' => DictParserState::IsDict,
+                                    _ => {
+                                        parser_data.inc_char();
+                                        DictParserState::LoadKey
+                                    }
                                 }
                             }
                         }
                     }
-                }
-                DictParserState::LoadValue => {
-                    let (_exit, used) = do_parse_single(
-                        c,
-                        parser_data,
-                        controller,
-                        char_container,
-                        &mut self.value_container,
-                        &mut parsers,
-                    )?;
+                    DictParserState::LoadValue => {
+                        let (_exit, used) = do_parse_single(
+                            c,
+                            parser_data,
+                            controller,
+                            char_container,
+                            &mut value_container,
+                            &mut parsers,
+                        )?;
 
-                    match used {
-                        true => DictParserState::IsDict,
-                        false => {
-                            parser_data.inc_char();
-                            DictParserState::LoadValue
+                        match used {
+                            true => DictParserState::IsDict,
+                            false => {
+                                parser_data.inc_char();
+                                DictParserState::LoadValue
+                            }
                         }
                     }
-                }
-            };
+                };
+            }
+        }
+        if done {
+            let dict_token = Token::Dict(key_tokens, value_tokens);
+            token_container.add_token(controller, dict_token);
+            return Ok(false);
         }
         Err(Error::ImpossibleState)
     }

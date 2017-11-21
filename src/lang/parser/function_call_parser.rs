@@ -17,15 +17,11 @@ pub enum FunctionCallParserState {
 
 pub struct FunctionCallParser {
     state: FunctionCallParserState,
-    arg_container: TokenContainer,
 }
 
 impl FunctionCallParser {
     pub fn new() -> FunctionCallParser {
-        FunctionCallParser {
-            state: FunctionCallParserState::Nothing,
-            arg_container: TokenContainer::new(),
-        }
+        FunctionCallParser { state: FunctionCallParserState::Nothing }
     }
 }
 
@@ -46,7 +42,6 @@ where
 
     fn reset(&mut self) {
         self.state = FunctionCallParserState::Nothing;
-        self.arg_container.clear();
     }
 
     fn parse(
@@ -56,73 +51,81 @@ where
         char_container: &mut CharContainer,
         token_container: &mut TokenContainer,
     ) -> Result<bool, Error> {
+        let mut tokens: Vec<Token> = Vec::new();
         let mut parsers = object_value_parsers();
+        let mut done = false;
 
-        while !parser_data.is_done() {
-            let (c, ci, li) = parser_data.get_as_tuple();
-            {
-                controller.get_logger_mut().parser_next_char(c, ci, li);
-            }
-            self.state = match self.state {
-                FunctionCallParserState::Nothing => {
-                    match c {
-                        '|' => {
-                            parser_data.inc_char();
-                            FunctionCallParserState::LoadArguments
-                        }
-                        _ => return Err(Error::CheckMismatch(c, ci, li)),
-                    }
+        {
+            let mut arg_container = TokenContainer::new(&mut tokens);
+            while !parser_data.is_done() {
+                let (c, ci, li) = parser_data.get_as_tuple();
+                {
+                    controller.get_logger_mut().parser_next_char(c, ci, li);
                 }
-                FunctionCallParserState::MabeArguments => {
-                    match c {
-                        ' ' | '\n' => {
-                            parser_data.inc_char();
-                            FunctionCallParserState::MabeArguments
+                self.state = match self.state {
+                    FunctionCallParserState::Nothing => {
+                        match c {
+                            '|' => {
+                                parser_data.inc_char();
+                                FunctionCallParserState::LoadArguments
+                            }
+                            _ => return Err(Error::CheckMismatch(c, ci, li)),
                         }
-                        ',' => {
-                            parser_data.inc_char();
-                            FunctionCallParserState::LoadArguments
-                        }
-                        '|' => {
-                            parser_data.inc_char();
-                            let prev_token = match token_container.pop() {
-                                Some(prev_t) => prev_t,
-                                _ => return Err(Error::InvalidFunctionCall(c, ci, li)),
-                            };
-                            let token = Token::FunctionCall(
-                                Box::new(prev_token),
-                                self.arg_container.get_tokens().clone(),
-                            );
-                            token_container.add_token(controller, token);
-                            return Ok(false);
-                        }
-                        _ => return Err(Error::InvalidFunctionCall(c, ci, li)),
                     }
-                }
-                FunctionCallParserState::LoadArguments => {
-                    let (_exit, used) = do_parse_single(
-                        c,
-                        parser_data,
-                        controller,
-                        char_container,
-                        &mut self.arg_container,
-                        &mut parsers,
-                    )?;
+                    FunctionCallParserState::MabeArguments => {
+                        match c {
+                            ' ' | '\n' => {
+                                parser_data.inc_char();
+                                FunctionCallParserState::MabeArguments
+                            }
+                            ',' => {
+                                parser_data.inc_char();
+                                FunctionCallParserState::LoadArguments
+                            }
+                            '|' => {
+                                parser_data.inc_char();
+                                done = true;
+                                break;
+                            }
+                            _ => return Err(Error::InvalidFunctionCall(c, ci, li)),
+                        }
+                    }
+                    FunctionCallParserState::LoadArguments => {
+                        let (_exit, used) = do_parse_single(
+                            c,
+                            parser_data,
+                            controller,
+                            char_container,
+                            &mut arg_container,
+                            &mut parsers,
+                        )?;
 
-                    match used {
-                        true => FunctionCallParserState::MabeArguments,
-                        false => {
-                            match parser_data.get_current_char() {
-                                '|' => FunctionCallParserState::MabeArguments,
-                                _ => {
-                                    parser_data.inc_char();
-                                    FunctionCallParserState::LoadArguments
+                        match used {
+                            true => FunctionCallParserState::MabeArguments,
+                            false => {
+                                match parser_data.get_current_char() {
+                                    '|' => FunctionCallParserState::MabeArguments,
+                                    _ => {
+                                        parser_data.inc_char();
+                                        FunctionCallParserState::LoadArguments
+                                    }
                                 }
                             }
                         }
                     }
-                }
+                };
+            }
+        }
+        if done {
+            let (c, ci, li) = parser_data.get_as_tuple();
+            let prev_token = match token_container.pop() {
+                Some(prev_t) => prev_t,
+                _ => return Err(Error::InvalidFunctionCall(c, ci, li)),
             };
+            let token = Token::FunctionCall(Box::new(prev_token), tokens);
+            token_container.add_token(controller, token);
+            return Ok(false);
+
         }
         Err(Error::ImpossibleState)
     }

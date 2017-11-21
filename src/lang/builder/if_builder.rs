@@ -49,7 +49,9 @@ where
     ) -> Result<(), Error> {
         if let Some(token) = token_container.get_slice_token_mut() {
             match *token {
-                Token::If(ref conditional, ref true_statements, ref false_statements) => {
+                Token::If(ref mut conditional,
+                          ref mut true_statements,
+                          ref mut false_statements) => {
                     let mabe_cond = token_to_data_type(
                         controller,
                         command_container,
@@ -59,28 +61,28 @@ where
 
                     if let Some(is_cond) = mabe_cond {
                         let mut builders = top_level_builders();
-                        let mut true_container =
-                            TokenContainer::from_token_vec(true_statements.clone());
-                        let true_commands = create_new_command_container(
-                            controller,
-                            &mut true_container,
-                            &mut builders,
-                        )?;
-                        let mut false_container =
-                            TokenContainer::from_token_vec(false_statements.clone());
-                        let false_commands = create_new_command_container(
-                            controller,
-                            &mut false_container,
-                            &mut builders,
-                        )?;
-                        command_container.add_command(
-                            controller,
-                            Command::If(
-                                is_cond,
-                                true_commands.get_commands().clone(),
-                                false_commands.get_commands().clone(),
-                            ),
-                        );
+                        let mut true_commands: Vec<Command> = Vec::new();
+                        let mut false_commands: Vec<Command> = Vec::new();
+                        {
+                            let mut true_container = TokenContainer::new(true_statements);
+                            create_new_command_container(
+                                controller,
+                                &mut true_container,
+                                &mut builders,
+                                &mut true_commands,
+                            )?;
+                            let mut false_container = TokenContainer::new(false_statements);
+                            let _ = create_new_command_container(
+                                controller,
+                                &mut false_container,
+                                &mut builders,
+                                &mut false_commands,
+                            )?;
+                            command_container.add_command(
+                                controller,
+                                Command::If(is_cond, true_commands, false_commands),
+                            );
+                        }
                     } else {
                         return Err(Error::InvalidConditonalToken);
                     }

@@ -9,26 +9,14 @@ pub struct CurrentSlice {
     position: usize,
 }
 
-pub struct TokenContainer {
-    tokens: Vec<Token>,
+pub struct TokenContainer<'a> {
+    tokens: &'a mut Vec<Token>,
     current_token: usize,
     current_slice: CurrentSlice,
 }
 
-impl TokenContainer {
-    pub fn new() -> TokenContainer {
-        TokenContainer {
-            tokens: Vec::new(),
-            current_token: 0,
-            current_slice: CurrentSlice {
-                start: 0,
-                end: 0,
-                position: 0,
-            },
-        }
-    }
-
-    pub fn from_token_vec(tokens: Vec<Token>) -> TokenContainer {
+impl<'a> TokenContainer<'a> {
+    pub fn new(tokens: &'a mut Vec<Token>) -> TokenContainer<'a> {
         TokenContainer {
             tokens: tokens,
             current_token: 0,

@@ -20,19 +20,11 @@ pub enum ConditionalParserState {
 
 pub struct ConditionalParser {
     state: ConditionalParserState,
-    cond: Option<Token>,
-    true_statements: TokenContainer,
-    false_statements: TokenContainer,
 }
 
 impl ConditionalParser {
     pub fn new() -> ConditionalParser {
-        ConditionalParser {
-            state: ConditionalParserState::Nothing,
-            cond: None,
-            true_statements: TokenContainer::new(),
-            false_statements: TokenContainer::new(),
-        }
+        ConditionalParser { state: ConditionalParserState::Nothing }
     }
 }
 
@@ -53,9 +45,6 @@ where
 
     fn reset(&mut self) {
         self.state = ConditionalParserState::Nothing;
-        self.cond = None;
-        self.true_statements.clear();
-        self.false_statements.clear();
     }
 
     fn parse(
@@ -65,110 +54,109 @@ where
         char_container: &mut CharContainer,
         token_container: &mut TokenContainer,
     ) -> Result<bool, Error> {
-        while !parser_data.is_done() {
-            let (c, ci, li) = parser_data.get_as_tuple();
-            {
-                controller.get_logger_mut().parser_next_char(c, ci, li);
+        let mut cond = None;
+        let mut true_tokens: Vec<Token> = Vec::new();
+        let mut false_tokens: Vec<Token> = Vec::new();
+        let mut done = false;
+
+        {
+            let mut true_statements = TokenContainer::new(&mut true_tokens);
+            let mut false_statements = TokenContainer::new(&mut false_tokens);
+            while !parser_data.is_done() {
+                let (c, ci, li) = parser_data.get_as_tuple();
+                {
+                    controller.get_logger_mut().parser_next_char(c, ci, li);
+                }
+                self.state = match self.state {
+                    ConditionalParserState::Nothing => {
+                        match c {
+                            '?' => {
+                                parser_data.inc_char();
+                                let mut cb = CondBuilder::new();
+                                cond = Some(cb.parse(controller, parser_data, char_container)?);
+                                ConditionalParserState::MabeBlocks
+                            }
+                            _ => return Err(Error::CheckMismatch(c, ci, li)),
+                        }
+                    }
+                    ConditionalParserState::MabeBlocks => {
+                        match c {
+                            ' ' | '\n' => {
+                                parser_data.inc_char();
+                                ConditionalParserState::MabeBlocks
+                            }
+                            '{' => {
+                                parser_data.inc_char();
+                                ConditionalParserState::TrueStatements
+                            }
+                            _ => {
+                                if let Some(token) = cond {
+                                    token_container.add_token(controller, token);
+                                    return Ok(false);
+                                }
+                                return Err(Error::InvalidConditional(c, ci, li));
+                            }
+                        }
+                    }
+                    ConditionalParserState::TrueStatements => {
+                        let mut parsers = top_level_parsers();
+
+                        do_parse(
+                            parser_data,
+                            controller,
+                            char_container,
+                            &mut true_statements,
+                            &mut parsers,
+                        )?;
+
+                        ConditionalParserState::MabeFalse
+                    }
+                    ConditionalParserState::MabeFalse => {
+                        match c {
+                            ' ' | '\n' => {
+                                parser_data.inc_char();
+                                ConditionalParserState::MabeFalse
+                            }
+                            '{' => {
+                                parser_data.inc_char();
+                                ConditionalParserState::FalseStatements
+                            }
+                            _ => {
+                                if true_statements.len() == 0 {
+                                    return Err(Error::InvalidIfBlock(c, ci, li));
+                                }
+                                done = true;
+                                break;
+                            }
+                        }
+                    }
+                    ConditionalParserState::FalseStatements => {
+                        let mut parsers = top_level_parsers();
+
+                        do_parse(
+                            parser_data,
+                            controller,
+                            char_container,
+                            &mut false_statements,
+                            &mut parsers,
+                        )?;
+
+                        if false_statements.len() == 0 {
+                            return Err(Error::InvalidIfBlock(c, ci, li));
+                        }
+                        done = true;
+                        break;
+                    }
+                };
             }
-            self.state = match self.state {
-                ConditionalParserState::Nothing => {
-                    match c {
-                        '?' => {
-                            parser_data.inc_char();
-                            let mut cond = CondBuilder::new();
-                            self.cond = Some(cond.parse(controller, parser_data, char_container)?);
-                            ConditionalParserState::MabeBlocks
-                        }
-                        _ => return Err(Error::CheckMismatch(c, ci, li)),
-                    }
-                }
-                ConditionalParserState::MabeBlocks => {
-                    match c {
-                        ' ' | '\n' => {
-                            parser_data.inc_char();
-                            ConditionalParserState::MabeBlocks
-                        }
-                        '{' => {
-                            parser_data.inc_char();
-                            ConditionalParserState::TrueStatements
-                        }
-                        _ => {
-                            if let Some(ref token) = self.cond {
-                                token_container.add_token(controller, token.clone());
-                                return Ok(false);
-                            }
-                            return Err(Error::InvalidConditional(c, ci, li));
-                        }
-                    }
-                }
-                ConditionalParserState::TrueStatements => {
-                    let mut parsers = top_level_parsers();
+        }
+        if done {
+            token_container.add_token(
+                controller,
+                Token::If(Box::new(cond.unwrap()), true_tokens, false_tokens),
+            );
 
-                    do_parse(
-                        parser_data,
-                        controller,
-                        char_container,
-                        &mut self.true_statements,
-                        &mut parsers,
-                    )?;
-
-                    ConditionalParserState::MabeFalse
-                }
-                ConditionalParserState::MabeFalse => {
-                    match c {
-                        ' ' | '\n' => {
-                            parser_data.inc_char();
-                            ConditionalParserState::MabeFalse
-                        }
-                        '{' => {
-                            parser_data.inc_char();
-                            ConditionalParserState::FalseStatements
-                        }
-                        _ => {
-                            if self.true_statements.len() == 0 {
-                                return Err(Error::InvalidIfBlock(c, ci, li));
-                            }
-
-                            token_container.add_token(
-                                controller,
-                                Token::If(
-                                    Box::new(self.cond.clone().unwrap()),
-                                    self.true_statements.get_tokens().clone(),
-                                    Vec::new(),
-                                ),
-                            );
-
-                            return Ok(false);
-                        }
-                    }
-                }
-                ConditionalParserState::FalseStatements => {
-                    let mut parsers = top_level_parsers();
-
-                    do_parse(
-                        parser_data,
-                        controller,
-                        char_container,
-                        &mut self.false_statements,
-                        &mut parsers,
-                    )?;
-
-                    if self.false_statements.len() == 0 {
-                        return Err(Error::InvalidIfBlock(c, ci, li));
-                    }
-
-                    token_container.add_token(
-                        controller,
-                        Token::If(
-                            Box::new(self.cond.clone().unwrap()),
-                            self.true_statements.get_tokens().clone(),
-                            self.false_statements.get_tokens().clone(),
-                        ),
-                    );
-
-                    return Ok(false);
-                }
-            };
+            return Ok(false);
         }
         Err(Error::ImpossibleState)
     }

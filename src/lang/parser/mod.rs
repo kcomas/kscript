@@ -34,9 +34,9 @@ use super::logger::Logger;
 use self::token_container::TokenContainer;
 use self::parser_container::ParserContainer;
 use self::char_container::CharContainer;
+use self::token::Token;
 use super::error::Error;
 use self::util::{do_parse, top_level_parsers};
-use self::token::Token;
 
 pub struct ParserRunner<'a, T: Logger + 'a> {
     controller: &'a mut Controller<T>,
@@ -54,14 +54,14 @@ where
         }
     }
 
-    pub fn run(&mut self, text_str: &str) -> Result<TokenContainer, Error> {
+    pub fn run(&mut self, text_str: &str, tokens: &mut Vec<Token>) -> Result<(), Error> {
         {
             self.controller.get_logger_mut().parser_start();
         }
 
         let mut parsers = top_level_parsers();
 
-        let mut token_container = TokenContainer::new();
+        let mut token_container = TokenContainer::new(tokens);
 
         let mut parser_data = ParserContainer::new(text_str);
 
@@ -83,6 +83,6 @@ where
             logger.parser_dump_tokens(token_container.get_tokens());
         }
 
-        Ok(token_container)
+        Ok(())
     }
 }

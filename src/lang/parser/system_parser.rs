@@ -18,15 +18,11 @@ pub enum SystemParserState {
 
 pub struct SystemParser {
     state: SystemParserState,
-    command_container: TokenContainer,
 }
 
 impl SystemParser {
     pub fn new() -> SystemParser {
-        SystemParser {
-            state: SystemParserState::Nothing,
-            command_container: TokenContainer::new(),
-        }
+        SystemParser { state: SystemParserState::Nothing }
     }
 }
 
@@ -47,7 +43,6 @@ where
 
     fn reset(&mut self) {
         self.state = SystemParserState::Nothing;
-        self.command_container.clear();
     }
 
     fn parse(
@@ -57,6 +52,8 @@ where
         char_container: &mut CharContainer,
         token_container: &mut TokenContainer,
     ) -> Result<bool, Error> {
+        let mut tokens: Vec<Token> = Vec::new();
+        let mut command_container = TokenContainer::new(&mut tokens);
         while !parser_data.is_done() {
             let (c, ci, li) = parser_data.get_as_tuple();
             {
@@ -89,16 +86,16 @@ where
                         parser_data,
                         controller,
                         char_container,
-                        &mut self.command_container,
+                        &mut command_container,
                         &mut number_parser,
                     )?;
 
                     match used {
                         true => {
-                            if self.command_container.len() != 1 {
+                            if command_container.len() != 1 {
                                 return Err(Error::InvalidSystemCommand(c, ci, li));
                             }
-                            if let Token::Integer(int) = *self.command_container.get(0).unwrap() {
+                            if let Token::Integer(int) = *command_container.get(0).unwrap() {
                                 let token = Token::System(SystemCommand::Exit(int as u32));
                                 token_container.add_token(controller, token);
                                 return Ok(false);

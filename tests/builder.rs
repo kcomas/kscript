@@ -13,7 +13,7 @@ pub fn create_builder<T: Logger>(program: &str, logger: T) -> Kscript<T> {
 }
 
 pub fn get_commands<T: Logger>(kscript: &Kscript<T>) -> &Vec<Command> {
-    kscript.get_command_container().unwrap().get_commands()
+    kscript.get_commands()
 }
 
 pub fn last_is_clear(commands: &Vec<Command>) {

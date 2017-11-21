@@ -13,13 +13,11 @@ use super::super::controller::Controller;
 use super::super::error::Error;
 use super::util::do_parse;
 
-pub struct MathParser {
-    math_container: TokenContainer,
-}
+pub struct MathParser {}
 
 impl MathParser {
     pub fn new() -> MathParser {
-        MathParser { math_container: TokenContainer::new() }
+        MathParser {}
     }
 }
 
@@ -38,9 +36,7 @@ where
         "Math Parser"
     }
 
-    fn reset(&mut self) {
-        self.math_container.clear();
-    }
+    fn reset(&mut self) {}
 
     fn parse(
         &mut self,
@@ -51,27 +47,28 @@ where
     ) -> Result<bool, Error> {
         match parser_data.get_current_char() {
             '(' => {
-                parser_data.inc_char();
-                let mut parsers: [Box<SubParser<T>>; 5] = [
-                    Box::new(LineEndParser::new()),
-                    Box::new(VarParser::new()),
-                    Box::new(MathOperatorParser::new()),
-                    Box::new(NumberParser::new()),
-                    Box::new(MathParser::new()),
-                ];
+                let mut tokens: Vec<Token> = Vec::new();
+                {
+                    let mut math_container = TokenContainer::new(&mut tokens);
+                    parser_data.inc_char();
+                    let mut parsers: [Box<SubParser<T>>; 5] = [
+                        Box::new(LineEndParser::new()),
+                        Box::new(VarParser::new()),
+                        Box::new(MathOperatorParser::new()),
+                        Box::new(NumberParser::new()),
+                        Box::new(MathParser::new()),
+                    ];
 
-                do_parse(
-                    parser_data,
-                    controller,
-                    char_container,
-                    &mut self.math_container,
-                    &mut parsers,
-                )?;
+                    do_parse(
+                        parser_data,
+                        controller,
+                        char_container,
+                        &mut math_container,
+                        &mut parsers,
+                    )?;
+                }
 
-                token_container.add_token(
-                    controller,
-                    Token::Math(self.math_container.get_tokens().clone()),
-                );
+                token_container.add_token(controller, Token::Math(tokens));
             }
             ')' => {
                 parser_data.inc_char();

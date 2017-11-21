@@ -13,7 +13,7 @@ pub fn create_parser<T: Logger>(program: &str, logger: T) -> Kscript<T> {
 
 
 pub fn get_tokens<T: Logger>(kscript: &Kscript<T>) -> &Vec<Token> {
-    kscript.get_token_container().unwrap().get_tokens()
+    kscript.get_tokens()
 }
 
 pub fn last_is_end(tokens: &Vec<Token>) {

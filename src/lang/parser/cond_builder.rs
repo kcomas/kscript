@@ -18,15 +18,11 @@ pub enum CondBuilderState {
 
 pub struct CondBuilder {
     state: CondBuilderState,
-    cond_container: TokenContainer,
 }
 
 impl CondBuilder {
     pub fn new() -> CondBuilder {
-        CondBuilder {
-            state: CondBuilderState::ItemA,
-            cond_container: TokenContainer::new(),
-        }
+        CondBuilder { state: CondBuilderState::ItemA }
     }
 
     pub fn parse<T: Logger>(
@@ -35,6 +31,8 @@ impl CondBuilder {
         parser_data: &mut ParserContainer,
         char_container: &mut CharContainer,
     ) -> Result<Token, Error> {
+        let mut cond_tokens: Vec<Token> = Vec::new();
+        let mut cond_container = TokenContainer::new(&mut cond_tokens);
         let mut parsers = conditional_parsers();
         let mut operator_parsers: [Box<SubParser<T>>; 1] = [Box::new(OperatorParser::new())];
 
@@ -50,7 +48,7 @@ impl CondBuilder {
                         parser_data,
                         controller,
                         char_container,
-                        &mut self.cond_container,
+                        &mut cond_container,
                         &mut parsers,
                     )?;
 
@@ -73,7 +71,7 @@ impl CondBuilder {
                         parser_data,
                         controller,
                         char_container,
-                        &mut self.cond_container,
+                        &mut cond_container,
                         &mut operator_parsers,
                     )?;
 
@@ -91,7 +89,7 @@ impl CondBuilder {
                         parser_data,
                         controller,
                         char_container,
-                        &mut self.cond_container,
+                        &mut cond_container,
                         &mut parsers,
                     )?;
 
@@ -100,16 +98,18 @@ impl CondBuilder {
                             match parser_data.get_current_char() {
                                 '[' | '|' => CondBuilderState::ItemB,
                                 _ => {
-                                    let token =
-                                        Token::Conditional(
-                                            Box::new(self.cond_container.get(0).unwrap().clone()),
-                                            Box::new(self.cond_container.get(1).unwrap().clone()),
-                                            Box::new(self.cond_container.get(2).unwrap().clone()),
-                                        );
+                                    // @TODO check if this breaks tests
+                                    let item_b = cond_container.pop().unwrap();
+                                    let cond = cond_container.pop().unwrap();
+                                    let item_a = cond_container.pop().unwrap();
+                                    let token = Token::Conditional(
+                                        Box::new(item_a),
+                                        Box::new(cond),
+                                        Box::new(item_b),
+                                    );
                                     {
                                         controller.get_logger_mut().parser_add_token(&token);
                                     }
-                                    self.cond_container.clear();
                                     return Ok(token);
                                 }
                             }

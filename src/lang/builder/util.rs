@@ -15,12 +15,13 @@ use super::add_sub_builder::AddSubBuilder;
 use super::mul_div_mod_builder::MulDivModBuilder;
 use super::exponent_builder::ExponentBuilder;
 use super::if_builder::IfBuilder;
+use super::loop_builder::LoopBuilder;
 
 pub fn token_to_data_type<T: Logger>(
     controller: &mut Controller<T>,
     command_container: &mut CommandContainer,
     current_register: &mut usize,
-    token: &Token,
+    token: &mut Token,
 ) -> Result<Option<DataHolder>, Error> {
     match *token {
         Token::Var(ref name) => Ok(Some(DataHolder::Var(name.clone()))),
@@ -30,9 +31,9 @@ pub fn token_to_data_type<T: Logger>(
         Token::Integer(int) => Ok(Some(DataHolder::Anon(DataType::Integer(int)))),
         Token::Float(float) => Ok(Some(DataHolder::Anon(DataType::Float(float)))),
         Token::Bool(b) => Ok(Some(DataHolder::Anon(DataType::Bool(b)))),
-        Token::Array(ref arr) => {
+        Token::Array(ref mut arr) => {
             let mut container: Vec<DataHolder> = Vec::new();
-            for token in arr.iter() {
+            for token in arr.iter_mut() {
                 if let Some(item) = token_to_data_type(
                     controller,
                     command_container,
@@ -45,7 +46,7 @@ pub fn token_to_data_type<T: Logger>(
             }
             Ok(Some((DataHolder::Array(container))))
         }
-        Token::Dict(ref keys, ref values) => {
+        Token::Dict(ref mut keys, ref mut values) => {
             let mut container = HashMap::new();
             for i in 0..keys.len() {
                 let key = match keys[i] {
@@ -57,7 +58,7 @@ pub fn token_to_data_type<T: Logger>(
                     controller,
                     command_container,
                     current_register,
-                    &values[i],
+                    &mut values[i],
                 )?
                 {
                     container.insert(key, value);
@@ -65,7 +66,7 @@ pub fn token_to_data_type<T: Logger>(
             }
             Ok(Some(DataHolder::Dict(container)))
         }
-        Token::ObjectAccess(ref target, ref accessor) => {
+        Token::ObjectAccess(ref mut target, ref mut accessor) => {
             let t_holder =
                 token_to_data_type(controller, command_container, current_register, target)?;
             let a_holder =
@@ -78,8 +79,8 @@ pub fn token_to_data_type<T: Logger>(
             }
             Err(Error::UnableToBuildDataType)
         }
-        Token::Math(ref math_tokens) => {
-            let mut math_container = TokenContainer::from_token_vec(math_tokens.clone());
+        Token::Math(ref mut math_tokens) => {
+            let mut math_container = TokenContainer::new(math_tokens);
             let mut math_builders = math_builders();
             create_commands(
                 controller,
@@ -92,7 +93,7 @@ pub fn token_to_data_type<T: Logger>(
             *current_register += 1;
             Ok(Some(dh))
         }
-        Token::Conditional(ref item_a, ref comparison, ref item_b) => {
+        Token::Conditional(ref mut item_a, ref mut comparison, ref mut item_b) => {
             let mabe_item_a =
                 token_to_data_type(controller, command_container, current_register, item_a)?;
             let mabe_comp = comparison.to_comparison();
@@ -259,6 +260,7 @@ pub fn top_level_builders<T: Logger>() -> [Box<SubBuilder<T>>; 4] {
         Box::new(DoubleCommandBuilder::new()),
         Box::new(IoBuilder::new()),
         Box::new(IfBuilder::new()),
+        // Box::new(LoopBuilder::new()),
     ]
 }
 
@@ -289,12 +291,13 @@ pub fn get_left_and_right(token_container: &mut TokenContainer) -> Result<(usize
     Ok((left_counter, right_counter))
 }
 
-pub fn create_new_command_container<T: Logger>(
+pub fn create_new_command_container<'a, T: Logger>(
     controller: &mut Controller<T>,
     token_container: &mut TokenContainer,
     builders: &mut [Box<SubBuilder<T>>],
-) -> Result<CommandContainer, Error> {
-    let mut command_container = CommandContainer::new();
+    commands: &'a mut Vec<Command>,
+) -> Result<CommandContainer<'a>, Error> {
+    let mut command_container = CommandContainer::new(commands);
     let mut current_register: usize = 0;
     create_commands(
         controller,

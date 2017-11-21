@@ -20,15 +20,11 @@ pub enum ObjectAccessParserState {
 
 pub struct ObjectAccessParser {
     state: ObjectAccessParserState,
-    access_container: TokenContainer,
 }
 
 impl ObjectAccessParser {
     pub fn new() -> ObjectAccessParser {
-        ObjectAccessParser {
-            state: ObjectAccessParserState::Nothing,
-            access_container: TokenContainer::new(),
-        }
+        ObjectAccessParser { state: ObjectAccessParserState::Nothing }
     }
 }
 
@@ -49,7 +45,6 @@ where
 
     fn reset(&mut self) {
         self.state = ObjectAccessParserState::Nothing;
-        self.access_container.clear();
     }
 
     fn parse(
@@ -59,6 +54,8 @@ where
         char_container: &mut CharContainer,
         token_container: &mut TokenContainer,
     ) -> Result<bool, Error> {
+        let mut access_tokens: Vec<Token> = Vec::new();
+        let mut access_container = TokenContainer::new(&mut access_tokens);
         let mut parsers: [Box<SubParser<T>>; 3] = [
             Box::new(NumberParser::new()),
             Box::new(StringParser::new()),
@@ -86,7 +83,7 @@ where
                         parser_data,
                         controller,
                         char_container,
-                        &mut self.access_container,
+                        &mut access_container,
                         &mut parsers,
                     )?;
 
@@ -102,7 +99,7 @@ where
                     match c {
                         ']' => {
                             parser_data.inc_char();
-                            if self.access_container.len() != 1 {
+                            if access_container.len() != 1 {
                                 return Err(Error::InvalidObjectAccess(c, ci, li));
                             }
 
@@ -111,7 +108,8 @@ where
                                 _ => return Err(Error::InvalidObjectAccess(c, ci, li)),
                             };
 
-                            let token = self.access_container.get(0).unwrap().clone();
+                            // @TODO check if this breaks tests
+                            let token = access_container.pop().unwrap();
                             token_container.add_token(
                                 controller,
                                 Token::ObjectAccess(

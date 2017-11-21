@@ -17,15 +17,11 @@ pub enum RefParserState {
 
 pub struct RefParser {
     state: RefParserState,
-    container: TokenContainer,
 }
 
 impl RefParser {
     pub fn new() -> RefParser {
-        RefParser {
-            state: RefParserState::Nothing,
-            container: TokenContainer::new(),
-        }
+        RefParser { state: RefParserState::Nothing }
     }
 }
 
@@ -45,7 +41,6 @@ where
     }
 
     fn reset(&mut self) {
-        self.container.clear();
         self.state = RefParserState::Nothing;
     }
 
@@ -56,6 +51,8 @@ where
         char_container: &mut CharContainer,
         token_container: &mut TokenContainer,
     ) -> Result<bool, Error> {
+        let mut tokens: Vec<Token> = Vec::new();
+        let mut container = TokenContainer::new(&mut tokens);
         let mut var_parser: [Box<SubParser<T>>; 1] = [Box::new(VarParser::new())];
 
         while !parser_data.is_done() {
@@ -79,17 +76,17 @@ where
                         parser_data,
                         controller,
                         char_container,
-                        &mut self.container,
+                        &mut container,
                         &mut var_parser,
                     )?;
 
                     match used {
                         true => {
-                            if self.container.len() != 1 {
+                            if container.len() != 1 {
                                 return Err(Error::InvalidRef(c, ci, li));
                             }
 
-                            let token = self.container.get(0).unwrap().clone();
+                            let token = container.pop().unwrap();
                             token_container.add_token(controller, Token::Ref(Box::new(token)));
                             return Ok(false);
                         }
