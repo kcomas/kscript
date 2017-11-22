@@ -31,4 +31,5 @@ pub enum Error {
     UnableToBuildDataType,
     InvalidDictionaryKey,
     InvalidConditonalToken,
+    InvalidReference,
 }

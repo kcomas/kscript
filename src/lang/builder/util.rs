@@ -26,6 +26,13 @@ pub fn token_to_data_type<T: Logger>(
     match *token {
         Token::Var(ref name) => Ok(Some(DataHolder::Var(name.clone()))),
         Token::Const(ref name) => Ok(Some(DataHolder::Const(name.clone()))),
+        Token::Ref(ref var_const) => {
+            match **var_const {
+                Token::Var(ref name) => Ok(Some(DataHolder::RefVar(name.clone()))),
+                Token::Const(ref name) => Ok(Some(DataHolder::RefConst(name.clone()))),
+                _ => return Err(Error::InvalidReference),
+            }
+        }
         Token::String(ref string) => Ok(Some(DataHolder::Anon(DataType::String(string.clone())))),
         Token::File(ref file_name) => Ok(Some(DataHolder::Anon(DataType::File(file_name.clone())))),
         Token::Integer(int) => Ok(Some(DataHolder::Anon(DataType::Integer(int)))),
@@ -107,6 +114,32 @@ pub fn token_to_data_type<T: Logger>(
                 )));
             }
             Err(Error::UnableToBuildDataType)
+        }
+        Token::Function(ref mut arguments, ref mut statements) => {
+            let mut args: Vec<DataHolder> = Vec::new();
+            for arg in arguments.iter_mut() {
+                let ref_arg = match token_to_data_type(
+                    controller,
+                    command_container,
+                    current_register,
+                    arg,
+                )? {
+                    Some(ref_arg) => ref_arg,
+                    None => return Err(Error::InvalidReference),
+                };
+                args.push(ref_arg);
+            }
+
+            let mut builders = top_level_builders();
+            let mut function_commands: Vec<Command> = Vec::new();
+            let mut function_container = TokenContainer::new(statements);
+            let _ = create_new_command_container(
+                controller,
+                &mut function_container,
+                &mut builders,
+                &mut function_commands,
+            )?;
+            Ok(Some(DataHolder::Function(args, function_commands)))
         }
         _ => Ok(None),
     }

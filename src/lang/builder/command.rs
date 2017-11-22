@@ -26,7 +26,9 @@ pub enum Comparison {
 #[derive(Debug, PartialEq)]
 pub enum DataHolder {
     Var(String),
+    RefVar(String),
     Const(String),
+    RefConst(String),
     Anon(DataType),
     Array(Vec<DataHolder>),
     Dict(Kmap),
@@ -34,6 +36,7 @@ pub enum DataHolder {
     // the result in a register
     Math(usize),
     Conditional(Box<DataHolder>, Comparison, Box<DataHolder>),
+    Function(Vec<DataHolder>, Vec<Command>),
 }
 
 #[derive(Debug, PartialEq)]
