@@ -483,3 +483,50 @@ fn assign_loop_print() {
     assert_eq!(commands[7], Command::IoWrite(0, 1));
     last_is_clear(&commands);
 }
+
+#[test]
+fn var_assign_var_function() {
+    let kscript = create_builder(
+        "a = 1; b = {|a, &e, c| e = c; a }",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let commands = get_commands(&kscript);
+
+    assert_eq!(commands.len(), 8);
+    assert_eq!(
+        commands[0],
+        Command::SetRegister(0, DataHolder::Var("a".to_string()))
+    );
+    assert_eq!(
+        commands[1],
+        Command::SetRegister(1, DataHolder::Anon(DataType::Integer(1)))
+    );
+    assert_eq!(commands[2], Command::Assign(0, 1));
+    assert_eq!(commands[3], Command::ClearRegisters);
+    assert_eq!(
+        commands[4],
+        Command::SetRegister(0, DataHolder::Var("b".to_string()))
+    );
+
+    let args = vec![
+        DataHolder::Var("a".to_string()),
+        DataHolder::RefVar("e".to_string()),
+        DataHolder::Var("c".to_string()),
+    ];
+
+    let statements = vec![
+        Command::SetRegister(0, DataHolder::Var("e".to_string())),
+        Command::SetRegister(1, DataHolder::Var("c".to_string())),
+        Command::Assign(0, 1),
+        Command::ClearRegisters,
+        Command::SetRegister(0, DataHolder::Var("a".to_string())),
+    ];
+
+    assert_eq!(
+        commands[5],
+        Command::SetRegister(1, DataHolder::Function(args, statements))
+    );
+    assert_eq!(commands[6], Command::Assign(0, 1));
+    last_is_clear(&commands);
+}
