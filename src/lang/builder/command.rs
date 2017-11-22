@@ -37,6 +37,7 @@ pub enum DataHolder {
     Math(usize),
     Conditional(Box<DataHolder>, Comparison, Box<DataHolder>),
     Function(Vec<DataHolder>, Vec<Command>),
+    FunctionCall(Box<DataHolder>, Vec<DataHolder>),
 }
 
 #[derive(Debug, PartialEq)]

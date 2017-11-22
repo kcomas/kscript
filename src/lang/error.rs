@@ -32,4 +32,5 @@ pub enum Error {
     InvalidDictionaryKey,
     InvalidConditonalToken,
     InvalidReference,
+    InvalidFunctionCallArgs,
 }

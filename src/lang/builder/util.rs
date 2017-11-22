@@ -141,6 +141,27 @@ pub fn token_to_data_type<T: Logger>(
             )?;
             Ok(Some(DataHolder::Function(args, function_commands)))
         }
+        Token::FunctionCall(ref mut target, ref mut arguments) => {
+            let mut args: Vec<DataHolder> = Vec::new();
+            let mabe_target =
+                token_to_data_type(controller, command_container, current_register, target)?;
+            if let Some(is_target) = mabe_target {
+                for arg in arguments.iter_mut() {
+                    let rst_arg = match token_to_data_type(
+                        controller,
+                        command_container,
+                        current_register,
+                        arg,
+                    )? {
+                        Some(rst_arg) => rst_arg,
+                        None => return Err(Error::InvalidFunctionCallArgs),
+                    };
+                    args.push(rst_arg);
+                }
+                return Ok(Some(DataHolder::FunctionCall(Box::new(is_target), args)));
+            }
+            Err(Error::UnableToBuildDataType)
+        }
         _ => Ok(None),
     }
 }
