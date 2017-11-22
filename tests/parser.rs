@@ -473,6 +473,40 @@ fn var_assign_var_function() {
 }
 
 #[test]
+fn basic_function_call() {
+    let kscript = create_parser(
+        "c = {|a| a > 1}; c|\"test\"|",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let tokens = get_tokens(&kscript);
+
+    assert_eq!(tokens.len(), 6);
+    assert_eq!(tokens[0], Token::Var("c".to_string()));
+    assert_eq!(tokens[1], Token::Assign);
+    assert_eq!(
+        tokens[2],
+        Token::Function(
+            vec![Token::Var("a".to_string())],
+            vec![
+                Token::Var("a".to_string()),
+                Token::IoWrite,
+                Token::Integer(1),
+            ],
+        )
+    );
+    assert_eq!(tokens[3], Token::End);
+    assert_eq!(
+        tokens[4],
+        Token::FunctionCall(
+            Box::new(Token::Var("c".to_string())),
+            vec![Token::String("test".to_string())],
+        )
+    );
+    last_is_end(&tokens);
+}
+
+#[test]
 fn assign_system_command() {
     let kscript = create_parser("a = 1; \\\\1; b = 2", VoidLogger::new(LoggerMode::Void));
 
