@@ -432,3 +432,54 @@ fn nested_conditionial() {
     assert_eq!(commands[2], Command::Assign(0, 1));
     last_is_clear(&commands);
 }
+
+#[test]
+fn assign_loop_print() {
+    let kscript = create_builder(
+        "a = 1; $a<5${a = (a + 1)} a > 1",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let commands = get_commands(&kscript);
+
+    assert_eq!(commands.len(), 9);
+    assert_eq!(
+        commands[0],
+        Command::SetRegister(0, DataHolder::Var("a".to_string()))
+    );
+    assert_eq!(
+        commands[1],
+        Command::SetRegister(1, DataHolder::Anon(DataType::Integer(1)))
+    );
+    assert_eq!(commands[2], Command::Assign(0, 1));
+    assert_eq!(commands[3], Command::ClearRegisters);
+
+    let conditional = DataHolder::Conditional(
+        Box::new(DataHolder::Var("a".to_string())),
+        Comparison::Less,
+        Box::new(DataHolder::Anon(DataType::Integer(5))),
+    );
+
+    let statements = vec![
+        Command::SetRegister(0, DataHolder::Var("a".to_string())),
+        Command::SetRegister(1, DataHolder::Var("a".to_string())),
+        Command::SetRegister(2, DataHolder::Anon(DataType::Integer(1))),
+        Command::Addition(3, 1, 2),
+        Command::SetRegister(4, DataHolder::Math(3)),
+        Command::Assign(0, 4),
+        Command::ClearRegisters,
+    ];
+
+    assert_eq!(commands[4], Command::Loop(conditional, statements));
+
+    assert_eq!(
+        commands[5],
+        Command::SetRegister(0, DataHolder::Var("a".to_string()))
+    );
+    assert_eq!(
+        commands[6],
+        Command::SetRegister(1, DataHolder::Anon(DataType::Integer(1)))
+    );
+    assert_eq!(commands[7], Command::IoWrite(0, 1));
+    last_is_clear(&commands);
+}

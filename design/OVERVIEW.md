@@ -1,7 +1,7 @@
 
 # KScript
 
-An apl-ish scripting language to be used like bash
+An **apl-ish**, **write-only** scripting language to be used like bash
 
 ## Modes
 * The application can run in two modes
