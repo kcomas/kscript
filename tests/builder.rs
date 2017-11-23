@@ -605,3 +605,48 @@ fn assign_system_command() {
     assert_eq!(commands[8], Command::Assign(0, 1));
     last_is_clear(&commands);
 }
+
+#[test]
+fn assign_run_io_out() {
+    let kscript = create_builder(
+        "a = !@[\"ls\", \"-lh\"]; a[1] > 1",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let commands = get_commands(&kscript);
+
+    assert_eq!(commands.len(), 9);
+    assert_eq!(
+        commands[0],
+        Command::SetRegister(0, DataHolder::Var("a".to_string()))
+    );
+    assert_eq!(
+        commands[1],
+        Command::SetRegister(
+            1,
+            DataHolder::Array(vec![
+                DataHolder::Anon(DataType::String("ls".to_string())),
+                DataHolder::Anon(DataType::String("-lh".to_string())),
+            ]),
+        )
+    );
+    assert_eq!(commands[2], Command::Run(2, 1));
+    assert_eq!(commands[3], Command::Assign(0, 2));
+    assert_eq!(commands[4], Command::ClearRegisters);
+    assert_eq!(
+        commands[5],
+        Command::SetRegister(
+            0,
+            DataHolder::ObjectAccess(
+                Box::new(DataHolder::Var("a".to_string())),
+                Box::new(DataHolder::Anon(DataType::Integer(1))),
+            ),
+        )
+    );
+    assert_eq!(
+        commands[6],
+        Command::SetRegister(1, DataHolder::Anon(DataType::Integer(1)))
+    );
+    assert_eq!(commands[7], Command::IoWrite(0, 1));
+    last_is_clear(&commands);
+}
