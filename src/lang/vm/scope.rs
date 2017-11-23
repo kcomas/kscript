@@ -12,14 +12,16 @@ pub enum RegItem {
     Var(RefHolder),
     Const(RefHolder),
     Value(RefHolder),
+    Empty,
 }
 
 impl RegItem {
-    pub fn to_ref_holder(&self) -> RefHolder {
+    pub fn to_ref_holder(&self) -> Option<RefHolder> {
         match *self {
             RegItem::Var(ref ref_holder) |
             RegItem::Const(ref ref_holder) |
-            RegItem::Value(ref ref_holder) => ref_holder.clone(),
+            RegItem::Value(ref ref_holder) => Some(ref_holder.clone()),
+            _ => None,
         }
     }
 }
@@ -43,22 +45,22 @@ impl Scope {
         }
     }
 
-    pub fn check_and_add_var(&mut self, name: &String) {
-        self.registers.push(RegItem::Var(
+    pub fn check_and_add_var(&mut self, reg: usize, name: &String) {
+        self.registers[reg] = RegItem::Var(
             self.vars
                 .entry(name.clone())
                 .or_insert(Rc::new(RefCell::new(DataType::Null)))
                 .clone(),
-        ));
+        );
     }
 
-    pub fn check_and_add_const(&mut self, name: &String) {
-        self.registers.push(RegItem::Const(
+    pub fn check_and_add_const(&mut self, reg: usize, name: &String) {
+        self.registers[reg] = RegItem::Const(
             self.vars
                 .entry(name.clone())
                 .or_insert(Rc::new(RefCell::new(DataType::Null)))
                 .clone(),
-        ));
+        );
     }
 
     pub fn can_sink(&self, reg: usize) -> Result<(), Error> {
@@ -75,26 +77,29 @@ impl Scope {
 
     pub fn get_ref_holder(&self, reg: usize) -> Result<RefHolder, Error> {
         match self.registers.get(reg) {
-            Some(reg_item) => Ok(reg_item.to_ref_holder()),
+            Some(mabe_reg_item) => {
+                match mabe_reg_item.to_ref_holder() {
+                    Some(reg_item) => Ok(reg_item.clone()),
+                    None => Err(Error::InvalidScopeRegisterGet),
+                }
+            }
             None => Err(Error::InvalidScopeRegisterGet),
         }
     }
 
     pub fn set_register(&mut self, reg: usize, data_holder: &DataHolder) -> Result<(), Error> {
         if reg == self.registers.len() {
-            match *data_holder {
-                DataHolder::Var(ref name) => self.check_and_add_var(name),
-                DataHolder::Const(ref name) => self.check_and_add_const(name),
-                DataHolder::Anon(ref data) => {
-                    self.registers.push(RegItem::Value(
-                        Rc::new(RefCell::new(data.clone())),
-                    ))
-                }
-                _ => return Err(Error::InvalidScopeRegisterSet),
-            };
-            return Ok(());
+            self.registers.push(RegItem::Empty);
         }
-        Err(Error::InvalidScopeRegisterSet)
+        match *data_holder {
+            DataHolder::Var(ref name) => self.check_and_add_var(reg, name),
+            DataHolder::Const(ref name) => self.check_and_add_const(reg, name),
+            DataHolder::Anon(ref data) => {
+                self.registers[reg] = RegItem::Value(Rc::new(RefCell::new(data.clone())))
+            }
+            _ => return Err(Error::InvalidScopeRegisterSet),
+        };
+        Ok(())
     }
 
     pub fn assign(&mut self, left_reg: usize, right_reg: usize) -> Result<(), Error> {
