@@ -162,6 +162,7 @@ pub fn token_to_data_type<T: Logger>(
             }
             Err(Error::UnableToBuildDataType)
         }
+        Token::System(ref system_command) => Ok(Some(DataHolder::System(system_command.clone()))),
         _ => Ok(None),
     }
 }
@@ -297,6 +298,7 @@ pub fn create_commands<T: Logger>(
             // check if the last command is a clear
             if !command_container.is_last_clear() && use_clear {
                 command_container.add_command(controller, Command::ClearRegisters);
+                *current_register = 0;
             }
             token_container.set_current_end_as_used();
             token_container.update_slice_start();

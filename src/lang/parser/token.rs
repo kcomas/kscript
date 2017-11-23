@@ -1,10 +1,5 @@
 
-use super::super::builder::command::Comparison;
-
-#[derive(Debug, PartialEq)]
-pub enum SystemCommand {
-    Exit(u32),
-}
+pub use super::super::builder::command::{Comparison, SystemCommand};
 
 #[derive(Debug, PartialEq)]
 pub enum Token {

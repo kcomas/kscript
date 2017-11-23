@@ -23,6 +23,11 @@ pub enum Comparison {
     Or,
 }
 
+#[derive(Debug, PartialEq, Clone)]
+pub enum SystemCommand {
+    Exit(u32),
+}
+
 #[derive(Debug, PartialEq)]
 pub enum DataHolder {
     Var(String),
@@ -38,6 +43,7 @@ pub enum DataHolder {
     Conditional(Box<DataHolder>, Comparison, Box<DataHolder>),
     Function(Vec<DataHolder>, Vec<Command>),
     FunctionCall(Box<DataHolder>, Vec<DataHolder>),
+    System(SystemCommand),
 }
 
 #[derive(Debug, PartialEq)]

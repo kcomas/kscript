@@ -3,7 +3,7 @@ extern crate kscript;
 
 use std::collections::HashMap;
 use kscript::lang::Kscript;
-use kscript::lang::builder::command::{Command, DataHolder, DataType, Comparison};
+use kscript::lang::builder::command::{Command, DataHolder, DataType, Comparison, SystemCommand};
 use kscript::lang::logger::{Logger, VoidLogger, LoggerMode};
 
 pub fn create_builder<T: Logger>(program: &str, logger: T) -> Kscript<T> {
@@ -570,4 +570,38 @@ fn basic_function_call() {
             ),
         )
     );
+}
+
+#[test]
+fn assign_system_command() {
+    let kscript = create_builder("a = 1; \\\\1; b = 2", VoidLogger::new(LoggerMode::Void));
+
+    let commands = get_commands(&kscript);
+
+    assert_eq!(commands.len(), 10);
+    assert_eq!(
+        commands[0],
+        Command::SetRegister(0, DataHolder::Var("a".to_string()))
+    );
+    assert_eq!(
+        commands[1],
+        Command::SetRegister(1, DataHolder::Anon(DataType::Integer(1)))
+    );
+    assert_eq!(commands[2], Command::Assign(0, 1));
+    assert_eq!(commands[3], Command::ClearRegisters);
+    assert_eq!(
+        commands[4],
+        Command::SetRegister(0, DataHolder::System(SystemCommand::Exit(1)))
+    );
+    assert_eq!(commands[5], Command::ClearRegisters);
+    assert_eq!(
+        commands[6],
+        Command::SetRegister(0, DataHolder::Var("b".to_string()))
+    );
+    assert_eq!(
+        commands[7],
+        Command::SetRegister(1, DataHolder::Anon(DataType::Integer(2)))
+    );
+    assert_eq!(commands[8], Command::Assign(0, 1));
+    last_is_clear(&commands);
 }
