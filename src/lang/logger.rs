@@ -30,7 +30,9 @@ pub enum LoggerEvent<'a> {
     BuilderEnd,
     BuilderDumpCommands(&'a Vec<Command>),
     ScopeEnter,
-    ScopeSetRegister(&'a usize, &'a DataHolder),
+    ScopeSetRegister(usize, &'a DataHolder),
+    ScopeAssign(usize, usize),
+    ScopeClear,
     ScopeDump(&'a Scope),
     ScopeExit,
 }
@@ -81,7 +83,11 @@ pub trait Logger {
 
     fn scope_enter(&self) {}
 
-    fn scope_set_register(&self, _reg: &usize, _data: &DataHolder) {}
+    fn scope_set_register(&self, _reg: usize, _data: &DataHolder) {}
+
+    fn scope_assign(&self, _left: usize, _right: usize) {}
+
+    fn scope_clear(&self) {}
 
     fn scope_dump(&self, _scope: &Scope) {}
 
@@ -171,8 +177,16 @@ impl Logger for DebugLogger {
         self.write(&LoggerEvent::ScopeEnter);
     }
 
-    fn scope_set_register(&self, reg: &usize, data: &DataHolder) {
+    fn scope_set_register(&self, reg: usize, data: &DataHolder) {
         self.write(&LoggerEvent::ScopeSetRegister(reg, data));
+    }
+
+    fn scope_assign(&self, left: usize, right: usize) {
+        self.write(&LoggerEvent::ScopeAssign(left, right));
+    }
+
+    fn scope_clear(&self) {
+        self.write(&LoggerEvent::ScopeClear);
     }
 
     fn scope_dump(&self, scope: &Scope) {

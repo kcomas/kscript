@@ -34,4 +34,7 @@ pub enum Error {
     InvalidReference,
     InvalidFunctionCallArgs,
     InvalidScopeRegisterSet,
+    InvalidScopeRegisterGet,
+    InvalidScopeSink,
+    InvalidScopeAssignment,
 }
