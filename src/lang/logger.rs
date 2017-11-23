@@ -1,6 +1,7 @@
 
 use super::parser::token::Token;
 use super::builder::command::{Command, DataHolder};
+use super::vm::scope::Scope;
 
 #[derive(Debug)]
 pub enum LoggerMode {
@@ -30,6 +31,7 @@ pub enum LoggerEvent<'a> {
     BuilderDumpCommands(&'a Vec<Command>),
     ScopeEnter,
     ScopeSetRegister(&'a usize, &'a DataHolder),
+    ScopeDump(&'a Scope),
     ScopeExit,
 }
 
@@ -80,6 +82,8 @@ pub trait Logger {
     fn scope_enter(&self) {}
 
     fn scope_set_register(&self, _reg: &usize, _data: &DataHolder) {}
+
+    fn scope_dump(&self, _scope: &Scope) {}
 
     fn scope_exit(&self) {}
 }
@@ -169,6 +173,10 @@ impl Logger for DebugLogger {
 
     fn scope_set_register(&self, reg: &usize, data: &DataHolder) {
         self.write(&LoggerEvent::ScopeSetRegister(reg, data));
+    }
+
+    fn scope_dump(&self, scope: &Scope) {
+        self.write(&LoggerEvent::ScopeDump(scope));
     }
 
     fn scope_exit(&self) {

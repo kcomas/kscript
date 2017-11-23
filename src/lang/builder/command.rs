@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 pub type Kmap = HashMap<String, DataHolder>;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum DataType {
     Null,
     Integer(i64),
@@ -13,7 +13,7 @@ pub enum DataType {
     Bool(bool),
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Comparison {
     Equals,
     EqualOrGreater,
@@ -29,7 +29,7 @@ pub enum SystemCommand {
     Exit(u32),
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum DataHolder {
     Var(String),
     RefVar(String),
@@ -47,7 +47,7 @@ pub enum DataHolder {
     System(SystemCommand),
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Command {
     SetRegister(usize, DataHolder),
     ClearRegisters,

@@ -19,18 +19,18 @@ use self::builder::command::Command;
 use self::error::Error;
 use self::util::load_file_to_string;
 
-pub struct Kscript<'a, T: Logger> {
+pub struct Kscript<T: Logger> {
     controller: Controller<T>,
     tokens: Vec<Token>,
     commands: Vec<Command>,
-    root_scope: Scope<'a>,
+    root_scope: Scope,
 }
 
-impl<'a, T> Kscript<'a, T>
+impl<T> Kscript<T>
 where
     T: Logger,
 {
-    pub fn new(logger: T) -> Kscript<'a, T> {
+    pub fn new(logger: T) -> Kscript<T> {
         Kscript {
             controller: Controller::new(logger),
             tokens: Vec::new(),
@@ -72,7 +72,7 @@ where
             let mut builder_runner = BuilderRunner::new(&mut self.controller);
             let mut token_container = TokenContainer::new(&mut self.tokens);
             self.commands.clear();
-            builder_runner.run(&mut token_container, &mut self.commands)?;
+            let _ = builder_runner.run(&mut token_container, &mut self.commands)?;
         }
         Ok(())
     }
@@ -81,7 +81,7 @@ where
         self.run_build_tokens_commands(text_str)?;
         {
             let mut vm = Vm::new(&mut self.controller);
-            vm.run(&mut self.commands, &mut self.root_scope);
+            let _ = vm.run(&mut self.commands, &mut self.root_scope)?;
         }
         Ok(())
     }
