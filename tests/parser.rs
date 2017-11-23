@@ -316,7 +316,7 @@ fn nested_conditionial() {
 }
 
 #[test]
-fn nested_conditionals_with_nesed_data() {
+fn nested_conditionals_with_nested_data() {
     let kscript = create_parser(
         "c=@[@[2]];a=??a=={|a|a}|1|^?@[]&c[0][0]",
         VoidLogger::new(LoggerMode::Void),

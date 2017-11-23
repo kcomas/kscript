@@ -434,6 +434,128 @@ fn nested_conditionial() {
 }
 
 #[test]
+fn nested_conditionals_with_nested_data() {
+    let kscript = create_builder(
+        "c=@[@[2]];a=??a=={|a|a}|1|^?@[]&c[0][0]",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let commands = get_commands(&kscript);
+    assert_eq!(commands.len(), 8);
+    assert_eq!(
+        commands[0],
+        Command::SetRegister(0, DataHolder::Var("c".to_string()))
+    );
+    assert_eq!(
+        commands[1],
+        Command::SetRegister(
+            1,
+            DataHolder::Array(vec![
+                DataHolder::Array(
+                    vec![DataHolder::Anon(DataType::Integer(2))]
+                ),
+            ]),
+        )
+    );
+    assert_eq!(commands[2], Command::Assign(0, 1));
+    assert_eq!(commands[3], Command::ClearRegisters);
+    assert_eq!(
+        commands[4],
+        Command::SetRegister(0, DataHolder::Var("a".to_string()))
+    );
+    assert_eq!(
+        commands[5],
+        Command::SetRegister(
+            1,
+            DataHolder::Conditional(
+                Box::new(DataHolder::Conditional(
+                    Box::new(DataHolder::Var("a".to_string())),
+                    Comparison::Equals,
+                    Box::new(DataHolder::FunctionCall(
+                        Box::new(DataHolder::Function(
+                            vec![DataHolder::Var("a".to_string())],
+                            vec![
+                                Command::SetRegister(
+                                    0,
+                                    DataHolder::Var("a".to_string())
+                                ),
+                            ],
+                        )),
+                        vec![DataHolder::Anon(DataType::Integer(1))],
+                    )),
+                )),
+                Comparison::Or,
+                Box::new(DataHolder::Conditional(
+                    Box::new(DataHolder::Array(vec![])),
+                    Comparison::And,
+                    Box::new(DataHolder::ObjectAccess(
+                        Box::new(DataHolder::ObjectAccess(
+                            Box::new(DataHolder::Var("c".to_string())),
+                            Box::new(DataHolder::Anon(DataType::Integer(0))),
+                        )),
+                        Box::new(DataHolder::Anon(DataType::Integer(0))),
+                    )),
+                )),
+            ),
+        )
+    );
+    assert_eq!(commands[6], Command::Assign(0, 1));
+    last_is_clear(&commands);
+}
+
+#[test]
+fn function_in_dict() {
+    let kscript = create_builder(
+        "d=%[\"test\":{|d|d=(d+1);d}][\"test\"]|2|",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let commands = get_commands(&kscript);
+
+    assert_eq!(commands.len(), 4);
+    assert_eq!(
+        commands[0],
+        Command::SetRegister(0, DataHolder::Var("d".to_string()))
+    );
+
+    let mut map = HashMap::new();
+    map.insert(
+        "test".to_string(),
+        DataHolder::Function(
+            vec![DataHolder::Var("d".to_string())],
+            vec![
+                Command::SetRegister(0, DataHolder::Var("d".to_string())),
+                Command::SetRegister(1, DataHolder::Var("d".to_string())),
+                Command::SetRegister(2, DataHolder::Anon(DataType::Integer(1))),
+                Command::Addition(3, 1, 2),
+                Command::SetRegister(4, DataHolder::Math(3)),
+                Command::Assign(0, 4),
+                Command::ClearRegisters,
+                Command::SetRegister(0, DataHolder::Var("d".to_string())),
+            ],
+        ),
+    );
+
+    assert_eq!(
+        commands[1],
+        Command::SetRegister(
+            1,
+            DataHolder::FunctionCall(
+                Box::new(DataHolder::ObjectAccess(
+                    Box::new(DataHolder::Dict(map)),
+                    Box::new(
+                        DataHolder::Anon(DataType::String("test".to_string())),
+                    ),
+                )),
+                vec![DataHolder::Anon(DataType::Integer(2))],
+            ),
+        )
+    );
+    assert_eq!(commands[2], Command::Assign(0, 1));
+    last_is_clear(&commands);
+}
+
+#[test]
 fn assign_loop_print() {
     let kscript = create_builder(
         "a = 1; $a<5${a = (a + 1)} a > 1",
@@ -685,6 +807,80 @@ fn assign_fucntion_run_output() {
         Command::SetRegister(6, DataHolder::Anon(DataType::Integer(1)))
     );
     assert_eq!(commands[11], Command::IoWrite(5, 6));
+    last_is_clear(&commands);
+}
+
+#[test]
+fn var_assign_access() {
+    let kscript = create_builder(
+        "a = @[3, 2, 1]; B = %[\"key\": \"value\"]; a[0] > 1; B[\"key\"] > 1",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let commands = get_commands(&kscript);
+
+    assert_eq!(commands.len(), 16);
+    assert_eq!(
+        commands[0],
+        Command::SetRegister(0, DataHolder::Var("a".to_string()))
+    );
+    assert_eq!(
+        commands[1],
+        Command::SetRegister(
+            1,
+            DataHolder::Array(vec![
+                DataHolder::Anon(DataType::Integer(3)),
+                DataHolder::Anon(DataType::Integer(2)),
+                DataHolder::Anon(DataType::Integer(1)),
+            ]),
+        )
+    );
+    assert_eq!(commands[2], Command::Assign(0, 1));
+    assert_eq!(commands[3], Command::ClearRegisters);
+    assert_eq!(
+        commands[4],
+        Command::SetRegister(0, DataHolder::Const("B".to_string()))
+    );
+
+    let mut map = HashMap::new();
+    map.insert(
+        "key".to_string(),
+        DataHolder::Anon(DataType::String("value".to_string())),
+    );
+    assert_eq!(commands[5], Command::SetRegister(1, DataHolder::Dict(map)));
+    assert_eq!(commands[6], Command::Assign(0, 1));
+    assert_eq!(commands[7], Command::ClearRegisters);
+    assert_eq!(
+        commands[8],
+        Command::SetRegister(
+            0,
+            DataHolder::ObjectAccess(
+                Box::new(DataHolder::Var("a".to_string())),
+                Box::new(DataHolder::Anon(DataType::Integer(0))),
+            ),
+        )
+    );
+    assert_eq!(
+        commands[9],
+        Command::SetRegister(1, DataHolder::Anon(DataType::Integer(1)))
+    );
+    assert_eq!(commands[10], Command::IoWrite(0, 1));
+    assert_eq!(commands[11], Command::ClearRegisters);
+    assert_eq!(
+        commands[12],
+        Command::SetRegister(
+            0,
+            DataHolder::ObjectAccess(
+                Box::new(DataHolder::Const("B".to_string())),
+                Box::new(DataHolder::Anon(DataType::String("key".to_string()))),
+            ),
+        )
+    );
+    assert_eq!(
+        commands[13],
+        Command::SetRegister(1, DataHolder::Anon(DataType::Integer(1)))
+    );
+    assert_eq!(commands[14], Command::IoWrite(0, 1));
     last_is_clear(&commands);
 }
 
