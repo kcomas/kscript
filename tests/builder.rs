@@ -607,6 +607,88 @@ fn assign_system_command() {
 }
 
 #[test]
+fn assign_fucntion_run_output() {
+    let kscript = create_builder(
+        "a = {|b, c| b = @[1]; c}; a|@[\"herp\", 'derp', %[\"key\": 1]], (1 + 2 * 4)| > 1",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let commands = get_commands(&kscript);
+    assert_eq!(commands.len(), 13);
+    assert_eq!(
+        commands[0],
+        Command::SetRegister(0, DataHolder::Var("a".to_string()))
+    );
+    assert_eq!(
+        commands[1],
+        Command::SetRegister(
+            1,
+            DataHolder::Function(
+                vec![
+                    DataHolder::Var("b".to_string()),
+                    DataHolder::Var("c".to_string()),
+                ],
+                vec![
+                    Command::SetRegister(0, DataHolder::Var("b".to_string())),
+                    Command::SetRegister(
+                        1,
+                        DataHolder::Array(vec![DataHolder::Anon(DataType::Integer(1))])
+                    ),
+                    Command::Assign(0, 1),
+                    Command::ClearRegisters,
+                    Command::SetRegister(0, DataHolder::Var("c".to_string())),
+                ],
+            ),
+        )
+    );
+    assert_eq!(commands[2], Command::Assign(0, 1));
+    assert_eq!(commands[3], Command::ClearRegisters);
+    assert_eq!(
+        commands[4],
+        Command::SetRegister(0, DataHolder::Anon(DataType::Integer(1)))
+    );
+    assert_eq!(
+        commands[5],
+        Command::SetRegister(1, DataHolder::Anon(DataType::Integer(2)))
+    );
+    assert_eq!(
+        commands[6],
+        Command::SetRegister(2, DataHolder::Anon(DataType::Integer(4)))
+    );
+    assert_eq!(commands[7], Command::Multiply(3, 1, 2));
+    assert_eq!(commands[8], Command::Addition(4, 0, 3));
+
+    let mut map = HashMap::new();
+
+    map.insert("key".to_string(), DataHolder::Anon(DataType::Integer(1)));
+
+    assert_eq!(
+        commands[9],
+        Command::SetRegister(
+            5,
+            DataHolder::FunctionCall(
+                Box::new(DataHolder::Var("a".to_string())),
+                vec![
+                    DataHolder::Array(vec![
+                        DataHolder::Anon(DataType::String("herp".to_string())),
+                        DataHolder::Anon(DataType::File("derp".to_string())),
+                        DataHolder::Dict(map),
+                    ]),
+                    DataHolder::Math(4),
+                ],
+            ),
+        )
+    );
+
+    assert_eq!(
+        commands[10],
+        Command::SetRegister(6, DataHolder::Anon(DataType::Integer(1)))
+    );
+    assert_eq!(commands[11], Command::IoWrite(5, 6));
+    last_is_clear(&commands);
+}
+
+#[test]
 fn assign_run_io_out() {
     let kscript = create_builder(
         "a = !@[\"ls\", \"-lh\"]; a[1] > 1",
