@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use super::super::error::Error;
 use super::super::builder::command::{DataHolder, DataType, Command};
 
-pub type RefHolder = Rc<RefCell<DataType>>;
+pub type RefHolder = Rc<RefCell<DataHolder>>;
 
 #[derive(Debug)]
 pub enum RegItem {
@@ -63,7 +63,7 @@ impl Scope {
         self.registers[reg] = RegItem::Var(
             self.vars
                 .entry(name.clone())
-                .or_insert(Rc::new(RefCell::new(DataType::Null)))
+                .or_insert(Rc::new(RefCell::new(DataHolder::Anon(DataType::Null))))
                 .clone(),
         );
     }
@@ -72,7 +72,7 @@ impl Scope {
         self.registers[reg] = RegItem::Const(
             self.consts
                 .entry(name.clone())
-                .or_insert(Rc::new(RefCell::new(DataType::Null)))
+                .or_insert(Rc::new(RefCell::new(DataHolder::Anon(DataType::Null))))
                 .clone(),
         );
     }
@@ -84,7 +84,12 @@ impl Scope {
                     RegItem::Var(_) => Ok(()),
                     RegItem::Const(ref ref_holder) => {
                         match *ref_holder.borrow() {
-                            DataType::Null => Ok(()),
+                            DataHolder::Anon(ref data) => {
+                                match *data {
+                                    DataType::Null => Ok(()),
+                                    _ => Err(Error::InvalidScopeSink),
+                                }
+                            }
                             _ => Err(Error::InvalidScopeSink),
                         }
                     }
@@ -115,7 +120,8 @@ impl Scope {
             DataHolder::Var(ref name) => self.check_and_add_var(reg, name),
             DataHolder::Const(ref name) => self.check_and_add_const(reg, name),
             DataHolder::Anon(ref data) => {
-                self.registers[reg] = RegItem::Value(Rc::new(RefCell::new(data.clone())))
+                self.registers[reg] =
+                    RegItem::Value(Rc::new(RefCell::new(DataHolder::Anon(data.clone()))))
             }
             _ => return Err(Error::InvalidScopeRegisterSet),
         };
