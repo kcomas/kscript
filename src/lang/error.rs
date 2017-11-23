@@ -33,4 +33,5 @@ pub enum Error {
     InvalidConditonalToken,
     InvalidReference,
     InvalidFunctionCallArgs,
+    InvalidScopeRegisterSet,
 }

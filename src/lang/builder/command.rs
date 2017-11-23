@@ -5,6 +5,7 @@ pub type Kmap = HashMap<String, DataHolder>;
 
 #[derive(Debug, PartialEq)]
 pub enum DataType {
+    Null,
     Integer(i64),
     Float(f64),
     String(String),

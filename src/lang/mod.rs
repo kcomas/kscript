@@ -3,6 +3,7 @@ mod controller;
 pub mod logger;
 pub mod parser;
 pub mod builder;
+pub mod vm;
 mod error;
 mod util;
 
@@ -10,27 +11,31 @@ use self::controller::Controller;
 use self::logger::Logger;
 use self::parser::ParserRunner;
 use self::builder::BuilderRunner;
+use self::vm::Vm;
+use self::vm::scope::Scope;
 use self::parser::token_container::TokenContainer;
 use self::parser::token::Token;
 use self::builder::command::Command;
 use self::error::Error;
 use self::util::load_file_to_string;
 
-pub struct Kscript<T: Logger> {
+pub struct Kscript<'a, T: Logger> {
     controller: Controller<T>,
     tokens: Vec<Token>,
     commands: Vec<Command>,
+    root_scope: Scope<'a>,
 }
 
-impl<T> Kscript<T>
+impl<'a, T> Kscript<'a, T>
 where
     T: Logger,
 {
-    pub fn new(logger: T) -> Kscript<T> {
+    pub fn new(logger: T) -> Kscript<'a, T> {
         Kscript {
             controller: Controller::new(logger),
             tokens: Vec::new(),
             commands: Vec::new(),
+            root_scope: Scope::new(),
         }
     }
 
@@ -43,7 +48,7 @@ where
     }
 
     pub fn run(&mut self, text_str: &str) -> Result<(), Error> {
-        self.run_build_tokens_commands(text_str)?;
+        self.run_execute(text_str)?;
         Ok(())
     }
 
@@ -68,6 +73,15 @@ where
             let mut token_container = TokenContainer::new(&mut self.tokens);
             self.commands.clear();
             builder_runner.run(&mut token_container, &mut self.commands)?;
+        }
+        Ok(())
+    }
+
+    pub fn run_execute(&mut self, text_str: &str) -> Result<(), Error> {
+        self.run_build_tokens_commands(text_str)?;
+        {
+            let mut vm = Vm::new(&mut self.controller);
+            vm.run(&mut self.commands, &mut self.root_scope);
         }
         Ok(())
     }

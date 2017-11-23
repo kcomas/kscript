@@ -1,6 +1,6 @@
 
 use super::parser::token::Token;
-use super::builder::command::Command;
+use super::builder::command::{Command, DataHolder};
 
 #[derive(Debug)]
 pub enum LoggerMode {
@@ -12,22 +12,25 @@ pub enum LoggerMode {
 }
 
 #[derive(Debug)]
-pub enum LoggerEvent<'a, 'b, 'c, 'd, 'e, 'f, 'g, 'h, 'i> {
+pub enum LoggerEvent<'a> {
     ParserStart,
     // char, index, line
     ParserNextChar(char, usize, usize),
     ParserInParser(&'a str),
-    ParserOutParser(&'b str),
-    ParserAddToken(&'c Token),
+    ParserOutParser(&'a str),
+    ParserAddToken(&'a Token),
     ParserEnd,
-    ParserDumpTokens(&'d Vec<Token>),
+    ParserDumpTokens(&'a Vec<Token>),
     BuilderStart,
-    BuilderInBuilder(&'e str),
-    BuilderOutBuilder(&'f str),
-    BuilderCheckToken(&'g Token),
-    BuilderAddCommand(&'h Command),
+    BuilderInBuilder(&'a str),
+    BuilderOutBuilder(&'a str),
+    BuilderCheckToken(&'a Token),
+    BuilderAddCommand(&'a Command),
     BuilderEnd,
-    BuilderDumpCommands(&'i Vec<Command>),
+    BuilderDumpCommands(&'a Vec<Command>),
+    ScopeEnter,
+    ScopeSetRegister(&'a usize, &'a DataHolder),
+    ScopeExit,
 }
 
 pub trait Logger {
@@ -73,6 +76,12 @@ pub trait Logger {
     fn builder_end(&self) {}
 
     fn builder_dump_commands(&self, _commands: &Vec<Command>) {}
+
+    fn scope_enter(&self) {}
+
+    fn scope_set_register(&self, _reg: &usize, _data: &DataHolder) {}
+
+    fn scope_exit(&self) {}
 }
 
 #[derive(Debug)]
@@ -152,5 +161,17 @@ impl Logger for DebugLogger {
 
     fn builder_dump_commands(&self, commands: &Vec<Command>) {
         self.write(&LoggerEvent::BuilderDumpCommands(commands));
+    }
+
+    fn scope_enter(&self) {
+        self.write(&LoggerEvent::ScopeEnter);
+    }
+
+    fn scope_set_register(&self, reg: &usize, data: &DataHolder) {
+        self.write(&LoggerEvent::ScopeSetRegister(reg, data));
+    }
+
+    fn scope_exit(&self) {
+        self.write(&LoggerEvent::ScopeExit);
     }
 }
