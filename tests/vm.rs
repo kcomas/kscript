@@ -17,3 +17,10 @@ fn var_assign_integer() {
     let v = kscript.get_root_scope().get_var("test").unwrap();
     assert_eq!(*v.borrow(), DataType::Integer(1234));
 }
+
+#[test]
+fn constant_assign_float() {
+    let kscript = create("TEST = 1234.123", VoidLogger::new(LoggerMode::Void));
+    let v = kscript.get_root_scope().get_const("TEST").unwrap();
+    assert_eq!(*v.borrow(), DataType::Float(1234.123));
+}

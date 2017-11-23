@@ -70,7 +70,7 @@ impl Scope {
 
     pub fn check_and_add_const(&mut self, reg: usize, name: &String) {
         self.registers[reg] = RegItem::Const(
-            self.vars
+            self.consts
                 .entry(name.clone())
                 .or_insert(Rc::new(RefCell::new(DataType::Null)))
                 .clone(),
@@ -82,6 +82,12 @@ impl Scope {
             Some(target) => {
                 match *target {
                     RegItem::Var(_) => Ok(()),
+                    RegItem::Const(ref ref_holder) => {
+                        match *ref_holder.borrow() {
+                            DataType::Null => Ok(()),
+                            _ => Err(Error::InvalidScopeSink),
+                        }
+                    }
                     _ => Err(Error::InvalidScopeSink),
                 }
             }
