@@ -45,6 +45,20 @@ impl Scope {
         }
     }
 
+    pub fn get_var(&self, name: &str) -> Option<RefHolder> {
+        match self.vars.get(name) {
+            Some(ref_holder) => Some(ref_holder.clone()),
+            None => None,
+        }
+    }
+
+    pub fn get_const(&self, name: &str) -> Option<RefHolder> {
+        match self.consts.get(name) {
+            Some(ref_holder) => Some(ref_holder.clone()),
+            None => None,
+        }
+    }
+
     pub fn check_and_add_var(&mut self, reg: usize, name: &String) {
         self.registers[reg] = RegItem::Var(
             self.vars

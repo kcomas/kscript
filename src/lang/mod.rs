@@ -47,6 +47,10 @@ where
         &self.commands
     }
 
+    pub fn get_root_scope(&self) -> &Scope {
+        &self.root_scope
+    }
+
     pub fn run(&mut self, text_str: &str) -> Result<(), Error> {
         self.run_execute(text_str)?;
         Ok(())
