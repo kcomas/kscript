@@ -16,7 +16,7 @@ An **apl-ish**, **write-only** scripting language to be used like bash
 * Passed by copy
 
 ### Variable Types
-* Undefined
+* Null
     * Cannot be assigned, only variables that have been deleted have this type
 * Boolean
     * Assigned as ```t``` or ```f```
