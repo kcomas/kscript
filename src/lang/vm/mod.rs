@@ -35,7 +35,7 @@ where
         Ok(())
     }
 
-    pub fn match_command(&mut self, command: &Command, scope: &mut Scope) -> Result<(), Error> {
+    fn match_command(&mut self, command: &Command, scope: &mut Scope) -> Result<(), Error> {
         {
             self.controller.get_logger_mut().scope_run_command(command);
         }
@@ -45,6 +45,8 @@ where
             Command::ClearRegisters => scope.clear_registers(),
             Command::Addition(sink, left, right) => scope.addition(sink, left, right)?,
             Command::Subtract(sink, left, right) => scope.subtract(sink, left, right)?,
+            Command::Multiply(sink, left, right) => scope.multiply(sink, left, right)?,
+            Command::Divide(sink, left, right) => scope.divide(sink, left, right)?,
             _ => {}
         };
         Ok(())

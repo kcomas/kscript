@@ -11,8 +11,6 @@ An **apl-ish**, **write-only** scripting language to be used like bash
 ## Variables
 * Not Hoisted
 * Can be constants that cannot be changed after assignment unless deleted
-* Once their type is set it cannot be changed until it is deleted
-    * Eg if you set a variable to an integer it can only be reassigned as an integer unless deleted
 * Passed by copy
 
 ### Variable Types

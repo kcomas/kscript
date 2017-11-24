@@ -60,7 +60,7 @@ impl Scope {
         }
     }
 
-    pub fn check_and_add_var(&mut self, reg: usize, name: &String) {
+    fn check_and_add_var(&mut self, reg: usize, name: &String) {
         self.registers[reg] = RegItem::Var(
             self.vars
                 .entry(name.clone())
@@ -69,7 +69,7 @@ impl Scope {
         );
     }
 
-    pub fn check_and_add_const(&mut self, reg: usize, name: &String) {
+    fn check_and_add_const(&mut self, reg: usize, name: &String) {
         self.registers[reg] = RegItem::Const(
             self.consts
                 .entry(name.clone())
@@ -78,7 +78,7 @@ impl Scope {
         );
     }
 
-    pub fn can_sink(&self, reg: usize) -> Result<(), Error> {
+    fn can_sink(&self, reg: usize) -> Result<(), Error> {
         match self.registers.get(reg) {
             Some(target) => {
                 match *target {
@@ -118,7 +118,7 @@ impl Scope {
         }
     }
 
-    pub fn check_if_last(&mut self, reg: usize) {
+    fn check_if_last(&mut self, reg: usize) {
         if reg == self.registers.len() {
             self.registers.push(RegItem::Empty);
         }
@@ -173,6 +173,32 @@ impl Scope {
         let (left, right) = get_tuple_data_type(self, left_reg, right_reg)?;
         self.registers[sink_reg] =
             RegItem::Value(Rc::new(RefCell::new(DataHolder::Anon(left - right))));
+        Ok(())
+    }
+
+    pub fn multiply(
+        &mut self,
+        sink_reg: usize,
+        left_reg: usize,
+        right_reg: usize,
+    ) -> Result<(), Error> {
+        self.check_if_last(sink_reg);
+        let (left, right) = get_tuple_data_type(self, left_reg, right_reg)?;
+        self.registers[sink_reg] =
+            RegItem::Value(Rc::new(RefCell::new(DataHolder::Anon(left * right))));
+        Ok(())
+    }
+
+    pub fn divide(
+        &mut self,
+        sink_reg: usize,
+        left_reg: usize,
+        right_reg: usize,
+    ) -> Result<(), Error> {
+        self.check_if_last(sink_reg);
+        let (left, right) = get_tuple_data_type(self, left_reg, right_reg)?;
+        self.registers[sink_reg] =
+            RegItem::Value(Rc::new(RefCell::new(DataHolder::Anon(left / right))));
         Ok(())
     }
 
