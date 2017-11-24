@@ -1,6 +1,7 @@
 
 use std::ops::{Add, Sub, Mul, Div, Rem};
 use std::collections::HashMap;
+use std::fmt;
 
 pub type Kmap = HashMap<String, DataHolder>;
 
@@ -42,6 +43,24 @@ impl DataType {
         match *self {
             DataType::Integer(_) => true,
             _ => false,
+        }
+    }
+}
+
+impl fmt::Display for DataType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            DataType::Null => write!(f, "NULL"),
+            DataType::Integer(int) => write!(f, "{}", int),
+            DataType::Float(float) => write!(f, "{}", float),
+            DataType::String(ref string) => write!(f, "{}", string),
+            DataType::File(ref file) => write!(f, "'{}'", file),
+            DataType::Bool(boolean) => {
+                match boolean {
+                    true => write!(f, "t"),
+                    false => write!(f, "f"),
+                }
+            }
         }
     }
 }
@@ -160,6 +179,22 @@ impl DataHolder {
         match *self {
             DataHolder::Anon(ref data_type) => Some(data_type.clone()),
             _ => None,
+        }
+    }
+}
+
+impl fmt::Display for DataHolder {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            DataHolder::Anon(ref data_type) => write!(f, "{}", data_type),
+            DataHolder::Array(ref data_holder) => {
+                let mut output = String::new();
+                for item in data_holder.iter() {
+                    output.push_str(&format!("{}", item));
+                }
+                write!(f, "{}", output)
+            }
+            _ => write!(f, "{:?}", self),
         }
     }
 }

@@ -154,6 +154,12 @@ impl Scope {
         Ok(())
     }
 
+    fn io_write(&mut self, left_reg: usize, right_reg: usize) -> Result<(), Error> {
+        let left = self.get_ref_holder(left_reg)?;
+        let right = self.get_ref_holder(right_reg)?;
+        Ok(())
+    }
+
     fn set_value_in_reg(&mut self, sink_reg: usize, value: DataHolder) {
         self.registers[sink_reg] = RegItem::Value(Rc::new(RefCell::new(value)));
     }
