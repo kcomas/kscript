@@ -48,6 +48,7 @@ where
             Command::Multiply(sink, left, right) => scope.multiply(sink, left, right)?,
             Command::Divide(sink, left, right) => scope.divide(sink, left, right)?,
             Command::Exponent(sink, left, right) => scope.exponent(sink, left, right)?,
+            Command::Modulus(sink, left, right) => scope.modulus(sink, left, right)?,
             _ => {}
         };
         Ok(())

@@ -1,5 +1,5 @@
 
-use std::ops::{Add, Sub, Mul, Div};
+use std::ops::{Add, Sub, Mul, Div, Rem};
 use std::collections::HashMap;
 
 pub type Kmap = HashMap<String, DataHolder>;
@@ -106,6 +106,18 @@ impl Div for DataType {
             return DataType::Integer(left.get_as_int() / right.get_as_int());
         }
         DataType::Float(left.get_as_float() / right.get_as_float())
+    }
+}
+
+impl Rem for DataType {
+    type Output = DataType;
+
+    fn rem(self, right: DataType) -> DataType {
+        let (left, right) = coerce_numbers(&self, &right);
+        if left.is_int() && right.is_int() {
+            return DataType::Integer(left.get_as_int() % right.get_as_int());
+        }
+        DataType::Float(left.get_as_float() % right.get_as_float())
     }
 }
 

@@ -202,6 +202,18 @@ impl Scope {
         Ok(())
     }
 
+    pub fn modulus(
+        &mut self,
+        sink_reg: usize,
+        left_reg: usize,
+        right_reg: usize,
+    ) -> Result<(), Error> {
+        self.check_if_last(sink_reg);
+        let (left, right) = get_tuple_data_type(self, left_reg, right_reg)?;
+        self.set_value_in_reg(sink_reg, DataHolder::Anon(left % right));
+        Ok(())
+    }
+
     pub fn exponent(
         &mut self,
         sink_reg: usize,
