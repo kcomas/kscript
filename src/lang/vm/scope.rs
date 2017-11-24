@@ -150,6 +150,10 @@ impl Scope {
         Ok(())
     }
 
+    fn set_value_in_reg(&mut self, sink_reg: usize, value: DataHolder) {
+        self.registers[sink_reg] = RegItem::Value(Rc::new(RefCell::new(value)));
+    }
+
     pub fn addition(
         &mut self,
         sink_reg: usize,
@@ -158,8 +162,7 @@ impl Scope {
     ) -> Result<(), Error> {
         self.check_if_last(sink_reg);
         let (left, right) = get_tuple_data_type(self, left_reg, right_reg)?;
-        self.registers[sink_reg] =
-            RegItem::Value(Rc::new(RefCell::new(DataHolder::Anon(left + right))));
+        self.set_value_in_reg(sink_reg, DataHolder::Anon(left + right));
         Ok(())
     }
 
@@ -171,8 +174,7 @@ impl Scope {
     ) -> Result<(), Error> {
         self.check_if_last(sink_reg);
         let (left, right) = get_tuple_data_type(self, left_reg, right_reg)?;
-        self.registers[sink_reg] =
-            RegItem::Value(Rc::new(RefCell::new(DataHolder::Anon(left - right))));
+        self.set_value_in_reg(sink_reg, DataHolder::Anon(left - right));
         Ok(())
     }
 
@@ -184,8 +186,7 @@ impl Scope {
     ) -> Result<(), Error> {
         self.check_if_last(sink_reg);
         let (left, right) = get_tuple_data_type(self, left_reg, right_reg)?;
-        self.registers[sink_reg] =
-            RegItem::Value(Rc::new(RefCell::new(DataHolder::Anon(left * right))));
+        self.set_value_in_reg(sink_reg, DataHolder::Anon(left * right));
         Ok(())
     }
 
@@ -197,8 +198,40 @@ impl Scope {
     ) -> Result<(), Error> {
         self.check_if_last(sink_reg);
         let (left, right) = get_tuple_data_type(self, left_reg, right_reg)?;
-        self.registers[sink_reg] =
-            RegItem::Value(Rc::new(RefCell::new(DataHolder::Anon(left / right))));
+        self.set_value_in_reg(sink_reg, DataHolder::Anon(left / right));
+        Ok(())
+    }
+
+    pub fn exponent(
+        &mut self,
+        sink_reg: usize,
+        left_reg: usize,
+        right_reg: usize,
+    ) -> Result<(), Error> {
+        self.check_if_last(sink_reg);
+        let (left, right) = get_tuple_data_type(self, left_reg, right_reg)?;
+        if left.is_int() && right.is_int() {
+            self.set_value_in_reg(
+                sink_reg,
+                DataHolder::Anon(DataType::Integer(
+                    left.get_as_int().pow(right.get_as_int() as u32),
+                )),
+            );
+            return Ok(());
+        } else if left.is_float() && right.is_int() {
+            self.set_value_in_reg(
+                sink_reg,
+                DataHolder::Anon(DataType::Float(
+                    left.get_as_float().powi(right.get_as_int() as i32),
+                )),
+            );
+        }
+        self.set_value_in_reg(
+            sink_reg,
+            DataHolder::Anon(DataType::Float(
+                left.get_as_float().powf(right.get_as_float()),
+            )),
+        );
         Ok(())
     }
 
