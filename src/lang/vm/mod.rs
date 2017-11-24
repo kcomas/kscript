@@ -44,6 +44,7 @@ where
             Command::Assign(left, right) => scope.assign(left, right)?,
             Command::ClearRegisters => scope.clear_registers(),
             Command::Addition(sink, left, right) => scope.addition(sink, left, right)?,
+            Command::Subtract(sink, left, right) => scope.subtract(sink, left, right)?,
             _ => {}
         };
         Ok(())

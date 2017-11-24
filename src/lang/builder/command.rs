@@ -1,5 +1,5 @@
 
-use std::ops::Add;
+use std::ops::{Add, Sub};
 use std::collections::HashMap;
 
 pub type Kmap = HashMap<String, DataHolder>;
@@ -70,6 +70,18 @@ impl Add for DataType {
             return DataType::Integer(left.get_as_int() + right.get_as_int());
         }
         DataType::Float(left.get_as_float() + right.get_as_float())
+    }
+}
+
+impl Sub for DataType {
+    type Output = DataType;
+
+    fn sub(self, right: DataType) -> DataType {
+        let (left, right) = corcerce_numbers(&self, &right);
+        if left.is_int() && right.is_int() {
+            return DataType::Integer(left.get_as_int() - right.get_as_int());
+        }
+        DataType::Float(left.get_as_float() - right.get_as_float())
     }
 }
 

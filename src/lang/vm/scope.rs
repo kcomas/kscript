@@ -163,6 +163,19 @@ impl Scope {
         Ok(())
     }
 
+    pub fn subtract(
+        &mut self,
+        sink_reg: usize,
+        left_reg: usize,
+        right_reg: usize,
+    ) -> Result<(), Error> {
+        self.check_if_last(sink_reg);
+        let (left, right) = get_tuple_data_type(self, left_reg, right_reg)?;
+        self.registers[sink_reg] =
+            RegItem::Value(Rc::new(RefCell::new(DataHolder::Anon(left - right))));
+        Ok(())
+    }
+
     pub fn clear_registers(&mut self) {
         self.registers.clear();
     }
