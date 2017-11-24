@@ -1,5 +1,6 @@
 
 pub mod scope;
+pub mod util;
 
 use super::controller::Controller;
 use super::logger::Logger;
@@ -35,32 +36,16 @@ where
     }
 
     pub fn match_command(&mut self, command: &Command, scope: &mut Scope) -> Result<(), Error> {
-        match *command {
-            Command::SetRegister(reg, ref data_holder) => {
-                {
-                    self.controller.get_logger_mut().scope_set_register(
-                        reg,
-                        data_holder,
-                    );
-                }
-                let _ = scope.set_register(reg, data_holder)?;
-                Ok(())
-            }
-            Command::Assign(left, right) => {
-                {
-                    self.controller.get_logger_mut().scope_assign(left, right);
-                }
-                let _ = scope.assign(left, right)?;
-                Ok(())
-            }
-            Command::ClearRegisters => {
-                {
-                    self.controller.get_logger_mut().scope_clear();
-                }
-                scope.clear_registers();
-                Ok(())
-            }
-            _ => Ok(()),
+        {
+            self.controller.get_logger_mut().scope_run_command(command);
         }
+        match *command {
+            Command::SetRegister(reg, ref data_holder) => scope.set_register(reg, data_holder)?,
+            Command::Assign(left, right) => scope.assign(left, right)?,
+            Command::ClearRegisters => scope.clear_registers(),
+            Command::Addition(sink, left, right) => scope.addition(sink, left, right)?,
+            _ => {}
+        };
+        Ok(())
     }
 }

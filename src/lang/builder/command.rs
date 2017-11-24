@@ -1,4 +1,5 @@
 
+use std::ops::Add;
 use std::collections::HashMap;
 
 pub type Kmap = HashMap<String, DataHolder>;
@@ -11,6 +12,65 @@ pub enum DataType {
     String(String),
     File(String),
     Bool(bool),
+}
+
+impl DataType {
+    pub fn is_float(&self) -> bool {
+        match *self {
+            DataType::Float(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn get_as_float(&self) -> f64 {
+        match *self {
+            DataType::Float(float) => float,
+            DataType::Integer(int) => int as f64,
+            _ => 0.0,
+        }
+    }
+
+    pub fn get_as_int(&self) -> i64 {
+        match *self {
+            DataType::Integer(int) => int,
+            DataType::Float(float) => float as i64,
+            _ => 0,
+        }
+    }
+
+    pub fn is_int(&self) -> bool {
+        match *self {
+            DataType::Integer(_) => true,
+            _ => false,
+        }
+    }
+}
+
+fn corcerce_numbers(left: &DataType, right: &DataType) -> (DataType, DataType) {
+    if left.is_int() && right.is_int() || left.is_float() && right.is_float() {
+        return (left.clone(), right.clone());
+    } else if left.is_int() && right.is_float() || left.is_float() && right.is_int() {
+        return (
+            DataType::Float(left.get_as_float()),
+            DataType::Float(right.get_as_float()),
+        );
+    }
+    (
+        DataType::Integer(left.get_as_int()),
+        DataType::Integer(right.get_as_int()),
+    )
+}
+
+impl Add for DataType {
+    type Output = DataType;
+
+    fn add(self, right: DataType) -> DataType {
+        let (left, right) = corcerce_numbers(&self, &right);
+        if left.is_int() && right.is_int() {
+            return DataType::Integer(left.get_as_int() + right.get_as_int());
+        }
+        DataType::Float(left.get_as_float() + right.get_as_float())
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -45,6 +105,15 @@ pub enum DataHolder {
     Function(Vec<DataHolder>, Vec<Command>),
     FunctionCall(Box<DataHolder>, Vec<DataHolder>),
     System(SystemCommand),
+}
+
+impl DataHolder {
+    pub fn as_data_type(&self) -> Option<DataType> {
+        match *self {
+            DataHolder::Anon(ref data_type) => Some(data_type.clone()),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]

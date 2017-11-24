@@ -37,4 +37,5 @@ pub enum Error {
     InvalidScopeRegisterGet,
     InvalidScopeSink,
     InvalidScopeAssignment,
+    InvalidMathType,
 }

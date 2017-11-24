@@ -1,6 +1,6 @@
 
 use super::parser::token::Token;
-use super::builder::command::{Command, DataHolder};
+use super::builder::command::Command;
 use super::vm::scope::Scope;
 
 #[derive(Debug)]
@@ -30,8 +30,7 @@ pub enum LoggerEvent<'a> {
     BuilderEnd,
     BuilderDumpCommands(&'a Vec<Command>),
     ScopeEnter,
-    ScopeSetRegister(usize, &'a DataHolder),
-    ScopeAssign(usize, usize),
+    ScopeRunCommand(&'a Command),
     ScopeClear,
     ScopeDump(&'a Scope),
     ScopeExit,
@@ -83,11 +82,7 @@ pub trait Logger {
 
     fn scope_enter(&self) {}
 
-    fn scope_set_register(&self, _reg: usize, _data: &DataHolder) {}
-
-    fn scope_assign(&self, _left: usize, _right: usize) {}
-
-    fn scope_clear(&self) {}
+    fn scope_run_command(&self, _command: &Command) {}
 
     fn scope_dump(&self, _scope: &Scope) {}
 
@@ -177,16 +172,8 @@ impl Logger for DebugLogger {
         self.write(&LoggerEvent::ScopeEnter);
     }
 
-    fn scope_set_register(&self, reg: usize, data: &DataHolder) {
-        self.write(&LoggerEvent::ScopeSetRegister(reg, data));
-    }
-
-    fn scope_assign(&self, left: usize, right: usize) {
-        self.write(&LoggerEvent::ScopeAssign(left, right));
-    }
-
-    fn scope_clear(&self) {
-        self.write(&LoggerEvent::ScopeClear);
+    fn scope_run_command(&self, command: &Command) {
+        self.write(&LoggerEvent::ScopeRunCommand(command));
     }
 
     fn scope_dump(&self, scope: &Scope) {

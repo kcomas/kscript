@@ -4,6 +4,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use super::super::error::Error;
 use super::super::builder::command::{DataHolder, DataType, Command};
+use super::util::get_tuple_data_type;
 
 pub type RefHolder = Rc<RefCell<DataHolder>>;
 
@@ -104,7 +105,12 @@ impl Scope {
         match self.registers.get(reg) {
             Some(mabe_reg_item) => {
                 match mabe_reg_item.to_ref_holder() {
-                    Some(reg_item) => Ok(reg_item.clone()),
+                    Some(reg_item) => {
+                        match *reg_item.borrow() {
+                            DataHolder::Math(math_reg) => Ok(self.get_ref_holder(math_reg)?),
+                            _ => Ok(reg_item.clone()),
+                        }
+                    }
                     None => Err(Error::InvalidScopeRegisterGet),
                 }
             }
@@ -112,16 +118,24 @@ impl Scope {
         }
     }
 
-    pub fn set_register(&mut self, reg: usize, data_holder: &DataHolder) -> Result<(), Error> {
+    pub fn check_if_last(&mut self, reg: usize) {
         if reg == self.registers.len() {
             self.registers.push(RegItem::Empty);
         }
+    }
+
+    pub fn set_register(&mut self, reg: usize, data_holder: &DataHolder) -> Result<(), Error> {
+        self.check_if_last(reg);
         match *data_holder {
             DataHolder::Var(ref name) => self.check_and_add_var(reg, name),
             DataHolder::Const(ref name) => self.check_and_add_const(reg, name),
             DataHolder::Anon(ref data) => {
                 self.registers[reg] =
-                    RegItem::Value(Rc::new(RefCell::new(DataHolder::Anon(data.clone()))))
+                    RegItem::Value(Rc::new(RefCell::new(DataHolder::Anon(data.clone()))));
+            }
+            DataHolder::Math(math_reg) => {
+                self.registers[reg] =
+                    RegItem::Value(Rc::new(RefCell::new(DataHolder::Math(math_reg))));
             }
             _ => return Err(Error::InvalidScopeRegisterSet),
         };
@@ -133,6 +147,19 @@ impl Scope {
         let left = self.get_ref_holder(left_reg)?;
         let right = self.get_ref_holder(right_reg)?;
         *left.borrow_mut() = right.borrow().clone();
+        Ok(())
+    }
+
+    pub fn addition(
+        &mut self,
+        sink_reg: usize,
+        left_reg: usize,
+        right_reg: usize,
+    ) -> Result<(), Error> {
+        self.check_if_last(sink_reg);
+        let (left, right) = get_tuple_data_type(self, left_reg, right_reg)?;
+        self.registers[sink_reg] =
+            RegItem::Value(Rc::new(RefCell::new(DataHolder::Anon(left + right))));
         Ok(())
     }
 
