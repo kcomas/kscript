@@ -142,6 +142,10 @@ impl Scope {
         Ok(())
     }
 
+    pub fn clear_registers(&mut self) {
+        self.registers.clear();
+    }
+
     pub fn assign(&mut self, left_reg: usize, right_reg: usize) -> Result<(), Error> {
         let _ = self.can_sink(left_reg)?;
         let left = self.get_ref_holder(left_reg)?;
@@ -245,9 +249,5 @@ impl Scope {
             )),
         );
         Ok(())
-    }
-
-    pub fn clear_registers(&mut self) {
-        self.registers.clear();
     }
 }
