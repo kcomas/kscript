@@ -181,6 +181,13 @@ impl DataHolder {
             _ => None,
         }
     }
+
+    pub fn as_data_type_ref(&self) -> Option<&DataType> {
+        match *self {
+            DataHolder::Anon(ref data_type) => Some(data_type),
+            _ => None,
+        }
+    }
 }
 
 impl fmt::Display for DataHolder {

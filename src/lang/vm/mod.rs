@@ -43,6 +43,7 @@ where
             Command::SetRegister(reg, ref data_holder) => scope.set_register(reg, data_holder)?,
             Command::Assign(left, right) => scope.assign(left, right)?,
             Command::ClearRegisters => scope.clear_registers(),
+            Command::IoWrite(left, right) => scope.io_write(left, right)?,
             Command::Addition(sink, left, right) => scope.addition(sink, left, right)?,
             Command::Subtract(sink, left, right) => scope.subtract(sink, left, right)?,
             Command::Multiply(sink, left, right) => scope.multiply(sink, left, right)?,

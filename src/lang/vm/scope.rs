@@ -154,10 +154,23 @@ impl Scope {
         Ok(())
     }
 
-    fn io_write(&mut self, left_reg: usize, right_reg: usize) -> Result<(), Error> {
+    pub fn io_write(&mut self, left_reg: usize, right_reg: usize) -> Result<(), Error> {
         let left = self.get_ref_holder(left_reg)?;
         let right = self.get_ref_holder(right_reg)?;
-        Ok(())
+        if let Some(data_holder) = right.borrow().as_data_type_ref() {
+            match *data_holder {
+                DataType::Integer(int) => {
+                    match int {
+                        1 => print!("{}", left.borrow()),
+                        2 => eprint!("{}", left.borrow()),
+                        _ => return Err(Error::InvalidIoSink),
+                    }
+                }
+                _ => return Err(Error::InvalidIoSink),
+            }
+            return Ok(());
+        }
+        Err(Error::InvalidIoSink)
     }
 
     fn set_value_in_reg(&mut self, sink_reg: usize, value: DataHolder) {

@@ -38,4 +38,5 @@ pub enum Error {
     InvalidScopeSink,
     InvalidScopeAssignment,
     InvalidMathType,
+    InvalidIoSink,
 }
