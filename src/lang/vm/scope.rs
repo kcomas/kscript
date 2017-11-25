@@ -29,6 +29,7 @@ impl RegItem {
 
 #[derive(Debug)]
 pub struct Scope {
+    id: usize,
     vars: RefMap,
     consts: RefMap,
     // cached files
@@ -37,13 +38,18 @@ pub struct Scope {
 }
 
 impl Scope {
-    pub fn new() -> Scope {
+    pub fn new(id: usize) -> Scope {
         Scope {
+            id: id,
             vars: HashMap::new(),
             consts: HashMap::new(),
             files: HashMap::new(),
             registers: Vec::new(),
         }
+    }
+
+    pub fn get_id(&self) -> usize {
+        self.id
     }
 
     pub fn get_var(&self, name: &str) -> Option<RefHolder> {

@@ -45,4 +45,5 @@ pub enum Error {
     VarNotDeclared,
     ConstNotDeclard,
     CanOnlyCompareScalars,
+    InvalidCondititonalHolder,
 }

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::rc::Rc;
 use std::cell::RefCell;
 use super::super::error::Error;
-use super::super::builder::command::{DataType, DataHolder};
+use super::super::builder::command::{DataType, DataHolder, Comparison};
 use super::scope::Scope;
 use super::vm_types::{DataContainer, RefMap, RefArray};
 
@@ -78,5 +78,14 @@ pub fn holder_deep_copy_conversion(
             Ok(DataContainer::Scalar(DataType::Bool(b)))
         }
         _ => Err(Error::CannotDeepCopyType),
+    }
+}
+
+pub fn conditional_to_parts(
+    conditional: &DataHolder,
+) -> Result<(&DataHolder, &Comparison, &DataHolder), Error> {
+    match *conditional {
+        DataHolder::Conditional(ref left, ref cond, ref right) => Ok((left, cond, right)),
+        _ => Err(Error::InvalidCondititonalHolder),
     }
 }

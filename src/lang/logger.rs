@@ -29,11 +29,10 @@ pub enum LoggerEvent<'a> {
     BuilderAddCommand(&'a Command),
     BuilderEnd,
     BuilderDumpCommands(&'a Vec<Command>),
-    ScopeEnter,
+    ScopeEnter(usize),
     ScopeRunCommand(&'a Command),
-    ScopeClear,
     ScopeDump(&'a Scope),
-    ScopeExit,
+    ScopeExit(usize),
 }
 
 pub trait Logger {
@@ -80,13 +79,13 @@ pub trait Logger {
 
     fn builder_dump_commands(&self, _commands: &Vec<Command>) {}
 
-    fn scope_enter(&self) {}
+    fn scope_enter(&self, _id: usize) {}
 
     fn scope_run_command(&self, _command: &Command) {}
 
     fn scope_dump(&self, _scope: &Scope) {}
 
-    fn scope_exit(&self) {}
+    fn scope_exit(&self, _id: usize) {}
 }
 
 #[derive(Debug)]
@@ -168,8 +167,8 @@ impl Logger for DebugLogger {
         self.write(&LoggerEvent::BuilderDumpCommands(commands));
     }
 
-    fn scope_enter(&self) {
-        self.write(&LoggerEvent::ScopeEnter);
+    fn scope_enter(&self, id: usize) {
+        self.write(&LoggerEvent::ScopeEnter(id));
     }
 
     fn scope_run_command(&self, command: &Command) {
@@ -180,7 +179,7 @@ impl Logger for DebugLogger {
         self.write(&LoggerEvent::ScopeDump(scope));
     }
 
-    fn scope_exit(&self) {
-        self.write(&LoggerEvent::ScopeExit);
+    fn scope_exit(&self, id: usize) {
+        self.write(&LoggerEvent::ScopeExit(id));
     }
 }

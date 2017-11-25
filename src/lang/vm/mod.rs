@@ -8,6 +8,7 @@ use super::logger::Logger;
 use super::error::Error;
 use super::builder::command::Command;
 use self::scope::Scope;
+use self::util::conditional_to_parts;
 
 pub struct Vm<'a, T: Logger + 'a> {
     controller: &'a mut Controller<T>,
@@ -23,7 +24,7 @@ where
 
     pub fn run(&mut self, commands: &Vec<Command>, scope: &mut Scope) -> Result<(), Error> {
         {
-            self.controller.get_logger_mut().scope_enter();
+            self.controller.get_logger_mut().scope_enter(scope.get_id());
         }
         for command in commands.iter() {
             let _ = self.match_command(command, scope)?;
@@ -31,7 +32,7 @@ where
         {
             let logger = self.controller.get_logger_mut();
             logger.scope_dump(scope);
-            logger.scope_exit();
+            logger.scope_exit(scope.get_id());
         }
         Ok(())
     }
@@ -50,8 +51,15 @@ where
             Command::Subtract(sink, left, right) => scope.subtract(sink, left, right)?,
             Command::Multiply(sink, left, right) => scope.multiply(sink, left, right)?,
             Command::Divide(sink, left, right) => scope.divide(sink, left, right)?,
-            Command::Exponent(sink, left, right) => scope.exponent(sink, left, right)?,
             Command::Modulus(sink, left, right) => scope.modulus(sink, left, right)?,
+            Command::Exponent(sink, left, right) => scope.exponent(sink, left, right)?,
+            Command::If(ref conditional, ref true_commands, ref false_commands) => {
+                let (left_data, cond, right_data) = conditional_to_parts(conditional)?;
+                match scope.evaluate_conditional(left_data, cond, right_data)? {
+                    true => self.run(true_commands, scope)?,
+                    false => self.run(false_commands, scope)?,
+                };
+            }
             _ => {}
         };
         Ok(())

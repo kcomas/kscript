@@ -35,7 +35,7 @@ where
             controller: Controller::new(logger),
             tokens: Vec::new(),
             commands: Vec::new(),
-            root_scope: Scope::new(),
+            root_scope: Scope::new(0),
         }
     }
 

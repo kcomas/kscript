@@ -174,3 +174,19 @@ fn nested_conditionial() {
     let a = kscript.get_root_scope().get_var("a").unwrap();
     assert_eq!(*a.borrow(), DataContainer::Scalar(DataType::Bool(true)));
 }
+
+#[test]
+fn assign_conditional_true_false() {
+    let kscript = create(
+        "?1 == 2{a = 3}{b = \"test\"}",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let a = kscript.get_root_scope().get_var("a");
+    assert_eq!(a.is_none(), true);
+    let b = kscript.get_root_scope().get_var("b").unwrap();
+    assert_eq!(
+        *b.borrow(),
+        DataContainer::Scalar(DataType::String("test".to_string()))
+    );
+}
