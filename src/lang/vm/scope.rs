@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use super::super::error::Error;
 use super::super::builder::command::{DataHolder, DataType, Command};
 use super::util::{get_tuple_data_type, holder_deep_copy_conversion};
-use super::vm_types::{RefHolder, DataContainer};
+use super::vm_types::{RefHolder, RefMap, RefArray, DataContainer};
 
 
 #[derive(Debug)]
@@ -29,8 +29,8 @@ impl RegItem {
 
 #[derive(Debug)]
 pub struct Scope {
-    vars: HashMap<String, RefHolder>,
-    consts: HashMap<String, RefHolder>,
+    vars: RefMap,
+    consts: RefMap,
     // cached files
     files: HashMap<String, Vec<Command>>,
     registers: Vec<RegItem>,
@@ -147,13 +147,23 @@ impl Scope {
                 self.set_value_in_reg(reg, DataContainer::Math(math_reg));
             }
             DataHolder::Array(ref holders) => {
-                let mut array_container: Vec<RefHolder> = Vec::new();
+                let mut array_container: RefArray = Vec::new();
                 for item in holders {
                     array_container.push(Rc::new(
                         RefCell::new(holder_deep_copy_conversion(self, item)?),
                     ));
                 }
                 self.set_value_in_reg(reg, DataContainer::Vector(array_container));
+            }
+            DataHolder::Dict(ref dict) => {
+                let mut hash_map: RefMap = HashMap::new();
+                for (key, value) in dict {
+                    hash_map.insert(
+                        key.clone(),
+                        Rc::new(RefCell::new(holder_deep_copy_conversion(self, value)?)),
+                    );
+                }
+                self.set_value_in_reg(reg, DataContainer::Hash(hash_map));
             }
             _ => return Err(Error::InvalidScopeRegisterSet),
         };

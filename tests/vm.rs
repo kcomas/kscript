@@ -1,6 +1,7 @@
 
 extern crate kscript;
 
+use std::collections::HashMap;
 use std::rc::Rc;
 use std::cell::RefCell;
 use kscript::lang::Kscript;
@@ -105,4 +106,36 @@ fn var_assign_array() {
             wrap_scalar(DataType::Integer(1234)),
         ])
     );
+}
+
+#[test]
+fn var_assign_dict() {
+    let kscript = create(
+        "d = %[\"asdf\": 1234, \"sub\": %[\"merp\": 3.45], \"arr\": @[1, 2, 4], \"herp\": \"derp\"]",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let v = kscript.get_root_scope().get_var("d").unwrap();
+
+    let mut map = HashMap::new();
+    let mut sub_map = HashMap::new();
+
+    sub_map.insert("merp".to_string(), wrap_scalar(DataType::Float(3.45)));
+
+    map.insert("asdf".to_string(), wrap_scalar(DataType::Integer(1234)));
+    map.insert("sub".to_string(), wrap(DataContainer::Hash(sub_map)));
+    map.insert(
+        "arr".to_string(),
+        wrap(DataContainer::Vector(vec![
+            wrap_scalar(DataType::Integer(1)),
+            wrap_scalar(DataType::Integer(2)),
+            wrap_scalar(DataType::Integer(4)),
+        ])),
+    );
+    map.insert(
+        "herp".to_string(),
+        wrap_scalar(DataType::String("derp".to_string())),
+    );
+
+    assert_eq!(*v.borrow(), DataContainer::Hash(map));
 }
