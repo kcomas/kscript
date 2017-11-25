@@ -5,8 +5,8 @@ use std::collections::HashMap;
 use super::super::error::Error;
 use super::super::builder::command::{DataHolder, DataType, Command};
 use super::util::get_tuple_data_type;
+use super::vm_types::{RefHolder, DataContainer};
 
-pub type RefHolder = Rc<RefCell<DataHolder>>;
 
 #[derive(Debug)]
 pub enum RegItem {
@@ -64,7 +64,7 @@ impl Scope {
         self.registers[reg] = RegItem::Var(
             self.vars
                 .entry(name.clone())
-                .or_insert(Rc::new(RefCell::new(DataHolder::Anon(DataType::Null))))
+                .or_insert(Rc::new(RefCell::new(DataContainer::Scalar(DataType::Null))))
                 .clone(),
         );
     }
@@ -73,7 +73,7 @@ impl Scope {
         self.registers[reg] = RegItem::Const(
             self.consts
                 .entry(name.clone())
-                .or_insert(Rc::new(RefCell::new(DataHolder::Anon(DataType::Null))))
+                .or_insert(Rc::new(RefCell::new(DataContainer::Scalar(DataType::Null))))
                 .clone(),
         );
     }
@@ -85,7 +85,7 @@ impl Scope {
                     RegItem::Var(_) => Ok(()),
                     RegItem::Const(ref ref_holder) => {
                         match *ref_holder.borrow() {
-                            DataHolder::Anon(ref data) => {
+                            DataContainer::Scalar(ref data) => {
                                 match *data {
                                     DataType::Null => Ok(()),
                                     _ => Err(Error::InvalidScopeSink),
@@ -107,7 +107,7 @@ impl Scope {
                 match mabe_reg_item.to_ref_holder() {
                     Some(reg_item) => {
                         match *reg_item.borrow() {
-                            DataHolder::Math(math_reg) => Ok(self.get_ref_holder(math_reg)?),
+                            DataContainer::Math(math_reg) => Ok(self.get_ref_holder(math_reg)?),
                             _ => Ok(reg_item.clone()),
                         }
                     }
@@ -124,18 +124,20 @@ impl Scope {
         }
     }
 
+    fn set_value_in_reg(&mut self, sink_reg: usize, value: DataContainer) {
+        self.registers[sink_reg] = RegItem::Value(Rc::new(RefCell::new(value)));
+    }
+
     pub fn set_register(&mut self, reg: usize, data_holder: &DataHolder) -> Result<(), Error> {
         self.check_if_last(reg);
         match *data_holder {
             DataHolder::Var(ref name) => self.check_and_add_var(reg, name),
             DataHolder::Const(ref name) => self.check_and_add_const(reg, name),
             DataHolder::Anon(ref data) => {
-                self.registers[reg] =
-                    RegItem::Value(Rc::new(RefCell::new(DataHolder::Anon(data.clone()))));
+                self.set_value_in_reg(reg, DataContainer::Scalar(data.clone()));
             }
             DataHolder::Math(math_reg) => {
-                self.registers[reg] =
-                    RegItem::Value(Rc::new(RefCell::new(DataHolder::Math(math_reg))));
+                self.set_value_in_reg(reg, DataContainer::Math(math_reg));
             }
             _ => return Err(Error::InvalidScopeRegisterSet),
         };
@@ -173,8 +175,23 @@ impl Scope {
         Err(Error::InvalidIoSink)
     }
 
-    fn set_value_in_reg(&mut self, sink_reg: usize, value: DataHolder) {
-        self.registers[sink_reg] = RegItem::Value(Rc::new(RefCell::new(value)));
+    pub fn io_append(&mut self, left_reg: usize, right_reg: usize) -> Result<(), Error> {
+        let left = self.get_ref_holder(left_reg)?;
+        let right = self.get_ref_holder(right_reg)?;
+        if let Some(data_holder) = right.borrow().as_data_type_ref() {
+            match *data_holder {
+                DataType::Integer(int) => {
+                    match int {
+                        1 => println!("{}", left.borrow()),
+                        2 => eprintln!("{}", left.borrow()),
+                        _ => return Err(Error::InvalidIoSink),
+                    }
+                }
+                _ => return Err(Error::InvalidIoSink),
+            }
+            return Ok(());
+        }
+        Err(Error::InvalidIoSink)
     }
 
     pub fn addition(
@@ -185,7 +202,7 @@ impl Scope {
     ) -> Result<(), Error> {
         self.check_if_last(sink_reg);
         let (left, right) = get_tuple_data_type(self, left_reg, right_reg)?;
-        self.set_value_in_reg(sink_reg, DataHolder::Anon(left + right));
+        self.set_value_in_reg(sink_reg, DataContainer::Scalar(left + right));
         Ok(())
     }
 
@@ -197,7 +214,7 @@ impl Scope {
     ) -> Result<(), Error> {
         self.check_if_last(sink_reg);
         let (left, right) = get_tuple_data_type(self, left_reg, right_reg)?;
-        self.set_value_in_reg(sink_reg, DataHolder::Anon(left - right));
+        self.set_value_in_reg(sink_reg, DataContainer::Scalar(left - right));
         Ok(())
     }
 
@@ -209,7 +226,7 @@ impl Scope {
     ) -> Result<(), Error> {
         self.check_if_last(sink_reg);
         let (left, right) = get_tuple_data_type(self, left_reg, right_reg)?;
-        self.set_value_in_reg(sink_reg, DataHolder::Anon(left * right));
+        self.set_value_in_reg(sink_reg, DataContainer::Scalar(left * right));
         Ok(())
     }
 
@@ -221,7 +238,7 @@ impl Scope {
     ) -> Result<(), Error> {
         self.check_if_last(sink_reg);
         let (left, right) = get_tuple_data_type(self, left_reg, right_reg)?;
-        self.set_value_in_reg(sink_reg, DataHolder::Anon(left / right));
+        self.set_value_in_reg(sink_reg, DataContainer::Scalar(left / right));
         Ok(())
     }
 
@@ -233,7 +250,7 @@ impl Scope {
     ) -> Result<(), Error> {
         self.check_if_last(sink_reg);
         let (left, right) = get_tuple_data_type(self, left_reg, right_reg)?;
-        self.set_value_in_reg(sink_reg, DataHolder::Anon(left % right));
+        self.set_value_in_reg(sink_reg, DataContainer::Scalar(left % right));
         Ok(())
     }
 
@@ -248,7 +265,7 @@ impl Scope {
         if left.is_int() && right.is_int() {
             self.set_value_in_reg(
                 sink_reg,
-                DataHolder::Anon(DataType::Integer(
+                DataContainer::Scalar(DataType::Integer(
                     left.get_as_int().pow(right.get_as_int() as u32),
                 )),
             );
@@ -256,14 +273,14 @@ impl Scope {
         } else if left.is_float() && right.is_int() {
             self.set_value_in_reg(
                 sink_reg,
-                DataHolder::Anon(DataType::Float(
+                DataContainer::Scalar(DataType::Float(
                     left.get_as_float().powi(right.get_as_int() as i32),
                 )),
             );
         }
         self.set_value_in_reg(
             sink_reg,
-            DataHolder::Anon(DataType::Float(
+            DataContainer::Scalar(DataType::Float(
                 left.get_as_float().powf(right.get_as_float()),
             )),
         );

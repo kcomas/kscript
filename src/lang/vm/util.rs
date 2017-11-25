@@ -1,6 +1,6 @@
 
 use super::super::error::Error;
-use super::super::builder::command::DataType;
+use super::super::builder::command::{DataType, DataHolder};
 use super::scope::Scope;
 
 pub fn get_tuple_data_type(
@@ -19,3 +19,10 @@ pub fn get_tuple_data_type(
     }
     Ok((left.unwrap(), right.unwrap()))
 }
+
+
+// pub fn holder_deep_copy(scope: &mut Scope, data_holder: &DataHolder) -> DataHolder {
+//     match *data_holder {
+//
+//     }
+// }

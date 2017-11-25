@@ -1,5 +1,6 @@
 
 pub mod scope;
+pub mod vm_types;
 pub mod util;
 
 use super::controller::Controller;
@@ -44,6 +45,7 @@ where
             Command::Assign(left, right) => scope.assign(left, right)?,
             Command::ClearRegisters => scope.clear_registers(),
             Command::IoWrite(left, right) => scope.io_write(left, right)?,
+            Command::IoAppend(left, right) => scope.io_append(left, right)?,
             Command::Addition(sink, left, right) => scope.addition(sink, left, right)?,
             Command::Subtract(sink, left, right) => scope.subtract(sink, left, right)?,
             Command::Multiply(sink, left, right) => scope.multiply(sink, left, right)?,

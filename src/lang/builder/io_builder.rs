@@ -23,7 +23,7 @@ where
 {
     fn check(&self, token: &Token) -> bool {
         match *token {
-            Token::IoWrite => true,
+            Token::IoWrite | Token::IoAppend => true,
             _ => false,
         }
     }
@@ -52,7 +52,6 @@ where
         if let Some(token) = token_container.get_slice_token_mut() {
             match *token {
                 Token::IoWrite => {
-                    *token = Token::Used;
                     command_container.add_command(
                         controller,
                         Command::IoWrite(
@@ -61,8 +60,19 @@ where
                         ),
                     );
                 }
+                Token::IoAppend => {
+                    command_container.add_command(
+                        controller,
+                        Command::IoAppend(
+                            left_counter,
+                            right_counter,
+                        ),
+                    );
+
+                }
                 _ => return Err(Error::TokenMismatch),
             }
+            *token = Token::Used;
             return Ok(());
         }
         Err(Error::TokenMismatch)

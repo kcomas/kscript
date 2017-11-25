@@ -174,38 +174,6 @@ pub enum DataHolder {
     System(SystemCommand),
 }
 
-impl DataHolder {
-    pub fn as_data_type(&self) -> Option<DataType> {
-        match *self {
-            DataHolder::Anon(ref data_type) => Some(data_type.clone()),
-            _ => None,
-        }
-    }
-
-    pub fn as_data_type_ref(&self) -> Option<&DataType> {
-        match *self {
-            DataHolder::Anon(ref data_type) => Some(data_type),
-            _ => None,
-        }
-    }
-}
-
-impl fmt::Display for DataHolder {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            DataHolder::Anon(ref data_type) => write!(f, "{}", data_type),
-            DataHolder::Array(ref data_holder) => {
-                let mut output = String::new();
-                for item in data_holder.iter() {
-                    output.push_str(&format!("{}", item));
-                }
-                write!(f, "{}", output)
-            }
-            _ => write!(f, "{:?}", self),
-        }
-    }
-}
-
 #[derive(Debug, PartialEq, Clone)]
 pub enum Command {
     SetRegister(usize, DataHolder),
@@ -214,6 +182,7 @@ pub enum Command {
     Run(usize, usize),
     Assign(usize, usize),
     IoWrite(usize, usize),
+    IoAppend(usize, usize),
     // math do op and assigin to new register
     // result left right
     Addition(usize, usize, usize),
