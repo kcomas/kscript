@@ -41,3 +41,14 @@ fn var_assign_math() {
         DataContainer::Scalar(DataType::Float(1.3701999999999996))
     );
 }
+
+#[test]
+fn comment_op_comment() {
+    let kscript = create(
+        "# this is a comment\n a = 1 # another comment",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let v = kscript.get_root_scope().get_var("a").unwrap();
+    assert_eq!(*v.borrow(), DataContainer::Scalar(DataType::Integer(1)));
+}
