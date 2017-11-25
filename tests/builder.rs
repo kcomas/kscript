@@ -6,17 +6,17 @@ use kscript::lang::Kscript;
 use kscript::lang::builder::command::{Command, DataHolder, DataType, Comparison, SystemCommand};
 use kscript::lang::logger::{Logger, VoidLogger, LoggerMode};
 
-pub fn create_builder<T: Logger>(program: &str, logger: T) -> Kscript<T> {
+fn create_builder<T: Logger>(program: &str, logger: T) -> Kscript<T> {
     let mut kscript = Kscript::new(logger);
     kscript.run_build_tokens_commands(program).unwrap();
     kscript
 }
 
-pub fn get_commands<T: Logger>(kscript: &Kscript<T>) -> &Vec<Command> {
+fn get_commands<T: Logger>(kscript: &Kscript<T>) -> &Vec<Command> {
     kscript.get_commands()
 }
 
-pub fn last_is_clear(commands: &Vec<Command>) {
+fn last_is_clear(commands: &Vec<Command>) {
     assert_eq!(*commands.last().unwrap(), Command::ClearRegisters);
 }
 

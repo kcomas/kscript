@@ -1,8 +1,10 @@
 
+use std::rc::Rc;
+use std::cell::RefCell;
 use super::super::error::Error;
 use super::super::builder::command::{DataType, DataHolder};
 use super::scope::Scope;
-use super::vm_types::DataContainer;
+use super::vm_types::{DataContainer, RefHolder};
 
 pub fn get_tuple_data_type(
     scope: &mut Scope,
@@ -40,6 +42,15 @@ pub fn holder_deep_copy_conversion(
             }
         }
         DataHolder::Anon(ref data_type) => Ok(DataContainer::Scalar(data_type.clone())),
+        DataHolder::Array(ref data_holders) => {
+            let mut containers: Vec<RefHolder> = Vec::new();
+            for item in data_holders.iter() {
+                containers.push(Rc::new(
+                    RefCell::new(holder_deep_copy_conversion(scope, item)?),
+                ));
+            }
+            Ok(DataContainer::Vector(containers))
+        }
         DataHolder::Math(reg) => {
             match scope.get_register(reg) {
                 Some(reg_item) => {

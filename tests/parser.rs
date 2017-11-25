@@ -5,18 +5,18 @@ use kscript::lang::Kscript;
 use kscript::lang::logger::{Logger, VoidLogger, LoggerMode};
 use kscript::lang::parser::token::{Token, SystemCommand};
 
-pub fn create_parser<T: Logger>(program: &str, logger: T) -> Kscript<T> {
+fn create_parser<T: Logger>(program: &str, logger: T) -> Kscript<T> {
     let mut kscript = Kscript::new(logger);
     kscript.run_build_tokens(program).unwrap();
     kscript
 }
 
 
-pub fn get_tokens<T: Logger>(kscript: &Kscript<T>) -> &Vec<Token> {
+fn get_tokens<T: Logger>(kscript: &Kscript<T>) -> &Vec<Token> {
     kscript.get_tokens()
 }
 
-pub fn last_is_end(tokens: &Vec<Token>) {
+fn last_is_end(tokens: &Vec<Token>) {
     assert_eq!(*tokens.last().unwrap(), Token::End);
 }
 
