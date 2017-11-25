@@ -4,7 +4,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use super::super::error::Error;
 use super::super::builder::command::{DataHolder, DataType, Command};
-use super::util::get_tuple_data_type;
+use super::util::{get_tuple_data_type, holder_deep_copy_conversion};
 use super::vm_types::{RefHolder, DataContainer};
 
 
@@ -56,6 +56,13 @@ impl Scope {
     pub fn get_const(&self, name: &str) -> Option<RefHolder> {
         match self.consts.get(name) {
             Some(ref_holder) => Some(ref_holder.clone()),
+            None => None,
+        }
+    }
+
+    pub fn get_register(&self, reg: usize) -> Option<&RegItem> {
+        match self.registers.get(reg) {
+            Some(reg_item) => Some(reg_item),
             None => None,
         }
     }
@@ -138,6 +145,15 @@ impl Scope {
             }
             DataHolder::Math(math_reg) => {
                 self.set_value_in_reg(reg, DataContainer::Math(math_reg));
+            }
+            DataHolder::Array(ref holders) => {
+                let mut array_container: Vec<RefHolder> = Vec::new();
+                for item in holders {
+                    array_container.push(Rc::new(
+                        RefCell::new(holder_deep_copy_conversion(self, item)?),
+                    ));
+                }
+                self.set_value_in_reg(reg, DataContainer::Vector(array_container));
             }
             _ => return Err(Error::InvalidScopeRegisterSet),
         };

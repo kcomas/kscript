@@ -2,6 +2,7 @@
 use super::super::error::Error;
 use super::super::builder::command::{DataType, DataHolder};
 use super::scope::Scope;
+use super::vm_types::DataContainer;
 
 pub fn get_tuple_data_type(
     scope: &mut Scope,
@@ -21,8 +22,35 @@ pub fn get_tuple_data_type(
 }
 
 
-// pub fn holder_deep_copy(scope: &mut Scope, data_holder: &DataHolder) -> DataHolder {
-//     match *data_holder {
-//
-//     }
-// }
+pub fn holder_deep_copy_conversion(
+    scope: &Scope,
+    data_holder: &DataHolder,
+) -> Result<DataContainer, Error> {
+    match *data_holder {
+        DataHolder::Var(ref name) => {
+            match scope.get_var(name) {
+                Some(ref_holder) => Ok(ref_holder.borrow().clone()),
+                None => Err(Error::VarNotDeclared),
+            }
+        }
+        DataHolder::Const(ref name) => {
+            match scope.get_const(name) {
+                Some(ref_holder) => Ok(ref_holder.borrow().clone()),
+                None => Err(Error::ConstNotDeclard),
+            }
+        }
+        DataHolder::Anon(ref data_type) => Ok(DataContainer::Scalar(data_type.clone())),
+        DataHolder::Math(reg) => {
+            match scope.get_register(reg) {
+                Some(reg_item) => {
+                    match reg_item.to_ref_holder() {
+                        Some(ref_holder) => Ok(ref_holder.borrow().clone()),
+                        None => Err(Error::InvalidMathAccess),
+                    }
+                }
+                None => Err(Error::InvalidMathAccess),
+            }
+        }
+        _ => Err(Error::CannotDeepCopyType),
+    }
+}

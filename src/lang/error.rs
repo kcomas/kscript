@@ -39,4 +39,8 @@ pub enum Error {
     InvalidScopeAssignment,
     InvalidMathType,
     InvalidIoSink,
+    CannotDeepCopyType,
+    InvalidMathAccess,
+    VarNotDeclared,
+    ConstNotDeclard,
 }
