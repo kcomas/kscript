@@ -166,3 +166,11 @@ fn vars_const_with_numbers() {
     assert_eq!(*a23.borrow(), DataContainer::Scalar(DataType::Float(3.12)));
     assert_eq!(*s.borrow(), DataContainer::Scalar(DataType::Integer(4)));
 }
+
+#[test]
+fn nested_conditionial() {
+    let kscript = create("a = ? ?1==1^? 3== 2", VoidLogger::new(LoggerMode::Void));
+
+    let a = kscript.get_root_scope().get_var("a").unwrap();
+    assert_eq!(*a.borrow(), DataContainer::Scalar(DataType::Bool(true)));
+}

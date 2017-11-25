@@ -5,6 +5,7 @@ use std::io::Error as IoError;
 
 #[derive(Debug)]
 pub enum Error {
+    NYI,
     ImpossibleState,
     CheckMismatch(char, usize, usize),
     InvalidVariableChar(char, usize, usize),
@@ -43,4 +44,5 @@ pub enum Error {
     InvalidMathAccess,
     VarNotDeclared,
     ConstNotDeclard,
+    CanOnlyCompareScalars,
 }

@@ -73,6 +73,10 @@ pub fn holder_deep_copy_conversion(
                 None => Err(Error::InvalidMathAccess),
             }
         }
+        DataHolder::Conditional(ref left_data, ref comp, ref right_data) => {
+            let b = scope.evaluate_conditional(left_data, comp, right_data)?;
+            Ok(DataContainer::Scalar(DataType::Bool(b)))
+        }
         _ => Err(Error::CannotDeepCopyType),
     }
 }

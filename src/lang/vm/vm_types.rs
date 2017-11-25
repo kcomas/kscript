@@ -31,6 +31,13 @@ impl DataContainer {
             _ => None,
         }
     }
+
+    pub fn is_scalar(&self) -> bool {
+        match *self {
+            DataContainer::Scalar(_) => true,
+            _ => false,
+        }
+    }
 }
 
 impl fmt::Display for DataContainer {

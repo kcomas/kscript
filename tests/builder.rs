@@ -396,7 +396,7 @@ fn assign_conditional_true_false() {
 
 #[test]
 fn nested_conditionial() {
-    let kscript = create_builder("a = ? ?b==1^? c== 2", VoidLogger::new(LoggerMode::Void));
+    let kscript = create_builder("a = ? ?1==1^? 3== 2", VoidLogger::new(LoggerMode::Void));
 
     let commands = get_commands(&kscript);
 
@@ -407,13 +407,13 @@ fn nested_conditionial() {
     );
 
     let left_conditional = DataHolder::Conditional(
-        Box::new(DataHolder::Var("b".to_string())),
+        Box::new(DataHolder::Anon(DataType::Integer(1))),
         Comparison::Equals,
         Box::new(DataHolder::Anon(DataType::Integer(1))),
     );
 
     let right_conditional = DataHolder::Conditional(
-        Box::new(DataHolder::Var("c".to_string())),
+        Box::new(DataHolder::Anon(DataType::Integer(3))),
         Comparison::Equals,
         Box::new(DataHolder::Anon(DataType::Integer(2))),
     );

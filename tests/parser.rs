@@ -289,7 +289,7 @@ fn assign_conditional_true_false() {
 
 #[test]
 fn nested_conditionial() {
-    let kscript = create_parser("a = ? ?b==1^? c== 2", VoidLogger::new(LoggerMode::Void));
+    let kscript = create_parser("a = ? ?1==1^? 3== 2", VoidLogger::new(LoggerMode::Void));
 
     let tokens = get_tokens(&kscript);
 
@@ -300,13 +300,13 @@ fn nested_conditionial() {
         tokens[2],
         Token::Conditional(
             Box::new(Token::Conditional(
-                Box::new(Token::Var("b".to_string())),
+                Box::new(Token::Integer(1)),
                 Box::new(Token::Equals),
                 Box::new(Token::Integer(1)),
             )),
             Box::new(Token::Or),
             Box::new(Token::Conditional(
-                Box::new(Token::Var("c".to_string())),
+                Box::new(Token::Integer(3)),
                 Box::new(Token::Equals),
                 Box::new(Token::Integer(2)),
             )),

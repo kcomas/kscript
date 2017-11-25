@@ -16,6 +16,15 @@ pub enum DataType {
 }
 
 impl DataType {
+    pub fn get_as_bool(&self) -> bool {
+        match *self {
+            DataType::Bool(b) => b,
+            DataType::Integer(int) => int != 0,
+            DataType::Float(float) => float != 0.0,
+            _ => false,
+        }
+    }
+
     pub fn is_float(&self) -> bool {
         match *self {
             DataType::Float(_) => true,

@@ -3,7 +3,7 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use super::super::error::Error;
-use super::super::builder::command::{DataHolder, DataType, Command};
+use super::super::builder::command::{DataHolder, DataType, Command, Comparison};
 use super::util::{get_tuple_data_type, holder_deep_copy_conversion};
 use super::vm_types::{RefHolder, RefMap, RefArray, DataContainer};
 
@@ -135,6 +135,34 @@ impl Scope {
         self.registers[sink_reg] = RegItem::Value(Rc::new(RefCell::new(value)));
     }
 
+    pub fn evaluate_conditional(
+        &self,
+        left_data: &DataHolder,
+        comp: &Comparison,
+        right_data: &DataHolder,
+    ) -> Result<bool, Error> {
+        let left = holder_deep_copy_conversion(self, left_data)?;
+        let right = holder_deep_copy_conversion(self, right_data)?;
+        if !left.is_scalar() || !right.is_scalar() {
+            return Err(Error::CanOnlyCompareScalars);
+        }
+
+        match *comp {
+            Comparison::Equals => {
+                Ok(
+                    left.as_data_type_ref().unwrap() == right.as_data_type_ref().unwrap(),
+                )
+            }
+            Comparison::Or => {
+                Ok(
+                    left.as_data_type_ref().unwrap().get_as_bool() ||
+                        right.as_data_type_ref().unwrap().get_as_bool(),
+                )
+            }
+            _ => Err(Error::NYI),
+        }
+    }
+
     pub fn set_register(&mut self, reg: usize, data_holder: &DataHolder) -> Result<(), Error> {
         self.check_if_last(reg);
         match *data_holder {
@@ -142,9 +170,6 @@ impl Scope {
             DataHolder::Const(ref name) => self.check_and_add_const(reg, name),
             DataHolder::Anon(ref data) => {
                 self.set_value_in_reg(reg, DataContainer::Scalar(data.clone()));
-            }
-            DataHolder::Math(math_reg) => {
-                self.set_value_in_reg(reg, DataContainer::Math(math_reg));
             }
             DataHolder::Array(ref holders) => {
                 let mut array_container: RefArray = Vec::new();
@@ -164,6 +189,13 @@ impl Scope {
                     );
                 }
                 self.set_value_in_reg(reg, DataContainer::Hash(hash_map));
+            }
+            DataHolder::Math(math_reg) => {
+                self.set_value_in_reg(reg, DataContainer::Math(math_reg));
+            }
+            DataHolder::Conditional(ref left_data, ref comp, ref right_data) => {
+                let b = self.evaluate_conditional(left_data, comp, right_data)?;
+                self.set_value_in_reg(reg, DataContainer::Scalar(DataType::Bool(b)));
             }
             _ => return Err(Error::InvalidScopeRegisterSet),
         };
