@@ -168,14 +168,6 @@ fn vars_const_with_numbers() {
 }
 
 #[test]
-fn nested_conditionial() {
-    let kscript = create("a = ? ?1==1^? 3== 2", VoidLogger::new(LoggerMode::Void));
-
-    let a = kscript.get_root_scope().get_var("a").unwrap();
-    assert_eq!(*a.borrow(), DataContainer::Scalar(DataType::Bool(true)));
-}
-
-#[test]
 fn assign_conditional_true_false() {
     let kscript = create(
         "?1 == 2{a = 3}{b = \"test\"}",
@@ -189,4 +181,12 @@ fn assign_conditional_true_false() {
         *b.borrow(),
         DataContainer::Scalar(DataType::String("test".to_string()))
     );
+}
+
+#[test]
+fn nested_conditionial() {
+    let kscript = create("a = ? ?1==1^? 3== 2", VoidLogger::new(LoggerMode::Void));
+
+    let a = kscript.get_root_scope().get_var("a").unwrap();
+    assert_eq!(*a.borrow(), DataContainer::Scalar(DataType::Bool(true)));
 }
