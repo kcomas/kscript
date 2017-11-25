@@ -139,3 +139,30 @@ fn var_assign_dict() {
 
     assert_eq!(*v.borrow(), DataContainer::Hash(map));
 }
+
+#[test]
+fn var_assign_bool_const_assign_bool() {
+    let kscript = create("test = t; TESTD = f", VoidLogger::new(LoggerMode::Void));
+
+    let t = kscript.get_root_scope().get_var("test").unwrap();
+    let f = kscript.get_root_scope().get_const("TESTD").unwrap();
+
+    assert_eq!(*t.borrow(), DataContainer::Scalar(DataType::Bool(true)));
+    assert_eq!(*f.borrow(), DataContainer::Scalar(DataType::Bool(false)));
+}
+
+#[test]
+fn vars_const_with_numbers() {
+    let kscript = create(
+        "py3 = 3; 23a = 3.12; 1S3 = 4",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let py3 = kscript.get_root_scope().get_var("py3").unwrap();
+    let a23 = kscript.get_root_scope().get_var("23a").unwrap();
+    let s = kscript.get_root_scope().get_const("1S3").unwrap();
+
+    assert_eq!(*py3.borrow(), DataContainer::Scalar(DataType::Integer(3)));
+    assert_eq!(*a23.borrow(), DataContainer::Scalar(DataType::Float(3.12)));
+    assert_eq!(*s.borrow(), DataContainer::Scalar(DataType::Integer(4)));
+}
