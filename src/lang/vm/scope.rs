@@ -3,7 +3,7 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use super::super::error::Error;
-use super::super::builder::command::{DataHolder, DataType, Command, Comparison, coerce_numbers};
+use super::super::builder::command::{DataHolder, DataType, Comparison, coerce_numbers};
 use super::util::{get_tuple_data_type, holder_deep_copy_conversion};
 use super::vm_types::{RefHolder, RefMap, RefArray, DataContainer};
 
