@@ -32,8 +32,6 @@ pub struct Scope {
     id: usize,
     vars: RefMap,
     consts: RefMap,
-    // cached files
-    files: HashMap<String, Vec<Command>>,
     registers: Vec<RegItem>,
 }
 
@@ -43,7 +41,6 @@ impl Scope {
             id: id,
             vars: HashMap::new(),
             consts: HashMap::new(),
-            files: HashMap::new(),
             registers: Vec::new(),
         }
     }
