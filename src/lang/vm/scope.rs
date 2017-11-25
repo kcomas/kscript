@@ -3,7 +3,7 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use super::super::error::Error;
-use super::super::builder::command::{DataHolder, DataType, Command, Comparison};
+use super::super::builder::command::{DataHolder, DataType, Command, Comparison, coerce_numbers};
 use super::util::{get_tuple_data_type, holder_deep_copy_conversion};
 use super::vm_types::{RefHolder, RefMap, RefArray, DataContainer};
 
@@ -156,16 +156,61 @@ impl Scope {
         match *comp {
             Comparison::Equals => {
                 Ok(
-                    left.as_data_type_ref().unwrap() == right.as_data_type_ref().unwrap(),
+                    left.get_as_data_type_ref().unwrap() == right.get_as_data_type_ref().unwrap(),
+                )
+            }
+            Comparison::EqualOrGreater => {
+                let (left, right) = coerce_numbers(
+                    left.get_as_data_type_ref().unwrap(),
+                    right.get_as_data_type_ref().unwrap(),
+                );
+                if left.is_int() && right.is_int() {
+                    return Ok(left.get_as_int() >= right.get_as_int());
+                }
+                Ok(left.get_as_float() >= right.get_as_float())
+            }
+            Comparison::EqualOrLess => {
+                let (left, right) = coerce_numbers(
+                    left.get_as_data_type_ref().unwrap(),
+                    right.get_as_data_type_ref().unwrap(),
+                );
+                if left.is_int() && right.is_int() {
+                    return Ok(left.get_as_int() <= right.get_as_int());
+                }
+                Ok(left.get_as_float() <= right.get_as_float())
+            }
+            Comparison::Greater => {
+                let (left, right) = coerce_numbers(
+                    left.get_as_data_type_ref().unwrap(),
+                    right.get_as_data_type_ref().unwrap(),
+                );
+                if left.is_int() && right.is_int() {
+                    return Ok(left.get_as_int() > right.get_as_int());
+                }
+                Ok(left.get_as_float() > right.get_as_float())
+            }
+            Comparison::Less => {
+                let (left, right) = coerce_numbers(
+                    left.get_as_data_type_ref().unwrap(),
+                    right.get_as_data_type_ref().unwrap(),
+                );
+                if left.is_int() && right.is_int() {
+                    return Ok(left.get_as_int() < right.get_as_int());
+                }
+                Ok(left.get_as_float() < right.get_as_float())
+            }
+            Comparison::And => {
+                Ok(
+                    left.get_as_data_type_ref().unwrap().get_as_bool() &&
+                        right.get_as_data_type_ref().unwrap().get_as_bool(),
                 )
             }
             Comparison::Or => {
                 Ok(
-                    left.as_data_type_ref().unwrap().get_as_bool() ||
-                        right.as_data_type_ref().unwrap().get_as_bool(),
+                    left.get_as_data_type_ref().unwrap().get_as_bool() ||
+                        right.get_as_data_type_ref().unwrap().get_as_bool(),
                 )
             }
-            _ => Err(Error::NYI),
         }
     }
 
@@ -223,7 +268,7 @@ impl Scope {
     pub fn io_write(&mut self, left_reg: usize, right_reg: usize) -> Result<(), Error> {
         let left = self.get_ref_holder(left_reg)?;
         let right = self.get_ref_holder(right_reg)?;
-        if let Some(data_holder) = right.borrow().as_data_type_ref() {
+        if let Some(data_holder) = right.borrow().get_as_data_type_ref() {
             match *data_holder {
                 DataType::Integer(int) => {
                     match int {
@@ -242,7 +287,7 @@ impl Scope {
     pub fn io_append(&mut self, left_reg: usize, right_reg: usize) -> Result<(), Error> {
         let left = self.get_ref_holder(left_reg)?;
         let right = self.get_ref_holder(right_reg)?;
-        if let Some(data_holder) = right.borrow().as_data_type_ref() {
+        if let Some(data_holder) = right.borrow().get_as_data_type_ref() {
             match *data_holder {
                 DataType::Integer(int) => {
                     match int {

@@ -74,7 +74,7 @@ impl fmt::Display for DataType {
     }
 }
 
-fn coerce_numbers(left: &DataType, right: &DataType) -> (DataType, DataType) {
+pub fn coerce_numbers(left: &DataType, right: &DataType) -> (DataType, DataType) {
     if left.is_int() && right.is_int() || left.is_float() && right.is_float() {
         return (left.clone(), right.clone());
     } else if left.is_int() && right.is_float() || left.is_float() && right.is_int() {

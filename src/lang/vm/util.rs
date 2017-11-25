@@ -15,9 +15,9 @@ pub fn get_tuple_data_type(
     let left_r = scope.get_ref_holder(left_reg)?;
     let right_r = scope.get_ref_holder(right_reg)?;
     let left_b = left_r.borrow();
-    let left = left_b.as_data_type();
+    let left = left_b.get_as_data_type();
     let right_b = right_r.borrow();
-    let right = right_b.as_data_type();
+    let right = right_b.get_as_data_type();
     if left.is_none() || right.is_none() {
         return Err(Error::InvalidMathType);
     }

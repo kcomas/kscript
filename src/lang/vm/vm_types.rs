@@ -18,14 +18,14 @@ pub enum DataContainer {
 }
 
 impl DataContainer {
-    pub fn as_data_type(&self) -> Option<DataType> {
+    pub fn get_as_data_type(&self) -> Option<DataType> {
         match *self {
             DataContainer::Scalar(ref data_type) => Some(data_type.clone()),
             _ => None,
         }
     }
 
-    pub fn as_data_type_ref(&self) -> Option<&DataType> {
+    pub fn get_as_data_type_ref(&self) -> Option<&DataType> {
         match *self {
             DataContainer::Scalar(ref data_type) => Some(data_type),
             _ => None,

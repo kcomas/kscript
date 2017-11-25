@@ -60,6 +60,16 @@ where
                     false => self.run(false_commands, scope)?,
                 };
             }
+            Command::Loop(ref conditional, ref commands) => {
+                let (mut left_data, mut cond, mut right_data) = conditional_to_parts(conditional)?;
+                while scope.evaluate_conditional(left_data, cond, right_data)? {
+                    self.run(commands, scope)?;
+                    let (l, c, r) = conditional_to_parts(conditional)?;
+                    left_data = l;
+                    cond = c;
+                    right_data = r;
+                }
+            }
             _ => {}
         };
         Ok(())

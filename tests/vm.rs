@@ -190,3 +190,14 @@ fn nested_conditionial() {
     let a = kscript.get_root_scope().get_var("a").unwrap();
     assert_eq!(*a.borrow(), DataContainer::Scalar(DataType::Bool(true)));
 }
+
+#[test]
+fn assign_loop_print() {
+    let kscript = create(
+        "a = 1; $a<5${a = (a + 1)} a > 1",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let a = kscript.get_root_scope().get_var("a").unwrap();
+    assert_eq!(*a.borrow(), DataContainer::Scalar(DataType::Integer(5)));
+}
