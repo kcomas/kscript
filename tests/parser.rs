@@ -475,13 +475,13 @@ fn var_assign_var_function() {
 #[test]
 fn basic_function_call() {
     let kscript = create_parser(
-        "c = {|a| a > 1}; c|\"test\"|",
+        "c = {|a| a > 1; 5}; d = c|\"test\"|",
         VoidLogger::new(LoggerMode::Void),
     );
 
     let tokens = get_tokens(&kscript);
 
-    assert_eq!(tokens.len(), 6);
+    assert_eq!(tokens.len(), 8);
     assert_eq!(tokens[0], Token::Var("c".to_string()));
     assert_eq!(tokens[1], Token::Assign);
     assert_eq!(
@@ -492,12 +492,16 @@ fn basic_function_call() {
                 Token::Var("a".to_string()),
                 Token::IoWrite,
                 Token::Integer(1),
+                Token::End,
+                Token::Integer(5),
             ],
         )
     );
     assert_eq!(tokens[3], Token::End);
+    assert_eq!(tokens[4], Token::Var("d".to_string()));
+    assert_eq!(tokens[5], Token::Assign);
     assert_eq!(
-        tokens[4],
+        tokens[6],
         Token::FunctionCall(
             Box::new(Token::Var("c".to_string())),
             vec![Token::String("test".to_string())],

@@ -656,12 +656,12 @@ fn var_assign_var_function() {
 #[test]
 fn basic_function_call() {
     let kscript = create_builder(
-        "c = {|a| a > 1}; c|\"test\"|",
+        "c = {|a| a > 1; 5}; d = c|\"test\"|",
         VoidLogger::new(LoggerMode::Void),
     );
 
     let commands = get_commands(&kscript);
-    assert_eq!(commands.len(), 5);
+    assert_eq!(commands.len(), 8);
     assert_eq!(
         commands[0],
         Command::SetRegister(0, DataHolder::Var("c".to_string()))
@@ -674,6 +674,7 @@ fn basic_function_call() {
         Command::SetRegister(1, DataHolder::Anon(DataType::Integer(1))),
         Command::IoWrite(0, 1),
         Command::ClearRegisters,
+        Command::SetRegister(0, DataHolder::Anon(DataType::Integer(5))),
     ];
 
     assert_eq!(
@@ -684,14 +685,20 @@ fn basic_function_call() {
     assert_eq!(commands[3], Command::ClearRegisters);
     assert_eq!(
         commands[4],
+        Command::SetRegister(0, DataHolder::Var("d".to_string()))
+    );
+    assert_eq!(
+        commands[5],
         Command::SetRegister(
-            0,
+            1,
             DataHolder::FunctionCall(
                 Box::new(DataHolder::Var("c".to_string())),
                 vec![DataHolder::Anon(DataType::String("test".to_string()))],
             ),
         )
     );
+    assert_eq!(commands[6], Command::Assign(0, 1));
+    last_is_clear(&commands);
 }
 
 #[test]

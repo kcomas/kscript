@@ -231,3 +231,29 @@ fn var_assign_var_function() {
         )
     );
 }
+
+#[test]
+fn basic_function_call() {
+    let kscript = create(
+        "c = {|a| a > 1; 5}; d = c|\"test\"|",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let c = kscript.get_root_scope().get_var("c").unwrap();
+    assert_eq!(
+        *c.borrow(),
+        DataContainer::Function(
+            vec![FunctionArg::Var("a".to_string())],
+            vec![
+                Command::SetRegister(0, DataHolder::Var("a".to_string())),
+                Command::SetRegister(1, DataHolder::Anon(DataType::Integer(1))),
+                Command::IoWrite(0, 1),
+                Command::ClearRegisters,
+                Command::SetRegister(0, DataHolder::Anon(DataType::Integer(5))),
+            ],
+        )
+    );
+
+    let d = kscript.get_root_scope().get_var("d").unwrap();
+    assert_eq!(*d.borrow(), DataContainer::Scalar(DataType::Integer(5)));
+}

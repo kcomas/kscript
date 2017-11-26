@@ -2,10 +2,13 @@
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::cell::RefCell;
+use super::super::controller::Controller;
+use super::super::logger::Logger;
 use super::super::error::Error;
 use super::super::builder::command::{DataType, DataHolder, Comparison};
 use super::scope::Scope;
 use super::vm_types::{DataContainer, RefMap, RefArray, FunctionArg};
+use super::Vm;
 
 pub fn get_tuple_data_type(
     scope: &mut Scope,
@@ -109,4 +112,87 @@ pub fn holder_to_function_args(
         func_args.push(rst);
     }
     Ok(func_args)
+}
+
+pub fn run_function<T: Logger>(
+    controller: &mut Controller<T>,
+    scope: &mut Scope,
+    target: &DataHolder,
+    args: &Vec<DataHolder>,
+) -> Result<DataContainer, Error> {
+    let target = match *target {
+        DataHolder::Var(ref name) => {
+            match scope.get_var(name) {
+                Some(ref_holder) => ref_holder.clone(),
+                None => return Err(Error::InvalidFunctionTarget),
+            }
+        }
+        DataHolder::Const(ref name) => {
+            match scope.get_const(name) {
+                Some(ref_holder) => ref_holder.clone(),
+                None => return Err(Error::InvalidFunctionTarget),
+            }
+        }
+        DataHolder::Function(_, _) => {
+            Rc::new(RefCell::new(holder_deep_copy_conversion(scope, target)?))
+        }
+        _ => return Err(Error::InvalidFunctionTarget),
+    };
+    if let DataContainer::Function(ref data_container_args, ref commands) = *target.borrow() {
+        if data_container_args.len() != args.len() {
+            return Err(Error::InvalidNumberOfArguments);
+        }
+        let mut sub_scope = Scope::new(scope.get_id() + 1);
+        // match each passed in arg with the function arg type
+        for i in 0..args.len() {
+            match data_container_args[i] {
+                FunctionArg::Var(ref name) => {
+                    let rst = Rc::new(RefCell::new(holder_deep_copy_conversion(scope, &args[i])?));
+                    sub_scope.set_var(name, rst);
+                }
+                FunctionArg::RefVar(ref ref_name) => {
+                    match args[i] {
+                        DataHolder::Var(ref var_name) => {
+                            match scope.get_var(var_name) {
+                                Some(ref_holder) => sub_scope.set_var(ref_name, ref_holder),
+                                None => return Err(Error::InvalidFunctionArgPass),
+                            }
+                        }
+                        DataHolder::Const(_) => return Err(Error::InvalidFunctionArgPass),
+                        _ => {
+                            let rst = Rc::new(
+                                RefCell::new(holder_deep_copy_conversion(scope, &args[i])?),
+                            );
+                            sub_scope.set_const(ref_name, rst);
+                        }
+                    }
+                }
+                FunctionArg::Const(ref name) => {
+                    let rst = Rc::new(RefCell::new(holder_deep_copy_conversion(scope, &args[i])?));
+                    sub_scope.set_const(name, rst);
+                }
+                FunctionArg::RefConst(ref ref_name) => {
+                    match args[i] {
+                        DataHolder::Var(_) => return Err(Error::InvalidFunctionArgPass),
+                        DataHolder::Const(ref const_name) => {
+                            match scope.get_const(const_name) {
+                                Some(ref_holder) => sub_scope.set_const(ref_name, ref_holder),
+                                None => return Err(Error::InvalidFunctionArgPass),
+                            }
+                        }
+                        _ => {
+                            let rst = Rc::new(
+                                RefCell::new(holder_deep_copy_conversion(scope, &args[i])?),
+                            );
+                            sub_scope.set_const(ref_name, rst);
+                        }
+                    }
+                }
+            };
+        }
+        let mut sub_vm = Vm::new(controller);
+        let _ = sub_vm.run(commands, &mut sub_scope)?;
+        return Ok(sub_scope.get_last_register_value());
+    }
+    Err(Error::InvalidFunctionTarget)
 }

@@ -2,11 +2,13 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::collections::HashMap;
+use super::super::controller::Controller;
+use super::super::logger::Logger;
 use super::super::error::Error;
 use super::super::builder::command::{DataHolder, DataType, Comparison, coerce_numbers};
-use super::util::{get_tuple_data_type, holder_deep_copy_conversion, holder_to_function_args};
+use super::util::{get_tuple_data_type, holder_deep_copy_conversion, holder_to_function_args,
+                  run_function};
 use super::vm_types::{RefHolder, RefMap, RefArray, DataContainer};
-
 
 #[derive(Debug)]
 pub enum RegItem {
@@ -56,6 +58,10 @@ impl Scope {
         }
     }
 
+    pub fn set_var(&mut self, name: &str, data: RefHolder) {
+        self.vars.insert(name.to_string(), data);
+    }
+
     pub fn get_const(&self, name: &str) -> Option<RefHolder> {
         match self.consts.get(name) {
             Some(ref_holder) => Some(ref_holder.clone()),
@@ -63,10 +69,26 @@ impl Scope {
         }
     }
 
+    pub fn set_const(&mut self, name: &str, data: RefHolder) {
+        self.consts.insert(name.to_string(), data);
+    }
+
     pub fn get_register(&self, reg: usize) -> Option<&RegItem> {
         match self.registers.get(reg) {
             Some(reg_item) => Some(reg_item),
             None => None,
+        }
+    }
+
+    pub fn get_last_register_value(&self) -> DataContainer {
+        match self.registers.last() {
+            Some(ref reg_item) => {
+                match reg_item.to_ref_holder() {
+                    Some(ref_holder) => ref_holder.borrow().clone(),
+                    None => DataContainer::Scalar(DataType::Null),
+                }
+            }
+            None => DataContainer::Scalar(DataType::Null),
         }
     }
 
@@ -211,7 +233,12 @@ impl Scope {
         }
     }
 
-    pub fn set_register(&mut self, reg: usize, data_holder: &DataHolder) -> Result<(), Error> {
+    pub fn set_register<T: Logger>(
+        &mut self,
+        controller: &mut Controller<T>,
+        reg: usize,
+        data_holder: &DataHolder,
+    ) -> Result<(), Error> {
         self.check_if_last(reg);
         match *data_holder {
             DataHolder::Var(ref name) => self.check_and_add_var(reg, name),
@@ -253,6 +280,10 @@ impl Scope {
                         commands.clone(),
                     ),
                 );
+            }
+            DataHolder::FunctionCall(ref target, ref args) => {
+                let rst = run_function(controller, self, target, args)?;
+                self.set_value_in_reg(reg, rst);
             }
             _ => return Err(Error::InvalidScopeRegisterSet),
         };

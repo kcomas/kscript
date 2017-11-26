@@ -42,7 +42,9 @@ where
             self.controller.get_logger_mut().scope_run_command(command);
         }
         match *command {
-            Command::SetRegister(reg, ref data_holder) => scope.set_register(reg, data_holder)?,
+            Command::SetRegister(reg, ref data_holder) => {
+                scope.set_register(self.controller, reg, data_holder)?
+            }
             Command::Assign(left, right) => scope.assign(left, right)?,
             Command::ClearRegisters => scope.clear_registers(),
             Command::IoWrite(left, right) => scope.io_write(left, right)?,
