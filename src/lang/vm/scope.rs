@@ -4,7 +4,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use super::super::error::Error;
 use super::super::builder::command::{DataHolder, DataType, Comparison, coerce_numbers};
-use super::util::{get_tuple_data_type, holder_deep_copy_conversion};
+use super::util::{get_tuple_data_type, holder_deep_copy_conversion, holder_to_function_args};
 use super::vm_types::{RefHolder, RefMap, RefArray, DataContainer};
 
 
@@ -244,6 +244,15 @@ impl Scope {
             DataHolder::Conditional(ref left_data, ref comp, ref right_data) => {
                 let b = self.evaluate_conditional(left_data, comp, right_data)?;
                 self.set_value_in_reg(reg, DataContainer::Scalar(DataType::Bool(b)));
+            }
+            DataHolder::Function(ref data_holder_args, ref commands) => {
+                self.set_value_in_reg(
+                    reg,
+                    DataContainer::Function(
+                        holder_to_function_args(data_holder_args)?,
+                        commands.clone(),
+                    ),
+                );
             }
             _ => return Err(Error::InvalidScopeRegisterSet),
         };

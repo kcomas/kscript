@@ -5,7 +5,7 @@ use std::cell::RefCell;
 use super::super::error::Error;
 use super::super::builder::command::{DataType, DataHolder, Comparison};
 use super::scope::Scope;
-use super::vm_types::{DataContainer, RefMap, RefArray};
+use super::vm_types::{DataContainer, RefMap, RefArray, FunctionArg};
 
 pub fn get_tuple_data_type(
     scope: &mut Scope,
@@ -77,6 +77,10 @@ pub fn holder_deep_copy_conversion(
             let b = scope.evaluate_conditional(left_data, comp, right_data)?;
             Ok(DataContainer::Scalar(DataType::Bool(b)))
         }
+        DataHolder::Function(ref data_holder_args, ref commands) => {
+            let func_args = holder_to_function_args(data_holder_args)?;
+            Ok(DataContainer::Function(func_args, commands.clone()))
+        }
         _ => Err(Error::CannotDeepCopyType),
     }
 }
@@ -88,4 +92,21 @@ pub fn conditional_to_parts(
         DataHolder::Conditional(ref left, ref cond, ref right) => Ok((left, cond, right)),
         _ => Err(Error::InvalidCondititonalHolder),
     }
+}
+
+pub fn holder_to_function_args(
+    data_holder_args: &Vec<DataHolder>,
+) -> Result<Vec<FunctionArg>, Error> {
+    let mut func_args: Vec<FunctionArg> = Vec::new();
+    for arg in data_holder_args.iter() {
+        let rst = match *arg {
+            DataHolder::Var(ref name) => FunctionArg::Var(name.clone()),
+            DataHolder::RefVar(ref name) => FunctionArg::RefVar(name.clone()),
+            DataHolder::Const(ref name) => FunctionArg::Const(name.clone()),
+            DataHolder::RefConst(ref name) => FunctionArg::RefConst(name.clone()),
+            _ => return Err(Error::InvalidFunctionArg),
+        };
+        func_args.push(rst);
+    }
+    Ok(func_args)
 }

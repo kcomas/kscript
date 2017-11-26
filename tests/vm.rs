@@ -6,8 +6,8 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use kscript::lang::Kscript;
 use kscript::lang::logger::{Logger, VoidLogger, LoggerMode};
-use kscript::lang::builder::command::DataType;
-use kscript::lang::vm::vm_types::{DataContainer, RefHolder};
+use kscript::lang::builder::command::{Command, DataHolder, DataType};
+use kscript::lang::vm::vm_types::{DataContainer, RefHolder, FunctionArg};
 
 fn create<T: Logger>(program: &str, logger: T) -> Kscript<T> {
     let mut kscript = Kscript::new(logger);
@@ -200,4 +200,34 @@ fn assign_loop_print() {
 
     let a = kscript.get_root_scope().get_var("a").unwrap();
     assert_eq!(*a.borrow(), DataContainer::Scalar(DataType::Integer(5)));
+}
+
+#[test]
+fn var_assign_var_function() {
+    let kscript = create(
+        "a = 1; b = {|a, &e, c| e = c; a }",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let a = kscript.get_root_scope().get_var("a").unwrap();
+    assert_eq!(*a.borrow(), DataContainer::Scalar(DataType::Integer(1)));
+
+    let b = kscript.get_root_scope().get_var("b").unwrap();
+    assert_eq!(
+        *b.borrow(),
+        DataContainer::Function(
+            vec![
+                FunctionArg::Var("a".to_string()),
+                FunctionArg::RefVar("e".to_string()),
+                FunctionArg::Var("c".to_string()),
+            ],
+            vec![
+                Command::SetRegister(0, DataHolder::Var("e".to_string())),
+                Command::SetRegister(1, DataHolder::Var("c".to_string())),
+                Command::Assign(0, 1),
+                Command::ClearRegisters,
+                Command::SetRegister(0, DataHolder::Var("a".to_string())),
+            ],
+        )
+    );
 }

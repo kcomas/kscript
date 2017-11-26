@@ -3,11 +3,19 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt;
-use super::super::builder::command::DataType;
+use super::super::builder::command::{DataType, Command};
 
 pub type RefHolder = Rc<RefCell<DataContainer>>;
 pub type RefMap = HashMap<String, RefHolder>;
 pub type RefArray = Vec<RefHolder>;
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum FunctionArg {
+    Var(String),
+    RefVar(String),
+    Const(String),
+    RefConst(String),
+}
 
 #[derive(Debug, PartialEq)]
 pub enum DataContainer {
@@ -15,6 +23,7 @@ pub enum DataContainer {
     Vector(Vec<RefHolder>),
     Hash(HashMap<String, RefHolder>),
     Math(usize),
+    Function(Vec<FunctionArg>, Vec<Command>),
 }
 
 impl DataContainer {
@@ -75,6 +84,9 @@ impl Clone for DataContainer {
                 DataContainer::Hash(new_hash)
             }
             DataContainer::Math(size) => DataContainer::Math(size),
+            DataContainer::Function(ref args, ref commands) => {
+                DataContainer::Function(args.clone(), commands.clone())
+            }
         }
     }
 }

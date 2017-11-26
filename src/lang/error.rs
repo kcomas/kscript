@@ -33,6 +33,7 @@ pub enum Error {
     InvalidDictionaryKey,
     InvalidConditonalToken,
     InvalidReference,
+    InvalidFunctionArg,
     InvalidFunctionCallArgs,
     InvalidScopeRegisterSet,
     InvalidScopeRegisterGet,
