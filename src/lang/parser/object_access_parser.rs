@@ -7,6 +7,7 @@ use super::sub_parser::SubParser;
 use super::string_parser::StringParser;
 use super::number_parser::NumberParser;
 use super::var_parser::VarParser;
+use super::function_call_parser::FunctionCallParser;
 use super::super::logger::Logger;
 use super::super::controller::Controller;
 use super::super::error::Error;
@@ -15,6 +16,7 @@ use super::util::do_parse_single;
 pub enum ObjectAccessParserState {
     Nothing,
     Access,
+    SubAccess,
     Finish,
 }
 
@@ -88,11 +90,33 @@ where
                     )?;
 
                     match used {
-                        true => ObjectAccessParserState::Finish,
+                        true => ObjectAccessParserState::SubAccess,
                         false => {
                             parser_data.inc_char();
                             ObjectAccessParserState::Access
                         }
+                    }
+                }
+                ObjectAccessParserState::SubAccess => {
+                    match c {
+                        '|' | '[' => {
+                            let mut check_sub_parse: [Box<SubParser<T>>;
+                                                         2] = [
+                                Box::new(FunctionCallParser::new()),
+                                Box::new(ObjectAccessParser::new()),
+                            ];
+                            let _ = do_parse_single(
+                                c,
+                                parser_data,
+                                controller,
+                                char_container,
+                                &mut access_container,
+                                &mut check_sub_parse,
+                            )?;
+
+                            ObjectAccessParserState::Finish
+                        }
+                        _ => ObjectAccessParserState::Finish,
                     }
                 }
                 ObjectAccessParserState::Finish => {

@@ -50,4 +50,8 @@ pub enum Error {
     ConstNotDeclard,
     CanOnlyCompareScalars,
     InvalidCondititonalHolder,
+    InvalidObjectAccessTarget,
+    InvalidObjectAccessAccessor,
+    InvalidArrayIndex,
+    InvalidHashKey,
 }

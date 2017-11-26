@@ -436,7 +436,7 @@ fn nested_conditionial() {
 #[test]
 fn nested_conditionals_with_nested_data() {
     let kscript = create_builder(
-        "c=@[@[2]];a=??a=={|a|a}|1|^?@[]&c[0][0]",
+        "c=@[@[2]];a=??1=={|a|a}|1|&?2==c[0][0]",
         VoidLogger::new(LoggerMode::Void),
     );
 
@@ -469,7 +469,7 @@ fn nested_conditionals_with_nested_data() {
             1,
             DataHolder::Conditional(
                 Box::new(DataHolder::Conditional(
-                    Box::new(DataHolder::Var("a".to_string())),
+                    Box::new(DataHolder::Anon(DataType::Integer(1))),
                     Comparison::Equals,
                     Box::new(DataHolder::FunctionCall(
                         Box::new(DataHolder::Function(
@@ -484,10 +484,10 @@ fn nested_conditionals_with_nested_data() {
                         vec![DataHolder::Anon(DataType::Integer(1))],
                     )),
                 )),
-                Comparison::Or,
+                Comparison::And,
                 Box::new(DataHolder::Conditional(
-                    Box::new(DataHolder::Array(vec![])),
-                    Comparison::And,
+                    Box::new(DataHolder::Anon(DataType::Integer(2))),
+                    Comparison::Equals,
                     Box::new(DataHolder::ObjectAccess(
                         Box::new(DataHolder::ObjectAccess(
                             Box::new(DataHolder::Var("c".to_string())),

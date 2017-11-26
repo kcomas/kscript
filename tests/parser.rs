@@ -318,7 +318,7 @@ fn nested_conditionial() {
 #[test]
 fn nested_conditionals_with_nested_data() {
     let kscript = create_parser(
-        "c=@[@[2]];a=??a=={|a|a}|1|^?@[]&c[0][0]",
+        "c=@[@[2]];a=??1=={|a|a}|1|&?2==c[0][0]",
         VoidLogger::new(LoggerMode::Void),
     );
 
@@ -335,7 +335,7 @@ fn nested_conditionals_with_nested_data() {
     assert_eq!(tokens[4], Token::Var("a".to_string()));
     assert_eq!(tokens[5], Token::Assign);
     let first = Token::Conditional(
-        Box::new(Token::Var("a".to_string())),
+        Box::new(Token::Integer(1)),
         Box::new(Token::Equals),
         Box::new(Token::FunctionCall(
             Box::new(Token::Function(
@@ -345,15 +345,15 @@ fn nested_conditionals_with_nested_data() {
             vec![Token::Integer(1)],
         )),
     );
-    let second = Token::Or;
+    let second = Token::And;
     let a2 = Token::ObjectAccess(
         Box::new(Token::Var("c".to_string())),
         Box::new(Token::Integer(0)),
     );
     let a1 = Token::ObjectAccess(Box::new(a2), Box::new(Token::Integer(0)));
     let third = Token::Conditional(
-        Box::new(Token::Array(vec![])),
-        Box::new(Token::And),
+        Box::new(Token::Integer(2)),
+        Box::new(Token::Equals),
         Box::new(a1),
     );
     assert_eq!(

@@ -7,7 +7,7 @@ use super::super::logger::Logger;
 use super::super::error::Error;
 use super::super::builder::command::{DataHolder, DataType, Comparison, coerce_numbers};
 use super::util::{get_tuple_data_type, holder_deep_copy_conversion, holder_to_function_args,
-                  run_function};
+                  run_function, access_object};
 use super::vm_types::{RefHolder, RefMap, RefArray, DataContainer};
 
 #[derive(Debug)]
@@ -160,14 +160,15 @@ impl Scope {
         self.registers[sink_reg] = RegItem::Value(Rc::new(RefCell::new(value)));
     }
 
-    pub fn evaluate_conditional(
-        &self,
+    pub fn evaluate_conditional<T: Logger>(
+        &mut self,
+        controller: &mut Controller<T>,
         left_data: &DataHolder,
         comp: &Comparison,
         right_data: &DataHolder,
     ) -> Result<bool, Error> {
-        let left = holder_deep_copy_conversion(self, left_data)?;
-        let right = holder_deep_copy_conversion(self, right_data)?;
+        let left = holder_deep_copy_conversion(controller, self, left_data)?;
+        let right = holder_deep_copy_conversion(controller, self, right_data)?;
         if !left.is_scalar() || !right.is_scalar() {
             return Err(Error::CanOnlyCompareScalars);
         }
@@ -249,9 +250,9 @@ impl Scope {
             DataHolder::Array(ref holders) => {
                 let mut array_container: RefArray = Vec::new();
                 for item in holders {
-                    array_container.push(Rc::new(
-                        RefCell::new(holder_deep_copy_conversion(self, item)?),
-                    ));
+                    array_container.push(Rc::new(RefCell::new(
+                        holder_deep_copy_conversion(controller, self, item)?,
+                    )));
                 }
                 self.set_value_in_reg(reg, DataContainer::Vector(array_container));
             }
@@ -260,16 +261,27 @@ impl Scope {
                 for (key, value) in dict {
                     hash_map.insert(
                         key.clone(),
-                        Rc::new(RefCell::new(holder_deep_copy_conversion(self, value)?)),
+                        Rc::new(RefCell::new(
+                            holder_deep_copy_conversion(controller, self, value)?,
+                        )),
                     );
                 }
                 self.set_value_in_reg(reg, DataContainer::Hash(hash_map));
+            }
+            DataHolder::ObjectAccess(ref target, ref accessor) => {
+                self.registers[reg] =
+                    RegItem::Value(access_object(controller, self, target, accessor)?);
             }
             DataHolder::Math(math_reg) => {
                 self.set_value_in_reg(reg, DataContainer::Math(math_reg));
             }
             DataHolder::Conditional(ref left_data, ref comp, ref right_data) => {
-                let b = self.evaluate_conditional(left_data, comp, right_data)?;
+                let b = self.evaluate_conditional(
+                    controller,
+                    left_data,
+                    comp,
+                    right_data,
+                )?;
                 self.set_value_in_reg(reg, DataContainer::Scalar(DataType::Bool(b)));
             }
             DataHolder::Function(ref data_holder_args, ref commands) => {

@@ -57,14 +57,25 @@ where
             Command::Exponent(sink, left, right) => scope.exponent(sink, left, right)?,
             Command::If(ref conditional, ref true_commands, ref false_commands) => {
                 let (left_data, cond, right_data) = conditional_to_parts(conditional)?;
-                match scope.evaluate_conditional(left_data, cond, right_data)? {
+                match scope.evaluate_conditional(
+                    self.controller,
+                    left_data,
+                    cond,
+                    right_data,
+                )? {
                     true => self.run(true_commands, scope)?,
                     false => self.run(false_commands, scope)?,
                 };
             }
             Command::Loop(ref conditional, ref commands) => {
                 let (mut left_data, mut cond, mut right_data) = conditional_to_parts(conditional)?;
-                while scope.evaluate_conditional(left_data, cond, right_data)? {
+                while scope.evaluate_conditional(
+                    self.controller,
+                    left_data,
+                    cond,
+                    right_data,
+                )?
+                {
                     self.run(commands, scope)?;
                     let (l, c, r) = conditional_to_parts(conditional)?;
                     left_data = l;

@@ -7,7 +7,7 @@ use super::super::logger::Logger;
 use super::super::error::Error;
 use super::super::builder::command::{DataType, DataHolder, Comparison};
 use super::scope::Scope;
-use super::vm_types::{DataContainer, RefMap, RefArray, FunctionArg};
+use super::vm_types::{DataContainer, RefHolder, RefMap, RefArray, FunctionArg};
 use super::Vm;
 
 pub fn get_tuple_data_type(
@@ -28,8 +28,9 @@ pub fn get_tuple_data_type(
 }
 
 
-pub fn holder_deep_copy_conversion(
-    scope: &Scope,
+pub fn holder_deep_copy_conversion<T: Logger>(
+    controller: &mut Controller<T>,
+    scope: &mut Scope,
     data_holder: &DataHolder,
 ) -> Result<DataContainer, Error> {
     match *data_holder {
@@ -49,9 +50,9 @@ pub fn holder_deep_copy_conversion(
         DataHolder::Array(ref data_holders) => {
             let mut containers: RefArray = Vec::new();
             for item in data_holders.iter() {
-                containers.push(Rc::new(
-                    RefCell::new(holder_deep_copy_conversion(scope, item)?),
-                ));
+                containers.push(Rc::new(RefCell::new(
+                    holder_deep_copy_conversion(controller, scope, item)?,
+                )));
             }
             Ok(DataContainer::Vector(containers))
         }
@@ -60,10 +61,17 @@ pub fn holder_deep_copy_conversion(
             for (key, value) in dict {
                 hash_map.insert(
                     key.clone(),
-                    Rc::new(RefCell::new(holder_deep_copy_conversion(scope, value)?)),
+                    Rc::new(RefCell::new(
+                        holder_deep_copy_conversion(controller, scope, value)?,
+                    )),
                 );
             }
             Ok(DataContainer::Hash(hash_map))
+        }
+        DataHolder::ObjectAccess(ref target, ref accessor) => {
+            let rst = access_object(controller, scope, target, accessor)?;
+            let copy = rst.borrow().clone();
+            Ok(copy)
         }
         DataHolder::Math(reg) => {
             match scope.get_register(reg) {
@@ -77,12 +85,20 @@ pub fn holder_deep_copy_conversion(
             }
         }
         DataHolder::Conditional(ref left_data, ref comp, ref right_data) => {
-            let b = scope.evaluate_conditional(left_data, comp, right_data)?;
+            let b = scope.evaluate_conditional(
+                controller,
+                left_data,
+                comp,
+                right_data,
+            )?;
             Ok(DataContainer::Scalar(DataType::Bool(b)))
         }
         DataHolder::Function(ref data_holder_args, ref commands) => {
             let func_args = holder_to_function_args(data_holder_args)?;
             Ok(DataContainer::Function(func_args, commands.clone()))
+        }
+        DataHolder::FunctionCall(ref target, ref args) => {
+            Ok(run_function(controller, scope, target, args)?)
         }
         _ => Err(Error::CannotDeepCopyType),
     }
@@ -134,7 +150,9 @@ pub fn run_function<T: Logger>(
             }
         }
         DataHolder::Function(_, _) => {
-            Rc::new(RefCell::new(holder_deep_copy_conversion(scope, target)?))
+            Rc::new(RefCell::new(
+                holder_deep_copy_conversion(controller, scope, target)?,
+            ))
         }
         _ => return Err(Error::InvalidFunctionTarget),
     };
@@ -147,7 +165,9 @@ pub fn run_function<T: Logger>(
         for i in 0..args.len() {
             match data_container_args[i] {
                 FunctionArg::Var(ref name) => {
-                    let rst = Rc::new(RefCell::new(holder_deep_copy_conversion(scope, &args[i])?));
+                    let rst = Rc::new(RefCell::new(
+                        holder_deep_copy_conversion(controller, scope, &args[i])?,
+                    ));
                     sub_scope.set_var(name, rst);
                 }
                 FunctionArg::RefVar(ref ref_name) => {
@@ -160,15 +180,17 @@ pub fn run_function<T: Logger>(
                         }
                         DataHolder::Const(_) => return Err(Error::InvalidFunctionArgPass),
                         _ => {
-                            let rst = Rc::new(
-                                RefCell::new(holder_deep_copy_conversion(scope, &args[i])?),
-                            );
+                            let rst = Rc::new(RefCell::new(
+                                holder_deep_copy_conversion(controller, scope, &args[i])?,
+                            ));
                             sub_scope.set_const(ref_name, rst);
                         }
                     }
                 }
                 FunctionArg::Const(ref name) => {
-                    let rst = Rc::new(RefCell::new(holder_deep_copy_conversion(scope, &args[i])?));
+                    let rst = Rc::new(RefCell::new(
+                        holder_deep_copy_conversion(controller, scope, &args[i])?,
+                    ));
                     sub_scope.set_const(name, rst);
                 }
                 FunctionArg::RefConst(ref ref_name) => {
@@ -181,9 +203,9 @@ pub fn run_function<T: Logger>(
                             }
                         }
                         _ => {
-                            let rst = Rc::new(
-                                RefCell::new(holder_deep_copy_conversion(scope, &args[i])?),
-                            );
+                            let rst = Rc::new(RefCell::new(
+                                holder_deep_copy_conversion(controller, scope, &args[i])?,
+                            ));
                             sub_scope.set_const(ref_name, rst);
                         }
                     }
@@ -195,4 +217,86 @@ pub fn run_function<T: Logger>(
         return Ok(sub_scope.get_last_register_value());
     }
     Err(Error::InvalidFunctionTarget)
+}
+
+pub fn access_object<T: Logger>(
+    controller: &mut Controller<T>,
+    scope: &mut Scope,
+    target: &DataHolder,
+    accessor: &DataHolder,
+) -> Result<RefHolder, Error> {
+    let ref_target = match *target {
+        DataHolder::Var(ref name) => {
+            match scope.get_var(name) {
+                Some(ref_holder) => ref_holder,
+                None => return Err(Error::VarNotDeclared),
+            }
+        }
+        DataHolder::Const(ref name) => {
+            match scope.get_const(name) {
+                Some(ref_holder) => ref_holder,
+                None => return Err(Error::ConstNotDeclard),
+            }
+        }
+        DataHolder::Array(_) |
+        DataHolder::Dict(_) => Rc::new(RefCell::new(
+            holder_deep_copy_conversion(controller, scope, target)?,
+        )),
+        DataHolder::ObjectAccess(ref t2, ref a2) => access_object(controller, scope, t2, a2)?,
+        DataHolder::FunctionCall(ref ft, ref fa) => Rc::new(RefCell::new(
+            run_function(controller, scope, ft, fa)?,
+        )),
+        _ => return Err(Error::InvalidObjectAccessTarget),
+    };
+    let ref_accessor = match *accessor {
+        DataHolder::Var(ref name) => {
+            match scope.get_var(name) {
+                Some(ref_holder) => ref_holder,
+                None => return Err(Error::VarNotDeclared),
+            }
+        }
+        DataHolder::Const(ref name) => {
+            match scope.get_const(name) {
+                Some(ref_holder) => ref_holder,
+                None => return Err(Error::ConstNotDeclard),
+            }
+        }
+        DataHolder::Anon(_) => Rc::new(RefCell::new(
+            holder_deep_copy_conversion(controller, scope, accessor)?,
+        )),
+        DataHolder::ObjectAccess(ref t2, ref a2) => access_object(controller, scope, t2, a2)?,
+        DataHolder::FunctionCall(ref ft, ref fa) => Rc::new(RefCell::new(
+            run_function(controller, scope, ft, fa)?,
+        )),
+        _ => return Err(Error::InvalidObjectAccessAccessor),
+    };
+
+    if let Some(data_type_ref) = ref_accessor.borrow().get_as_data_type_ref() {
+        return match *ref_target.borrow() {
+            DataContainer::Vector(ref vec_holders) => {
+                match *data_type_ref {
+                    DataType::Integer(int) => {
+                        match vec_holders.get(int as usize) {
+                            Some(array_item_holder) => Ok(array_item_holder.clone()),
+                            None => Err(Error::InvalidArrayIndex),
+                        }
+                    }
+                    _ => Err(Error::InvalidObjectAccessAccessor),
+                }
+            }
+            DataContainer::Hash(ref map) => {
+                match *data_type_ref {
+                    DataType::String(ref string) => {
+                        match map.get(string) {
+                            Some(hash_item_holder) => Ok(hash_item_holder.clone()),
+                            _ => Err(Error::InvalidHashKey),
+                        }
+                    }
+                    _ => Err(Error::InvalidObjectAccessAccessor),
+                }
+            }
+            _ => Err(Error::InvalidObjectAccessTarget),
+        };
+    }
+    Err(Error::InvalidObjectAccessAccessor)
 }
