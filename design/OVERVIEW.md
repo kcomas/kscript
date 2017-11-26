@@ -133,7 +133,7 @@ An **apl-ish**, **write-only** scripting language to be used like bash
 ## Single Commands
 * Takes single argument
 
-### Run Commands ```! @["commands", "...args"]```
+### Run Commands ```!@["command", "...args"]```
 * Take an array of the command and the args and run
 * Returns an array of [exit_code, STDOUT, STDERR]
 
