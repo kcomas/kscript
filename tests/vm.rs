@@ -192,6 +192,38 @@ fn nested_conditionial() {
 }
 
 #[test]
+fn nested_conditionals_with_nested_data() {
+    let kscript = create(
+        "c=@[@[2]];a=??1=={|a|a}|1|&?2==c[0][0]",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let c = kscript.get_root_scope().get_var("c").unwrap();
+    assert_eq!(
+        *c.borrow(),
+        DataContainer::Vector(vec![
+            wrap(DataContainer::Vector(
+                vec![wrap_scalar(DataType::Integer(2))],
+            )),
+        ])
+    );
+
+    let a = kscript.get_root_scope().get_var("a").unwrap();
+    assert_eq!(*a.borrow(), DataContainer::Scalar(DataType::Bool(true)));
+}
+
+#[test]
+fn function_in_dict() {
+    let kscript = create(
+        "d=%[\"test\":{|d|d=(d+1);d}][\"test\"]|2|",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let d = kscript.get_root_scope().get_var("d").unwrap();
+    assert_eq!(*d.borrow(), DataContainer::Scalar(DataType::Integer(3)));
+}
+
+#[test]
 fn assign_loop_print() {
     let kscript = create(
         "a = 1; $a<5${a = (a + 1)} a > 1",
@@ -256,36 +288,4 @@ fn basic_function_call() {
 
     let d = kscript.get_root_scope().get_var("d").unwrap();
     assert_eq!(*d.borrow(), DataContainer::Scalar(DataType::Integer(5)));
-}
-
-#[test]
-fn nested_conditionals_with_nested_data() {
-    let kscript = create(
-        "c=@[@[2]];a=??1=={|a|a}|1|&?2==c[0][0]",
-        VoidLogger::new(LoggerMode::Void),
-    );
-
-    let c = kscript.get_root_scope().get_var("c").unwrap();
-    assert_eq!(
-        *c.borrow(),
-        DataContainer::Vector(vec![
-            wrap(DataContainer::Vector(
-                vec![wrap_scalar(DataType::Integer(2))],
-            )),
-        ])
-    );
-
-    let a = kscript.get_root_scope().get_var("a").unwrap();
-    assert_eq!(*a.borrow(), DataContainer::Scalar(DataType::Bool(true)));
-}
-
-#[test]
-fn function_in_dict() {
-    let kscript = create(
-        "d=%[\"test\":{|d|d=(d+1);d}][\"test\"]|2|",
-        VoidLogger::new(LoggerMode::Void),
-    );
-
-    let d = kscript.get_root_scope().get_var("d").unwrap();
-    assert_eq!(*d.borrow(), DataContainer::Scalar(DataType::Integer(3)));
 }
