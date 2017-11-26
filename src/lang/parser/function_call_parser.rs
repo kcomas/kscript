@@ -82,6 +82,7 @@ where
                                 parser_data.inc_char();
                                 FunctionCallParserState::LoadArguments
                             }
+                            '[' => FunctionCallParserState::LoadArguments,
                             '|' => {
                                 parser_data.inc_char();
                                 done = true;
@@ -91,6 +92,12 @@ where
                         }
                     }
                     FunctionCallParserState::LoadArguments => {
+                        if c == '|' {
+                            // || case
+                            parser_data.inc_char();
+                            done = true;
+                            break;
+                        }
                         let (_exit, used) = do_parse_single(
                             c,
                             parser_data,

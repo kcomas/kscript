@@ -289,3 +289,14 @@ fn basic_function_call() {
     let d = kscript.get_root_scope().get_var("d").unwrap();
     assert_eq!(*d.borrow(), DataContainer::Scalar(DataType::Integer(5)));
 }
+
+#[test]
+fn anon_function_access_call() {
+    let kscript = create(
+        "{|&c| c||}|@[{|| \"test\"}, 12][0]| >> 1",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let c = kscript.get_root_scope().get_var("c");
+    assert!(c.is_none());
+}

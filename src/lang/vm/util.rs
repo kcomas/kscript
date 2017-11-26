@@ -184,7 +184,7 @@ pub fn run_function<T: Logger>(
                             let rst = Rc::new(RefCell::new(
                                 holder_deep_copy_conversion(controller, scope, &args[i])?,
                             ));
-                            sub_scope.set_const(ref_name, rst);
+                            sub_scope.set_var(ref_name, rst);
                         }
                     }
                 }

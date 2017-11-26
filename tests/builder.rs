@@ -702,6 +702,62 @@ fn basic_function_call() {
 }
 
 #[test]
+fn anon_function_access_call() {
+    let kscript = create_builder(
+        "{|&c| c||}|@[{|| \"test\"}, 12][0]| >> 1",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let commands = get_commands(&kscript);
+    assert_eq!(commands.len(), 4);
+    assert_eq!(
+        commands[0],
+        Command::SetRegister(
+            0,
+            DataHolder::FunctionCall(
+                Box::new(DataHolder::Function(
+                    vec![DataHolder::RefVar("c".to_string())],
+                    vec![
+                        Command::SetRegister(
+                            0,
+                            DataHolder::FunctionCall(
+                                Box::new(DataHolder::Var("c".to_string())),
+                                vec![],
+                            )
+                        ),
+                    ],
+                )),
+                vec![
+                    DataHolder::ObjectAccess(
+                        Box::new(DataHolder::Array(vec![
+                            DataHolder::Function(
+                                vec![],
+                                vec![
+                                    Command::SetRegister(
+                                        0,
+                                        DataHolder::Anon(
+                                            DataType::String("test".to_string()),
+                                        )
+                                    ),
+                                ]
+                            ),
+                            DataHolder::Anon(DataType::Integer(12)),
+                        ])),
+                        Box::new(DataHolder::Anon(DataType::Integer(0)))
+                    ),
+                ],
+            ),
+        )
+    );
+    assert_eq!(
+        commands[1],
+        Command::SetRegister(1, DataHolder::Anon(DataType::Integer(1)))
+    );
+    assert_eq!(commands[2], Command::IoAppend(0, 1));
+    last_is_clear(&commands);
+}
+
+#[test]
 fn assign_system_command() {
     let kscript = create_builder("a = 1; \\\\1; b = 2", VoidLogger::new(LoggerMode::Void));
 

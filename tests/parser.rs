@@ -511,6 +511,47 @@ fn basic_function_call() {
 }
 
 #[test]
+fn anon_function_access_call() {
+    let kscript = create_parser(
+        "{|&c| c||}|@[{|| \"test\"}, 12][0]| >> 1",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let tokens = get_tokens(&kscript);
+
+    assert_eq!(tokens.len(), 4);
+    assert_eq!(
+        tokens[0],
+        Token::FunctionCall(
+            Box::new(Token::Function(
+                vec![Token::Ref(Box::new(Token::Var("c".to_string())))],
+                vec![
+                    Token::FunctionCall(
+                        Box::new(Token::Var("c".to_string())),
+                        vec![]
+                    ),
+                ],
+            )),
+            vec![
+                Token::ObjectAccess(
+                    Box::new(Token::Array(vec![
+                        Token::Function(
+                            vec![],
+                            vec![Token::String("test".to_string())]
+                        ),
+                        Token::Integer(12),
+                    ])),
+                    Box::new(Token::Integer(0))
+                ),
+            ],
+        )
+    );
+    assert_eq!(tokens[1], Token::IoAppend);
+    assert_eq!(tokens[2], Token::Integer(1));
+    last_is_end(&tokens);
+}
+
+#[test]
 fn assign_system_command() {
     let kscript = create_parser("a = 1; \\\\1; b = 2", VoidLogger::new(LoggerMode::Void));
 
