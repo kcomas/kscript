@@ -278,3 +278,14 @@ fn nested_conditionals_with_nested_data() {
     let a = kscript.get_root_scope().get_var("a").unwrap();
     assert_eq!(*a.borrow(), DataContainer::Scalar(DataType::Bool(true)));
 }
+
+#[test]
+fn function_in_dict() {
+    let kscript = create(
+        "d=%[\"test\":{|d|d=(d+1);d}][\"test\"]|2|",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let d = kscript.get_root_scope().get_var("d").unwrap();
+    assert_eq!(*d.borrow(), DataContainer::Scalar(DataType::Integer(3)));
+}

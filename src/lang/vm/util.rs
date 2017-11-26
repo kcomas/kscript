@@ -149,6 +149,7 @@ pub fn run_function<T: Logger>(
                 None => return Err(Error::InvalidFunctionTarget),
             }
         }
+        DataHolder::ObjectAccess(ref ot, ref oa) => access_object(controller, scope, ot, oa)?,
         DataHolder::Function(_, _) => {
             Rc::new(RefCell::new(
                 holder_deep_copy_conversion(controller, scope, target)?,
