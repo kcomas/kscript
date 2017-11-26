@@ -4,9 +4,11 @@ use super::token_container::TokenContainer;
 use super::char_container::CharContainer;
 use super::parser_container::ParserContainer;
 use super::sub_parser::SubParser;
+use super::var_parser::VarParser;
 use super::super::logger::Logger;
 use super::super::controller::Controller;
 use super::super::error::Error;
+use super::util::do_parse_single;
 
 pub enum BoolState {
     Nothing,
@@ -55,6 +57,7 @@ where
             {
                 controller.get_logger_mut().parser_next_char(c, ci, li);
             }
+            let mut parsers: [Box<SubParser<T>>; 1] = [Box::new(VarParser::new())];
             self.state = match self.state {
                 BoolState::Nothing => {
                     match c {
@@ -73,7 +76,17 @@ where
                 }
                 BoolState::HasTrue => {
                     match c {
-                        'a'...'z' => return Ok(false),
+                        'a'...'z' => {
+                            let (_exit, _used) = do_parse_single(
+                                c,
+                                parser_data,
+                                controller,
+                                char_container,
+                                token_container,
+                                &mut parsers,
+                            )?;
+                            return Ok(false);
+                        }
                         _ => {
                             char_container.flush();
                             token_container.add_token(controller, Token::Bool(true));
@@ -83,7 +96,17 @@ where
                 }
                 BoolState::HasFalse => {
                     match c {
-                        'a'...'z' => return Ok(false),
+                        'a'...'z' => {
+                            let (_exit, _used) = do_parse_single(
+                                c,
+                                parser_data,
+                                controller,
+                                char_container,
+                                token_container,
+                                &mut parsers,
+                            )?;
+                            return Ok(false);
+                        }
                         _ => {
                             char_container.flush();
                             token_container.add_token(controller, Token::Bool(false));
