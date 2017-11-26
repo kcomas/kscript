@@ -1,7 +1,8 @@
 
 pub mod scope;
 pub mod vm_types;
-pub mod util;
+mod util;
+mod io;
 
 use super::controller::Controller;
 use super::logger::Logger;
@@ -9,6 +10,7 @@ use super::error::Error;
 use super::builder::command::Command;
 use self::scope::Scope;
 use self::util::conditional_to_parts;
+use self::io::{io_write, io_append};
 
 pub struct Vm<'a, T: Logger + 'a> {
     controller: &'a mut Controller<T>,
@@ -47,8 +49,8 @@ where
             }
             Command::Assign(left, right) => scope.assign(left, right)?,
             Command::ClearRegisters => scope.clear_registers(),
-            Command::IoWrite(left, right) => scope.io_write(left, right)?,
-            Command::IoAppend(left, right) => scope.io_append(left, right)?,
+            Command::IoWrite(left, right) => io_write(scope, left, right)?,
+            Command::IoAppend(left, right) => io_append(scope, left, right)?,
             Command::Addition(sink, left, right) => scope.addition(sink, left, right)?,
             Command::Subtract(sink, left, right) => scope.subtract(sink, left, right)?,
             Command::Multiply(sink, left, right) => scope.multiply(sink, left, right)?,
