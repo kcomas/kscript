@@ -758,6 +758,61 @@ fn anon_function_access_call() {
 }
 
 #[test]
+fn reassign_array_value() {
+    let kscript = create_builder(
+        "a = @[1, \" \", 2]\n a[0] = \"test\"\n a >> 1",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let commands = get_commands(&kscript);
+
+    assert_eq!(commands.len(), 12);
+    assert_eq!(
+        commands[0],
+        Command::SetRegister(0, DataHolder::Var("a".to_string()))
+    );
+    assert_eq!(
+        commands[1],
+        Command::SetRegister(
+            1,
+            DataHolder::Array(vec![
+                DataHolder::Anon(DataType::Integer(1)),
+                DataHolder::Anon(DataType::String(" ".to_string())),
+                DataHolder::Anon(DataType::Integer(2)),
+            ]),
+        )
+    );
+    assert_eq!(commands[2], Command::Assign(0, 1));
+    assert_eq!(commands[3], Command::ClearRegisters);
+    assert_eq!(
+        commands[4],
+        Command::SetRegister(
+            0,
+            DataHolder::ObjectAccess(
+                Box::new(DataHolder::Var("a".to_string())),
+                Box::new(DataHolder::Anon(DataType::Integer(0))),
+            ),
+        )
+    );
+    assert_eq!(
+        commands[5],
+        Command::SetRegister(1, DataHolder::Anon(DataType::String("test".to_string())))
+    );
+    assert_eq!(commands[6], Command::Assign(0, 1));
+    assert_eq!(commands[7], Command::ClearRegisters);
+    assert_eq!(
+        commands[8],
+        Command::SetRegister(0, DataHolder::Var("a".to_string()))
+    );
+    assert_eq!(
+        commands[9],
+        Command::SetRegister(1, DataHolder::Anon(DataType::Integer(1)))
+    );
+    assert_eq!(commands[10], Command::IoAppend(0, 1));
+    last_is_clear(&commands);
+}
+
+#[test]
 fn assign_system_command() {
     let kscript = create_builder("a = 1; \\\\1; b = 2", VoidLogger::new(LoggerMode::Void));
 

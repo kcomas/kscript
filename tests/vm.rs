@@ -300,3 +300,21 @@ fn anon_function_access_call() {
     let c = kscript.get_root_scope().get_var("c");
     assert!(c.is_none());
 }
+
+#[test]
+fn reassign_array_value() {
+    let kscript = create(
+        "a = @[1, \" \", 2]\n a[0] = \"test\"\n a >> 1",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let a = kscript.get_root_scope().get_var("a").unwrap();
+    assert_eq!(
+        *a.borrow(),
+        DataContainer::Vector(vec![
+            wrap_scalar(DataType::String("test".to_string())),
+            wrap_scalar(DataType::String(" ".to_string())),
+            wrap_scalar(DataType::Integer(2)),
+        ])
+    );
+}

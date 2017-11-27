@@ -552,6 +552,43 @@ fn anon_function_access_call() {
 }
 
 #[test]
+fn reassign_array_value() {
+    let kscript = create_parser(
+        "a = @[1, \" \", 2]\n a[0] = \"test\"\n a >> 1",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let tokens = get_tokens(&kscript);
+
+    assert_eq!(tokens.len(), 12);
+    assert_eq!(tokens[0], Token::Var("a".to_string()));
+    assert_eq!(tokens[1], Token::Assign);
+    assert_eq!(
+        tokens[2],
+        Token::Array(vec![
+            Token::Integer(1),
+            Token::String(" ".to_string()),
+            Token::Integer(2),
+        ])
+    );
+    assert_eq!(tokens[3], Token::End);
+    assert_eq!(
+        tokens[4],
+        Token::ObjectAccess(
+            Box::new(Token::Var("a".to_string())),
+            Box::new(Token::Integer(0)),
+        )
+    );
+    assert_eq!(tokens[5], Token::Assign);
+    assert_eq!(tokens[6], Token::String("test".to_string()));
+    assert_eq!(tokens[7], Token::End);
+    assert_eq!(tokens[8], Token::Var("a".to_string()));
+    assert_eq!(tokens[9], Token::IoAppend);
+    assert_eq!(tokens[10], Token::Integer(1));
+    last_is_end(&tokens);
+}
+
+#[test]
 fn assign_system_command() {
     let kscript = create_parser("a = 1; \\\\1; b = 2", VoidLogger::new(LoggerMode::Void));
 

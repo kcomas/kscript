@@ -14,6 +14,7 @@ use super::vm_types::{RefHolder, RefMap, RefArray, DataContainer};
 pub enum RegItem {
     Var(RefHolder),
     Const(RefHolder),
+    Access(RefHolder),
     Value(RefHolder),
     Empty,
 }
@@ -23,6 +24,7 @@ impl RegItem {
         match *self {
             RegItem::Var(ref ref_holder) |
             RegItem::Const(ref ref_holder) |
+            RegItem::Access(ref ref_holder) |
             RegItem::Value(ref ref_holder) => Some(ref_holder.clone()),
             _ => None,
         }
@@ -114,7 +116,8 @@ impl Scope {
         match self.registers.get(reg) {
             Some(target) => {
                 match *target {
-                    RegItem::Var(_) => Ok(()),
+                    RegItem::Var(_) |
+                    RegItem::Access(_) => Ok(()),
                     RegItem::Const(ref ref_holder) => {
                         match *ref_holder.borrow() {
                             DataContainer::Scalar(ref data) => {
@@ -270,7 +273,7 @@ impl Scope {
             }
             DataHolder::ObjectAccess(ref target, ref accessor) => {
                 self.registers[reg] =
-                    RegItem::Value(access_object(controller, self, target, accessor)?);
+                    RegItem::Access(access_object(controller, self, target, accessor)?);
             }
             DataHolder::Math(math_reg) => {
                 self.set_value_in_reg(reg, DataContainer::Math(math_reg));
@@ -307,6 +310,7 @@ impl Scope {
     }
 
     pub fn assign(&mut self, left_reg: usize, right_reg: usize) -> Result<(), Error> {
+        println!("{:?}", self);
         let _ = self.can_sink(left_reg)?;
         let left = self.get_ref_holder(left_reg)?;
         let right = self.get_ref_holder(right_reg)?;
