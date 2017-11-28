@@ -134,6 +134,110 @@ fn math_io_integer() {
 }
 
 #[test]
+fn math_from_access() {
+    let kscript = create_builder(
+        "a = @[2, 5]; b = {|| 4}; c = %[\"t\": 2, \"g\": 1]; d = (a[1] + b|| + c[\"g\"]); d >> 1",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let commands = get_commands(&kscript);
+
+    assert_eq!(commands.len(), 25);
+    assert_eq!(
+        commands[0],
+        Command::SetRegister(0, DataHolder::Var("a".to_string()))
+    );
+    assert_eq!(
+        commands[1],
+        Command::SetRegister(
+            1,
+            DataHolder::Array(vec![
+                DataHolder::Anon(DataType::Integer(2)),
+                DataHolder::Anon(DataType::Integer(5)),
+            ]),
+        )
+    );
+    assert_eq!(commands[2], Command::Assign(0, 1));
+    assert_eq!(commands[3], Command::ClearRegisters);
+    assert_eq!(
+        commands[4],
+        Command::SetRegister(0, DataHolder::Var("b".to_string()))
+    );
+    assert_eq!(
+        commands[5],
+        Command::SetRegister(
+            1,
+            DataHolder::Function(
+                vec![],
+                vec![
+                    Command::SetRegister(0, DataHolder::Anon(DataType::Integer(4))),
+                ],
+            ),
+        )
+    );
+    assert_eq!(commands[6], Command::Assign(0, 1));
+    assert_eq!(commands[7], Command::ClearRegisters);
+    assert_eq!(
+        commands[8],
+        Command::SetRegister(0, DataHolder::Var("c".to_string()))
+    );
+
+    let mut map = HashMap::new();
+    map.insert("t".to_string(), DataHolder::Anon(DataType::Integer(2)));
+    map.insert("g".to_string(), DataHolder::Anon(DataType::Integer(1)));
+
+    assert_eq!(commands[9], Command::SetRegister(1, DataHolder::Dict(map)));
+    assert_eq!(commands[10], Command::Assign(0, 1));
+    assert_eq!(commands[11], Command::ClearRegisters);
+    assert_eq!(
+        commands[12],
+        Command::SetRegister(0, DataHolder::Var("d".to_string()))
+    );
+    assert_eq!(
+        commands[13],
+        Command::SetRegister(
+            1,
+            DataHolder::ObjectAccess(
+                Box::new(DataHolder::Var("a".to_string())),
+                Box::new(DataHolder::Anon(DataType::Integer(1))),
+            ),
+        )
+    );
+    assert_eq!(
+        commands[14],
+        Command::SetRegister(
+            2,
+            DataHolder::FunctionCall(Box::new(DataHolder::Var("b".to_string())), vec![]),
+        )
+    );
+    assert_eq!(
+        commands[15],
+        Command::SetRegister(
+            3,
+            DataHolder::ObjectAccess(
+                Box::new(DataHolder::Var("c".to_string())),
+                Box::new(DataHolder::Anon(DataType::String("g".to_string()))),
+            ),
+        )
+    );
+    assert_eq!(commands[16], Command::Addition(4, 1, 2));
+    assert_eq!(commands[17], Command::Addition(5, 4, 3));
+    assert_eq!(commands[18], Command::SetRegister(6, DataHolder::Math(5)));
+    assert_eq!(commands[19], Command::Assign(0, 6));
+    assert_eq!(commands[20], Command::ClearRegisters);
+    assert_eq!(
+        commands[21],
+        Command::SetRegister(0, DataHolder::Var("d".to_string()))
+    );
+    assert_eq!(
+        commands[22],
+        Command::SetRegister(1, DataHolder::Anon(DataType::Integer(1)))
+    );
+    assert_eq!(commands[23], Command::IoAppend(0, 1));
+    last_is_clear(&commands);
+}
+
+#[test]
 fn comment_op_comment() {
     let kscript = create_builder(
         "# this is a comment\n a = 1 # another comment",

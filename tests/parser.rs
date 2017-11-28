@@ -98,6 +98,68 @@ fn math_io_integer() {
 }
 
 #[test]
+fn math_from_access() {
+    let kscript = create_parser(
+        "a = @[2, 5]; b = {|| 4}; c = %[\"t\": 2, \"g\": 1]; d = (a[1] + b|| + c[\"g\"]); d >> 1",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let tokens = get_tokens(&kscript);
+
+    assert_eq!(tokens.len(), 20);
+    assert_eq!(tokens[0], Token::Var("a".to_string()));
+    assert_eq!(tokens[1], Token::Assign);
+    assert_eq!(
+        tokens[2],
+        Token::Array(vec![Token::Integer(2), Token::Integer(5)])
+    );
+    assert_eq!(tokens[3], Token::End);
+    assert_eq!(tokens[4], Token::Var("b".to_string()));
+    assert_eq!(tokens[5], Token::Assign);
+    assert_eq!(tokens[6], Token::Function(vec![], vec![Token::Integer(4)]));
+    assert_eq!(tokens[7], Token::End);
+    assert_eq!(tokens[8], Token::Var("c".to_string()));
+    assert_eq!(tokens[9], Token::Assign);
+    assert_eq!(
+        tokens[10],
+        Token::Dict(
+            vec![
+                Token::String("t".to_string()),
+                Token::String("g".to_string()),
+            ],
+            vec![Token::Integer(2), Token::Integer(1)],
+        )
+    );
+    assert_eq!(tokens[11], Token::End);
+    assert_eq!(tokens[12], Token::Var("d".to_string()));
+    assert_eq!(tokens[13], Token::Assign);
+    assert_eq!(
+        tokens[14],
+        Token::Math(vec![
+            Token::ObjectAccess(
+                Box::new(Token::Var("a".to_string())),
+                Box::new(Token::Integer(1))
+            ),
+            Token::Addition,
+            Token::FunctionCall(
+                Box::new(Token::Var("b".to_string())),
+                vec![]
+            ),
+            Token::Addition,
+            Token::ObjectAccess(
+                Box::new(Token::Var("c".to_string())),
+                Box::new(Token::String("g".to_string()))
+            ),
+        ])
+    );
+    assert_eq!(tokens[15], Token::End);
+    assert_eq!(tokens[16], Token::Var("d".to_string()));
+    assert_eq!(tokens[17], Token::IoAppend);
+    assert_eq!(tokens[18], Token::Integer(1));
+    last_is_end(&tokens);
+}
+
+#[test]
 fn comment_op_comment() {
     let kscript = create_parser(
         "# this is a comment\n a = 1 # another comment",

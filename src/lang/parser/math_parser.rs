@@ -4,14 +4,10 @@ use super::token_container::TokenContainer;
 use super::parser_container::ParserContainer;
 use super::char_container::CharContainer;
 use super::sub_parser::SubParser;
-use super::line_end_parser::LineEndParser;
-use super::var_parser::VarParser;
-use super::number_parser::NumberParser;
-use super::math_operator_parser::MathOperatorParser;
 use super::super::logger::Logger;
 use super::super::controller::Controller;
 use super::super::error::Error;
-use super::util::do_parse;
+use super::util::{do_parse, math_parsers};
 
 pub struct MathParser {}
 
@@ -51,13 +47,7 @@ where
                 {
                     let mut math_container = TokenContainer::new(&mut tokens);
                     parser_data.inc_char();
-                    let mut parsers: [Box<SubParser<T>>; 5] = [
-                        Box::new(LineEndParser::new()),
-                        Box::new(VarParser::new()),
-                        Box::new(MathOperatorParser::new()),
-                        Box::new(NumberParser::new()),
-                        Box::new(MathParser::new()),
-                    ];
+                    let mut parsers = math_parsers();
 
                     do_parse(
                         parser_data,

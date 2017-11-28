@@ -2,12 +2,14 @@
 extern crate kscript;
 
 use kscript::lang::Kscript;
-use kscript::lang::logger::{Logger, VoidLogger, DebugLogger, LoggerMode};
+use kscript::lang::logger::{Logger, DebugLogger, LoggerMode};
 
 fn main() {
-    let mut kscript = Kscript::new(VoidLogger::new(LoggerMode::Void));
+    let mut kscript = Kscript::new(DebugLogger::new(LoggerMode::Stdout));
     if let Err(kerror) = kscript.run(
-        "a = 1; b = 0; c = 12; $c=>0${@[b, \" \"] > 1; tmp = a; a = (a + b); b = tmp; c = (c - 1)} \"\" >> 1") {
+        "a = @[2, 5]; b = {|| 4}; c = %[\"t\": 2, \"g\": 1]; d = (a[1] + b|| + c[\"g\"]); d >> 1",
+    )
+    {
         eprintln!("Error {:?}", kerror);
     }
 }

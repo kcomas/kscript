@@ -20,8 +20,8 @@ pub enum FunctionArg {
 #[derive(Debug, PartialEq)]
 pub enum DataContainer {
     Scalar(DataType),
-    Vector(Vec<RefHolder>),
-    Hash(HashMap<String, RefHolder>),
+    Vector(RefArray),
+    Hash(RefMap),
     Math(usize),
     Function(Vec<FunctionArg>, Vec<Command>),
 }

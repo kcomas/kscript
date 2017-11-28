@@ -21,6 +21,8 @@ use super::loop_parser::LoopParser;
 use super::function_parser::FunctionParser;
 use super::function_call_parser::FunctionCallParser;
 use super::system_parser::SystemParser;
+use super::line_end_parser::LineEndParser;
+use super::math_operator_parser::MathOperatorParser;
 use super::parser_container::ParserContainer;
 use super::char_container::CharContainer;
 use super::token_container::TokenContainer;
@@ -156,5 +158,17 @@ pub fn conditional_parsers<T: Logger>() -> [Box<SubParser<T>>; 12] {
         Box::new(ArrayParser::new()),
         Box::new(DictParser::new()),
         Box::new(FunctionParser::new()),
+    ]
+}
+
+pub fn math_parsers<T: Logger>() -> [Box<SubParser<T>>; 7] {
+    [
+        Box::new(LineEndParser::new()),
+        Box::new(ObjectAccessParser::new()),
+        Box::new(FunctionCallParser::new()),
+        Box::new(VarParser::new()),
+        Box::new(MathOperatorParser::new()),
+        Box::new(NumberParser::new()),
+        Box::new(MathParser::new()),
     ]
 }

@@ -54,6 +54,57 @@ fn var_assign_math() {
 }
 
 #[test]
+fn math_io_integer() {
+    let kscript = create("(2 * 3) > 1", VoidLogger::new(LoggerMode::Void));
+    let x = kscript.get_root_scope().get_var("x");
+    assert!(x.is_none());
+}
+
+#[test]
+fn math_from_access() {
+    let kscript = create(
+        "a = @[2, 5]; b = {|| 4}; c = %[\"t\": 2, \"g\": 1]; d = (a[1] + b|| + c[\"g\"]); d >> 1",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let a = kscript.get_root_scope().get_var("a").unwrap();
+    assert_eq!(
+        *a.borrow(),
+        DataContainer::Vector(vec![
+            wrap(DataContainer::Scalar(DataType::Integer(2))),
+            wrap(DataContainer::Scalar(DataType::Integer(5))),
+        ])
+    );
+
+    let b = kscript.get_root_scope().get_var("b").unwrap();
+    assert_eq!(
+        *b.borrow(),
+        DataContainer::Function(
+            vec![],
+            vec![
+                Command::SetRegister(0, DataHolder::Anon(DataType::Integer(4))),
+            ],
+        )
+    );
+
+    let mut map = HashMap::new();
+    map.insert(
+        "t".to_string(),
+        wrap(DataContainer::Scalar(DataType::Integer(2))),
+    );
+    map.insert(
+        "g".to_string(),
+        wrap(DataContainer::Scalar(DataType::Integer(1))),
+    );
+
+    let c = kscript.get_root_scope().get_var("c").unwrap();
+    assert_eq!(*c.borrow(), DataContainer::Hash(map));
+
+    let d = kscript.get_root_scope().get_var("d").unwrap();
+    assert_eq!(*d.borrow(), DataContainer::Scalar(DataType::Integer(10)));
+}
+
+#[test]
 fn comment_op_comment() {
     let kscript = create(
         "# this is a comment\n a = 1 # another comment",
