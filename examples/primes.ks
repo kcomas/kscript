@@ -1,9 +1,9 @@
 
-# Print The First 1000 Primes Line By Line
+# Print The First 100 Primes Line By Line
 
 pos = 1
 prime = 2
-total = 1000
+total = 100
 
 printer = { |prime, &pos|
     @[pos, ": ", prime] >> 1
@@ -23,7 +23,7 @@ isprime = { |prime|
     r
 }
 
-$ prime =< total $ {
+$ pos =< total $ {
     ? t == isprime|prime| {
         printer|prime, pos|
     }
