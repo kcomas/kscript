@@ -10,6 +10,6 @@ fib = { |n, &g|
     r
 }
 
-result = fib|30, fib|
+result = fib|10, fib|
 
 @["Recursive Result: ", result] >> 1
