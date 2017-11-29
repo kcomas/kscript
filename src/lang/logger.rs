@@ -3,7 +3,7 @@ use super::parser::token::Token;
 use super::builder::command::Command;
 use super::vm::scope::Scope;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum LoggerMode {
     Void,
     Stdout,

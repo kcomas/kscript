@@ -94,6 +94,10 @@ where
                                 parser_data.inc_char();
                                 LoopParserState::Statements
                             }
+                            ' ' => {
+                                parser_data.inc_char();
+                                LoopParserState::NowStatements
+                            }
                             _ => return Err(Error::InvalidLoop(c, ci, li)),
                         }
                     }
