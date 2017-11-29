@@ -1,5 +1,5 @@
 
-# Print The First 100 Primes Line By Line
+# Print The First 100 Primes By Brute Force Line By Line
 
 pos = 1
 prime = 2

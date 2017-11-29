@@ -74,6 +74,10 @@ An **apl-ish**, **write-only** scripting language to be used like bash
 ### Assignment =
 * Can assign a names variable to data
 
+### Take Reference =&
+* Take a reference to non const data
+* Can only take a reference into a var
+
 ### IO
 * Can write to Files, 1 (STDOUT), 2 STDERR
 * Can read from File, 0 (STDIN)

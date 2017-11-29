@@ -12,7 +12,7 @@ syn match KscriptFile /'[^']*'/
 syn match KscriptBraces /[\[\]{}()]/
 syn match KscriptOperator /[-&<>\=\+\$\?\.]/
 syn match KscriptFunction /[\|,]/
-syn match KscriptObject /[@%]/
+syn match KscriptObject /[&@%]/
 syn match KscriptIntager /\d\+/
 syn match KscriptFloat /\d\+\.\d\+/
 syn keyword KsciptBool t f
