@@ -1,11 +1,7 @@
 
+
 if !exists("main_syntax")
-    if version < 600
-        syntax clear
-    elseif exists("b:current_syntax")
-        finish
-    endif
-    let main_syntax = "kscript"
+    let main_syntax = 'kscript'
 endif
 
 syn match KscriptCommment /[^"']*#[^"']*$/

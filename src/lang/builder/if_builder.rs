@@ -37,7 +37,7 @@ where
     }
 
     fn do_clear(&self) -> bool {
-        false
+        true
     }
 
     fn build(

@@ -468,7 +468,7 @@ fn assign_conditional_true_false() {
 
     let commands = get_commands(&kscript);
 
-    assert_eq!(commands.len(), 1);
+    assert_eq!(commands.len(), 2);
 
     let conditional = DataHolder::Conditional(
         Box::new(DataHolder::Anon(DataType::Integer(1))),
@@ -495,7 +495,7 @@ fn assign_conditional_true_false() {
         commands[0],
         Command::If(conditional, true_commands, false_commands)
     );
-
+    last_is_clear(&commands);
 }
 
 #[test]
