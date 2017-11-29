@@ -9,9 +9,10 @@ struct Setup {
     use_logger: bool,
     logger_mode: LoggerMode,
     file: Option<String>,
+    exec_name: String,
 }
 
-const HELP_MSG: &'static str = "Usage: kscript --help --log-stdout --log-stderr file.ks";
+const HELP_ARGS: &'static str = "--help --log-stdout --log-stderr file.ks";
 
 impl Setup {
     pub fn new() -> Setup {
@@ -19,14 +20,31 @@ impl Setup {
             use_logger: false,
             logger_mode: LoggerMode::Void,
             file: None,
+            exec_name: String::new(),
         }
     }
 
+    pub fn get_logger(&self) -> Option<LoggerMode> {
+        if self.use_logger {
+            return Some(self.logger_mode.clone());
+        }
+        None
+    }
+
+    pub fn get_file(&self) -> Option<String> {
+        self.file.clone()
+    }
+
+    pub fn get_exec_name(&self) -> &str {
+        &self.exec_name
+    }
+
     pub fn get_args(&mut self, cli_args: &Vec<String>) {
+        self.exec_name = cli_args[0].to_string();
         for arg in cli_args.iter() {
             match arg.as_ref() {
                 "--help" => {
-                    println!("{}", HELP_MSG);
+                    help_print(self);
                     process::exit(1);
                 }
                 "--log-stdout" => {
@@ -43,17 +61,10 @@ impl Setup {
             }
         }
     }
+}
 
-    pub fn get_logger(&self) -> Option<LoggerMode> {
-        if self.use_logger {
-            return Some(self.logger_mode.clone());
-        }
-        None
-    }
-
-    pub fn get_file(&self) -> Option<String> {
-        self.file.clone()
-    }
+fn help_print(setup: &Setup) {
+    println!("Usage: {} {}", setup.get_exec_name(), HELP_ARGS);
 }
 
 fn run<T: Logger>(kscript: &mut Kscript<T>, setup: &Setup) {
@@ -79,6 +90,6 @@ fn main() {
         run(&mut kscript, &setup);
     }
 
-    println!("{}", HELP_MSG);
+    help_print(&setup);
     process::exit(1);
 }
