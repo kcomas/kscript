@@ -369,3 +369,24 @@ fn reassign_array_value() {
         ])
     );
 }
+
+#[test]
+fn take_and_set_references() {
+    let kscript = create(
+        "a = @[1, 2, 3]; b =& a[1]; *b = 5; c = 3; b =& c; *b = 3.14",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let a = kscript.get_root_scope().get_var("a").unwrap();
+    assert_eq!(
+        *a.borrow(),
+        DataContainer::Vector(vec![
+            wrap_scalar(DataType::Integer(1)),
+            wrap_scalar(DataType::Integer(5)),
+            wrap_scalar(DataType::Integer(3)),
+        ])
+    );
+
+    let c = kscript.get_root_scope().get_var("c").unwrap();
+    assert_eq!(*c.borrow(), DataContainer::Scalar(DataType::Float(3.14)));
+}

@@ -808,3 +808,54 @@ fn assign_run_io_out() {
     assert_eq!(tokens[7], Token::Integer(1));
     last_is_end(&tokens);
 }
+
+#[test]
+fn take_and_set_references() {
+    let kscript = create_parser(
+        "a = @[1, 2, 3]; b =& a[1]; *b = 5; c = 3; b =& c; *b = 3.14",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let tokens = get_tokens(&kscript);
+
+    assert_eq!(tokens.len(), 26);
+    assert_eq!(tokens[0], Token::Var("a".to_string()));
+    assert_eq!(tokens[1], Token::Assign);
+    assert_eq!(
+        tokens[2],
+        Token::Array(vec![
+            Token::Integer(1),
+            Token::Integer(2),
+            Token::Integer(3),
+        ])
+    );
+    assert_eq!(tokens[3], Token::End);
+    assert_eq!(tokens[4], Token::Var("b".to_string()));
+    assert_eq!(tokens[5], Token::TakeReference);
+    assert_eq!(
+        tokens[6],
+        Token::ObjectAccess(
+            Box::new(Token::Var("a".to_string())),
+            Box::new(Token::Integer(1)),
+        )
+    );
+    assert_eq!(tokens[7], Token::End);
+    assert_eq!(tokens[8], Token::Dereference);
+    assert_eq!(tokens[9], Token::Var("b".to_string()));
+    assert_eq!(tokens[10], Token::Assign);
+    assert_eq!(tokens[11], Token::Integer(5));
+    assert_eq!(tokens[12], Token::End);
+    assert_eq!(tokens[13], Token::Var("c".to_string()));
+    assert_eq!(tokens[14], Token::Assign);
+    assert_eq!(tokens[15], Token::Integer(3));
+    assert_eq!(tokens[16], Token::End);
+    assert_eq!(tokens[17], Token::Var("b".to_string()));
+    assert_eq!(tokens[18], Token::TakeReference);
+    assert_eq!(tokens[19], Token::Var("c".to_string()));
+    assert_eq!(tokens[20], Token::End);
+    assert_eq!(tokens[21], Token::Dereference);
+    assert_eq!(tokens[22], Token::Var("b".to_string()));
+    assert_eq!(tokens[23], Token::Assign);
+    assert_eq!(tokens[24], Token::Float(3.14));
+    last_is_end(&tokens);
+}

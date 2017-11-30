@@ -1150,3 +1150,90 @@ fn assign_run_io_out() {
     assert_eq!(commands[7], Command::IoWrite(0, 1));
     last_is_clear(&commands);
 }
+
+#[test]
+fn take_and_set_references() {
+    let kscript = create_builder(
+        "a = @[1, 2, 3]; b =& a[1]; *b = 5; c = 3; b =& c; *b = 3.14",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let commands = get_commands(&kscript);
+
+    assert_eq!(commands.len(), 26);
+    assert_eq!(
+        commands[0],
+        Command::SetRegister(0, DataHolder::Var("a".to_string()))
+    );
+    assert_eq!(
+        commands[1],
+        Command::SetRegister(
+            1,
+            DataHolder::Array(vec![
+                DataHolder::Anon(DataType::Integer(1)),
+                DataHolder::Anon(DataType::Integer(2)),
+                DataHolder::Anon(DataType::Integer(3)),
+            ]),
+        )
+    );
+    assert_eq!(commands[2], Command::Assign(0, 1));
+    assert_eq!(commands[3], Command::ClearRegisters);
+    assert_eq!(
+        commands[4],
+        Command::SetRegister(0, DataHolder::Var("b".to_string()))
+    );
+    assert_eq!(
+        commands[5],
+        Command::SetRegister(
+            1,
+            DataHolder::ObjectAccess(
+                Box::new(DataHolder::Var("a".to_string())),
+                Box::new(DataHolder::Anon(DataType::Integer(1))),
+            ),
+        )
+    );
+    assert_eq!(commands[6], Command::TakeReference(0, 1));
+    assert_eq!(commands[7], Command::ClearRegisters);
+    assert_eq!(
+        commands[8],
+        Command::SetRegister(0, DataHolder::Var("b".to_string()))
+    );
+    assert_eq!(
+        commands[9],
+        Command::SetRegister(1, DataHolder::Anon(DataType::Integer(5)))
+    );
+    assert_eq!(commands[10], Command::Dereference(2, 0));
+    assert_eq!(commands[11], Command::Assign(2, 1));
+    assert_eq!(commands[12], Command::ClearRegisters);
+    assert_eq!(
+        commands[13],
+        Command::SetRegister(0, DataHolder::Var("c".to_string()))
+    );
+    assert_eq!(
+        commands[14],
+        Command::SetRegister(1, DataHolder::Anon(DataType::Integer(3)))
+    );
+    assert_eq!(commands[15], Command::Assign(0, 1));
+    assert_eq!(commands[16], Command::ClearRegisters);
+    assert_eq!(
+        commands[17],
+        Command::SetRegister(0, DataHolder::Var("b".to_string()))
+    );
+    assert_eq!(
+        commands[18],
+        Command::SetRegister(1, DataHolder::Var("c".to_string()))
+    );
+    assert_eq!(commands[19], Command::TakeReference(0, 1));
+    assert_eq!(commands[20], Command::ClearRegisters);
+    assert_eq!(
+        commands[21],
+        Command::SetRegister(0, DataHolder::Var("b".to_string()))
+    );
+    assert_eq!(
+        commands[22],
+        Command::SetRegister(1, DataHolder::Anon(DataType::Float(3.14)))
+    );
+    assert_eq!(commands[23], Command::Dereference(2, 0));
+    assert_eq!(commands[24], Command::Assign(2, 1));
+    last_is_clear(&commands);
+}
