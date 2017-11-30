@@ -81,6 +81,7 @@ An **apl-ish**, **write-only** scripting language to be used like bash
 ### Dereference *
 * Get the value of a reference or allow it to be updated
 * Eg ```a = 1; c =& a; *c = 2``` Now a is 2
+* In Math and object access contexts, references are automatically defererenced
 
 ### IO
 * Can write to Files, 1 (STDOUT), 2 STDERR

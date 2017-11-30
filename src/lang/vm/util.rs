@@ -10,6 +10,22 @@ use super::scope::Scope;
 use super::vm_types::{DataContainer, RefHolder, RefMap, RefArray, FunctionArg};
 use super::Vm;
 
+pub fn unwrap_reference_to_type(container: &DataContainer) -> Option<DataType> {
+    match *container {
+        DataContainer::Scalar(ref data_type) => Some(data_type.clone()),
+        DataContainer::Reference(ref reference) => {
+            match *reference.borrow() {
+                DataContainer::Scalar(ref data_type) => Some(data_type.clone()),
+                DataContainer::Reference(ref sub_ref) => unwrap_reference_to_type(
+                    &*sub_ref.borrow(),
+                ),
+                _ => None,
+            }
+        }
+        _ => None,
+    }
+}
+
 pub fn get_tuple_data_type(
     scope: &mut Scope,
     left_reg: usize,
@@ -18,9 +34,19 @@ pub fn get_tuple_data_type(
     let left_r = scope.get_ref_holder(left_reg)?;
     let right_r = scope.get_ref_holder(right_reg)?;
     let left_b = left_r.borrow();
-    let left = left_b.get_as_data_type();
+    let left;
+    if left_b.is_reference() {
+        left = unwrap_reference_to_type(&*left_b);
+    } else {
+        left = left_b.get_as_data_type();
+    }
     let right_b = right_r.borrow();
-    let right = right_b.get_as_data_type();
+    let right;
+    if right_b.is_reference() {
+        right = unwrap_reference_to_type(&*right_b);
+    } else {
+        right = right_b.get_as_data_type();
+    }
     if left.is_none() || right.is_none() {
         return Err(Error::InvalidMathType);
     }
@@ -226,6 +252,34 @@ pub fn access_object<T: Logger>(
     target: &DataHolder,
     accessor: &DataHolder,
 ) -> Result<RefHolder, Error> {
+    let ref_accessor = match *accessor {
+        DataHolder::Var(ref name) => {
+            match scope.get_var(name) {
+                Some(ref_holder) => ref_holder,
+                None => return Err(Error::VarNotDeclared),
+            }
+        }
+        DataHolder::Const(ref name) => {
+            match scope.get_const(name) {
+                Some(ref_holder) => ref_holder,
+                None => return Err(Error::ConstNotDeclard),
+            }
+        }
+        DataHolder::Anon(_) => Rc::new(RefCell::new(
+            holder_deep_copy_conversion(controller, scope, accessor)?,
+        )),
+        DataHolder::ObjectAccess(ref t2, ref a2) => access_object(controller, scope, t2, a2)?,
+        DataHolder::FunctionCall(ref ft, ref fa) => Rc::new(RefCell::new(
+            run_function(controller, scope, ft, fa)?,
+        )),
+        _ => return Err(Error::InvalidObjectAccessAccessor),
+    };
+
+    if ref_accessor.borrow().is_reference() {
+        let holder = unwrap_reference_to_type(&*ref_accessor.borrow()).unwrap();
+        return access_object(controller, scope, target, &DataHolder::Anon(holder));
+    }
+
     let ref_target = match *target {
         DataHolder::Var(ref name) => {
             match scope.get_var(name) {
@@ -248,28 +302,6 @@ pub fn access_object<T: Logger>(
             run_function(controller, scope, ft, fa)?,
         )),
         _ => return Err(Error::InvalidObjectAccessTarget),
-    };
-    let ref_accessor = match *accessor {
-        DataHolder::Var(ref name) => {
-            match scope.get_var(name) {
-                Some(ref_holder) => ref_holder,
-                None => return Err(Error::VarNotDeclared),
-            }
-        }
-        DataHolder::Const(ref name) => {
-            match scope.get_const(name) {
-                Some(ref_holder) => ref_holder,
-                None => return Err(Error::ConstNotDeclard),
-            }
-        }
-        DataHolder::Anon(_) => Rc::new(RefCell::new(
-            holder_deep_copy_conversion(controller, scope, accessor)?,
-        )),
-        DataHolder::ObjectAccess(ref t2, ref a2) => access_object(controller, scope, t2, a2)?,
-        DataHolder::FunctionCall(ref ft, ref fa) => Rc::new(RefCell::new(
-            run_function(controller, scope, ft, fa)?,
-        )),
-        _ => return Err(Error::InvalidObjectAccessAccessor),
     };
 
     if let Some(data_type_ref) = ref_accessor.borrow().get_as_data_type_ref() {
