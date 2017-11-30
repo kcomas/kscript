@@ -24,6 +24,7 @@ pub enum DataContainer {
     Hash(RefMap),
     Math(usize),
     Function(Vec<FunctionArg>, Vec<Command>),
+    Reference(RefHolder),
 }
 
 impl DataContainer {
@@ -45,6 +46,20 @@ impl DataContainer {
         match *self {
             DataContainer::Scalar(_) => true,
             _ => false,
+        }
+    }
+
+    pub fn is_reference(&self) -> bool {
+        match *self {
+            DataContainer::Reference(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn underlying_reference(&self) -> Option<RefHolder> {
+        match *self {
+            DataContainer::Reference(ref reference) => Some(reference.clone()),
+            _ => None,
         }
     }
 }
@@ -87,6 +102,7 @@ impl Clone for DataContainer {
             DataContainer::Function(ref args, ref commands) => {
                 DataContainer::Function(args.clone(), commands.clone())
             }
+            DataContainer::Reference(ref reference) => reference.borrow().clone(),
         }
     }
 }

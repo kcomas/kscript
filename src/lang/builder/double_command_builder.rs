@@ -23,7 +23,7 @@ where
 {
     fn check(&self, token: &Token) -> bool {
         match *token {
-            Token::Assign => true,
+            Token::Assign | Token::TakeReference => true,
             _ => false,
         }
     }
@@ -53,7 +53,6 @@ where
         if let Some(token) = token_container.get_slice_token_mut() {
             match *token {
                 Token::Assign => {
-                    *token = Token::Used;
                     command_container.add_command(
                         controller,
                         Command::Assign(
@@ -62,8 +61,15 @@ where
                         ),
                     );
                 }
+                Token::TakeReference => {
+                    command_container.add_command(
+                        controller,
+                        Command::TakeReference(left_counter, right_counter),
+                    );
+                }
                 _ => return Err(Error::TokenMismatch),
             };
+            *token = Token::Used;
             return Ok(());
         }
         Err(Error::TokenMismatch)

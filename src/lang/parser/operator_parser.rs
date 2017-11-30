@@ -29,7 +29,7 @@ where
 {
     fn check(&self, c: char) -> bool {
         match c {
-            '=' | '>' | '<' | '^' | '&' | '!' => true,
+            '=' | '>' | '<' | '^' | '&' | '!' | '*' => true,
             _ => false,
         }
     }
@@ -86,6 +86,11 @@ where
                             token_container.add_token(controller, Token::Run);
                             return Ok(false);
                         }
+                        '*' => {
+                            parser_data.inc_char();
+                            token_container.add_token(controller, Token::Dereference);
+                            return Ok(false);
+                        }
                         _ => return Err(Error::CheckMismatch(c, ci, li)),
                     }
                 }
@@ -105,6 +110,11 @@ where
                             parser_data.inc_char();
                             token_container.add_token(controller, Token::EqualOrLess);
                             return Ok(false);
+                        }
+                        '&' => {
+                            parser_data.inc_char();
+                            token_container.add_token(controller, Token::TakeReference);
+                            return Ok((false));
                         }
                         _ => {
                             token_container.add_token(controller, Token::Assign);

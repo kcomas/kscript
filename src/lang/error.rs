@@ -54,4 +54,7 @@ pub enum Error {
     InvalidObjectAccessAccessor,
     InvalidArrayIndex,
     InvalidHashKey,
+    InvalidReferenceSet,
+    InvalidReferenceGet,
+    InvalidDereference,
 }

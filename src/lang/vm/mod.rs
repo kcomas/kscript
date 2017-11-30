@@ -48,6 +48,8 @@ where
                 scope.set_register(self.controller, reg, data_holder)?
             }
             Command::Assign(left, right) => scope.assign(left, right)?,
+            Command::TakeReference(left, right) => scope.take_reference(left, right)?,
+            Command::Dereference(left, right) => scope.dereference(left, right)?,
             Command::ClearRegisters => scope.clear_registers(),
             Command::IoWrite(left, right) => io_write(scope, left, right)?,
             Command::IoAppend(left, right) => io_append(scope, left, right)?,

@@ -10,6 +10,8 @@ pub enum Token {
     Integer(i64),
     Float(f64),
     Assign,
+    TakeReference,
+    Dereference,
     Run,
     Addition,
     Subtract,

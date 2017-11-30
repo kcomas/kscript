@@ -190,6 +190,8 @@ pub enum Command {
     // left right
     Run(usize, usize),
     Assign(usize, usize),
+    TakeReference(usize, usize),
+    Dereference(usize, usize),
     IoWrite(usize, usize),
     IoAppend(usize, usize),
     // math do op and assigin to new register

@@ -78,6 +78,10 @@ An **apl-ish**, **write-only** scripting language to be used like bash
 * Take a reference to non const data
 * Can only take a reference into a var
 
+### Dereference *
+* Get the value of a reference or allow it to be updated
+* Eg ```a = 1; c =& a; *c = 2``` Now a is 2
+
 ### IO
 * Can write to Files, 1 (STDOUT), 2 STDERR
 * Can read from File, 0 (STDIN)
@@ -121,13 +125,13 @@ An **apl-ish**, **write-only** scripting language to be used like bash
 ### Greater then >
 * Only applies to numbers
 
-### Greater then or equal to >=
+### Greater then or equal to =>
 * Only applies to numbers
 
 ### Less then \<
 * Only applies to numbers
 
-### Less then or equal to \<=
+### Less then or equal to =\<
 * Only applies to numbers
 
 ### And &

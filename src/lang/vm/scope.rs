@@ -112,13 +112,16 @@ impl Scope {
         );
     }
 
-    fn can_sink(&self, reg: usize) -> Result<(), Error> {
+    fn can_sink(&self, reg: usize, allow_null_const: bool) -> Result<(), Error> {
         match self.registers.get(reg) {
             Some(target) => {
                 match *target {
                     RegItem::Var(_) |
                     RegItem::Access(_) => Ok(()),
                     RegItem::Const(ref ref_holder) => {
+                        if !allow_null_const {
+                            return Err(Error::InvalidReferenceSet);
+                        }
                         match *ref_holder.borrow() {
                             DataContainer::Scalar(ref data) => {
                                 match *data {
@@ -310,11 +313,41 @@ impl Scope {
     }
 
     pub fn assign(&mut self, left_reg: usize, right_reg: usize) -> Result<(), Error> {
-        let _ = self.can_sink(left_reg)?;
+        let _ = self.can_sink(left_reg, true)?;
         let left = self.get_ref_holder(left_reg)?;
         let right = self.get_ref_holder(right_reg)?;
         *left.borrow_mut() = right.borrow().clone();
         Ok(())
+    }
+
+    pub fn take_reference(&mut self, left_reg: usize, right_reg: usize) -> Result<(), Error> {
+        let _ = self.can_sink(left_reg, false)?;
+        let left = self.get_ref_holder(left_reg)?;
+        match self.registers.get(right_reg) {
+            Some(ref target) => {
+                match **target {
+                    RegItem::Var(ref ref_holder) |
+                    RegItem::Access(ref ref_holder) => {
+                        *left.borrow_mut() = DataContainer::Reference(ref_holder.clone());
+                        Ok(())
+                    }
+                    _ => Err(Error::InvalidReferenceGet),
+                }
+            }
+            None => Err(Error::InvalidReferenceGet),
+        }
+    }
+
+    pub fn dereference(&mut self, left_reg: usize, right_reg: usize) -> Result<(), Error> {
+        self.check_if_last(left_reg);
+        let right = self.get_ref_holder(right_reg)?;
+        let container = right.borrow();
+        if container.is_reference() {
+            self.registers[left_reg] =
+                RegItem::Var(container.underlying_reference().unwrap().clone());
+            return Ok(());
+        }
+        Err(Error::InvalidDereference)
     }
 
     pub fn addition(
