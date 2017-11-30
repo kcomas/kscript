@@ -49,7 +49,7 @@ impl Setup {
     pub fn get_args(&mut self, cli_args: &Vec<String>) {
         self.exec_name = cli_args[0].to_string();
         let total_args = cli_args.len();
-        let mut current_arg = 0;
+        let mut current_arg = 1;
         while current_arg < total_args {
             let arg = cli_args[current_arg].as_ref();
             match arg {
