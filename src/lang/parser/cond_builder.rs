@@ -98,7 +98,6 @@ impl CondBuilder {
                             match parser_data.get_current_char() {
                                 '[' | '|' => CondBuilderState::ItemB,
                                 _ => {
-                                    // @TODO check if this breaks tests
                                     let item_b = cond_container.pop().unwrap();
                                     let cond = cond_container.pop().unwrap();
                                     let item_a = cond_container.pop().unwrap();
