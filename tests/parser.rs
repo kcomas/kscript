@@ -859,3 +859,50 @@ fn take_and_set_references() {
     assert_eq!(tokens[24], Token::Float(3.14));
     last_is_end(&tokens);
 }
+
+#[test]
+fn auto_deref_math() {
+    let kscript = create_parser(
+        "a = 1; b =& a; c =& b; d = (a + b + c); e = @[10, 11][c]",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let tokens = get_tokens(&kscript);
+
+    assert_eq!(tokens.len(), 20);
+    assert_eq!(tokens[0], Token::Var("a".to_string()));
+    assert_eq!(tokens[1], Token::Assign);
+    assert_eq!(tokens[2], Token::Integer(1));
+    assert_eq!(tokens[3], Token::End);
+    assert_eq!(tokens[4], Token::Var("b".to_string()));
+    assert_eq!(tokens[5], Token::TakeReference);
+    assert_eq!(tokens[6], Token::Var("a".to_string()));
+    assert_eq!(tokens[7], Token::End);
+    assert_eq!(tokens[8], Token::Var("c".to_string()));
+    assert_eq!(tokens[9], Token::TakeReference);
+    assert_eq!(tokens[10], Token::Var("b".to_string()));
+    assert_eq!(tokens[11], Token::End);
+    assert_eq!(tokens[12], Token::Var("d".to_string()));
+    assert_eq!(tokens[13], Token::Assign);
+    assert_eq!(
+        tokens[14],
+        Token::Math(vec![
+            Token::Var("a".to_string()),
+            Token::Addition,
+            Token::Var("b".to_string()),
+            Token::Addition,
+            Token::Var("c".to_string()),
+        ])
+    );
+    assert_eq!(tokens[15], Token::End);
+    assert_eq!(tokens[16], Token::Var("e".to_string()));
+    assert_eq!(tokens[17], Token::Assign);
+    assert_eq!(
+        tokens[18],
+        Token::ObjectAccess(
+            Box::new(Token::Array(vec![Token::Integer(10), Token::Integer(11)])),
+            Box::new(Token::Var("c".to_string())),
+        )
+    );
+    last_is_end(&tokens);
+}

@@ -1,7 +1,8 @@
 
-
-if !exists("main_syntax")
-    let main_syntax = 'kscript'
+if version < 600
+    syntax clear
+elseif exists("b:current_syntax")
+    finish
 endif
 
 syn match KscriptCommment /[^"']*#[^"']*$/
@@ -29,3 +30,5 @@ hi def link KscriptObject StorageClass
 hi def link KscriptFloat Float
 hi def link KscriptIntager Number
 hi def link KsciptBool Boolean
+
+let b:current_syntax = "kscript"

@@ -343,8 +343,11 @@ impl Scope {
         let right = self.get_ref_holder(right_reg)?;
         let container = right.borrow();
         if container.is_reference() {
-            self.registers[left_reg] = RegItem::Var(container.underlying_reference().unwrap());
-            return Ok(());
+            if let Some(sub_container) = container.underlying_reference() {
+                self.registers[left_reg] = RegItem::Var(sub_container);
+                return Ok(());
+            }
+            return Err(Error::InvalidDereference);
         }
         Err(Error::InvalidDereference)
     }

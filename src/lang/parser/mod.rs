@@ -73,7 +73,7 @@ where
             &mut parsers,
         )?;
 
-        {
+        if !token_container.last_is_end() {
             token_container.add_token(&mut self.controller, Token::End);
         }
 

@@ -32,6 +32,16 @@ impl<'a> TokenContainer<'a> {
         self.current_token >= self.tokens.len()
     }
 
+    pub fn last_is_end(&self) -> bool {
+        match self.tokens.last() {
+            Some(token) => match *token {
+                Token::End => true,
+                _ => false,
+            }
+            None => false,
+        }
+    }
+
     pub fn add_token<T: Logger>(&mut self, controller: &mut Controller<T>, token: Token) {
         {
             controller.get_logger_mut().parser_add_token(&token);

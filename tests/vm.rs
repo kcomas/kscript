@@ -390,3 +390,17 @@ fn take_and_set_references() {
     let c = kscript.get_root_scope().get_var("c").unwrap();
     assert_eq!(*c.borrow(), DataContainer::Scalar(DataType::Float(3.14)));
 }
+
+#[test]
+fn auto_deref_math() {
+    let kscript = create(
+        "a = 1; b =& a; c =& b; d = (a + b + c); e = @[10, 11][c]",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let d = kscript.get_root_scope().get_var("d").unwrap();
+    assert_eq!(*d.borrow(), DataContainer::Scalar(DataType::Integer(3)));
+
+    let e = kscript.get_root_scope().get_var("e").unwrap();
+    assert_eq!(*e.borrow(), DataContainer::Scalar(DataType::Integer(11)));
+}

@@ -48,6 +48,7 @@ An **apl-ish**, **write-only** scripting language to be used like bash
 * Declared with ```%[key: value]```
 * Pairs separated by comma
 * Accessed with ```dictionary[string|(variable with string)|(constant with string)]```
+* Objects accessed by reference have the reference dereferenced to its value
 
 ### Functions
 * Does not have access to the parent scope
@@ -56,6 +57,7 @@ An **apl-ish**, **write-only** scripting language to be used like bash
 * Can take in variables via reference or copy
     * Eg ```|a, &b|``` a is passed by copy and b by reference
 * Are called by ```variable|args|```
+* References passed into a pass by copy are copied to their value
 
 ### Variable Naming
 * Variable can only be named with alpha characters of upper or lower case and numbers
@@ -106,6 +108,7 @@ An **apl-ish**, **write-only** scripting language to be used like bash
 * Operations between an integer and float makes a float
 * All operations in parenthesis are evaluated with order of operations
     * Eg ```((1 + 3) + 2 * 4 / 2)```
+* All references are automatically dereferenced to their value when used
 
 #### Addition +
 #### Subtraction -
