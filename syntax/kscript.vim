@@ -11,9 +11,9 @@ syn match KscriptConst /[A-Z0-9]\+/
 syn match KscriptString /["][^"]*["]/
 syn match KscriptFile /'[^']*'/
 syn match KscriptBraces /[\[\]{}()]/
-syn match KscriptOperator /[-&<>\=\+\$\?\.!]/
+syn match KscriptOperator /[-<>\=\+\$\?\.]/
 syn match KscriptFunction /[\|,]/
-syn match KscriptObject /[&@%]/
+syn match KscriptSpecial /[&@%\*!]/
 syn match KscriptIntager /\d\+/
 syn match KscriptFloat /\d\+\.\d\+/
 syn keyword KsciptBool t f
@@ -26,7 +26,7 @@ hi def link KscriptFile SpecialChar
 hi def link KscriptBraces Function
 hi def link KscriptOperator Operator
 hi def link KscriptFunction Delimiter
-hi def link KscriptObject StorageClass
+hi def link KscriptSpecial StorageClass
 hi def link KscriptFloat Float
 hi def link KscriptIntager Number
 hi def link KsciptBool Boolean
