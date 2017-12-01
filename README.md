@@ -5,6 +5,8 @@ A scripting language written in [Rust](https://www.rust-lang.org/en-US/)
 
 Work in progress see [Overview](design/OVERVIEW.md)
 
+For examples see [examples](examples)
+
 ### Current Status
 * [Trello](https://trello.com/b/IevrZUGw/kscript)
 
