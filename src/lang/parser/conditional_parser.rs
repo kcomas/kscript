@@ -20,11 +20,15 @@ pub enum ConditionalParserState {
 
 pub struct ConditionalParser {
     state: ConditionalParserState,
+    is_top: bool,
 }
 
 impl ConditionalParser {
-    pub fn new() -> ConditionalParser {
-        ConditionalParser { state: ConditionalParserState::Nothing }
+    pub fn new(is_top: bool) -> ConditionalParser {
+        ConditionalParser {
+            state: ConditionalParserState::Nothing,
+            is_top: is_top,
+        }
     }
 }
 
@@ -74,6 +78,13 @@ where
                                 parser_data.inc_char();
                                 let mut cb = CondBuilder::new();
                                 cond = Some(cb.parse(controller, parser_data, char_container)?);
+                                if !self.is_top {
+                                    if let Some(token) = cond {
+                                        token_container.add_token(controller, token);
+                                        return Ok(false);
+                                    }
+                                    return Err(Error::InvalidConditional(c, ci, li));
+                                }
                                 ConditionalParserState::MabeBlocks
                             }
                             _ => return Err(Error::CheckMismatch(c, ci, li)),
