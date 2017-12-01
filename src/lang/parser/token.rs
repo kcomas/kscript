@@ -32,6 +32,7 @@ pub enum Token {
     ObjectAccess(Box<Token>, Box<Token>),
     Bool(bool),
     Equals,
+    NotEquals,
     EqualOrGreater,
     EqualOrLess,
     Greater,
@@ -90,6 +91,7 @@ impl Token {
     pub fn to_comparison(&self) -> Option<Comparison> {
         match *self {
             Token::Equals => Some(Comparison::Equals),
+            Token::NotEquals => Some(Comparison::NotEquals),
             Token::EqualOrGreater => Some(Comparison::EqualOrGreater),
             Token::EqualOrLess => Some(Comparison::EqualOrLess),
             Token::Greater => Some(Comparison::Greater),

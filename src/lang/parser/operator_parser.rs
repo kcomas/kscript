@@ -101,6 +101,11 @@ where
                             token_container.add_token(controller, Token::Equals);
                             return Ok(false);
                         }
+                        '!' => {
+                            parser_data.inc_char();
+                            token_container.add_token(controller, Token::NotEquals);
+                            return Ok(false);
+                        }
                         '>' => {
                             parser_data.inc_char();
                             token_container.add_token(controller, Token::EqualOrGreater);

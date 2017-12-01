@@ -11,7 +11,7 @@ syn match KscriptConst /[A-Z0-9]\+/
 syn match KscriptString /["][^"]*["]/
 syn match KscriptFile /'[^']*'/
 syn match KscriptBraces /[\[\]{}()]/
-syn match KscriptOperator /[-&<>\=\+\$\?\.]/
+syn match KscriptOperator /[-&<>\=\+\$\?\.!]/
 syn match KscriptFunction /[\|,]/
 syn match KscriptObject /[&@%]/
 syn match KscriptIntager /\d\+/

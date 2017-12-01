@@ -185,6 +185,11 @@ impl Scope {
                     left.get_as_data_type_ref().unwrap() == right.get_as_data_type_ref().unwrap(),
                 )
             }
+            Comparison::NotEquals => {
+                Ok(
+                    left.get_as_data_type_ref().unwrap() != right.get_as_data_type_ref().unwrap(),
+                )
+            }
             Comparison::EqualOrGreater => {
                 let (left, right) = coerce_numbers(
                     left.get_as_data_type_ref().unwrap(),

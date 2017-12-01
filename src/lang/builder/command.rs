@@ -152,6 +152,7 @@ impl Rem for DataType {
 #[derive(Debug, PartialEq, Clone)]
 pub enum Comparison {
     Equals,
+    NotEquals,
     EqualOrGreater,
     EqualOrLess,
     Greater,
