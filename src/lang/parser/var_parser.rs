@@ -58,7 +58,7 @@ where
             self.state = match self.state {
                 VarParserState::Nothing => {
                     match c {
-                        '0'...'9' | 'a'...'z' => {
+                        'a'...'z' => {
                             char_container.add_char(c);
                             parser_data.inc_char();
                             VarParserState::Variable

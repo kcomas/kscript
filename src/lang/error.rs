@@ -4,6 +4,11 @@ use std::num::ParseFloatError;
 use std::io::Error as IoError;
 
 #[derive(Debug)]
+pub enum SandBoxError {
+    Io,
+}
+
+#[derive(Debug)]
 pub enum Error {
     NYI,
     ImpossibleState,
@@ -57,4 +62,5 @@ pub enum Error {
     InvalidReferenceSet,
     InvalidReferenceGet,
     InvalidDereference,
+    SandBoxError,
 }
