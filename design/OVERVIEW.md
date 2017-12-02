@@ -61,7 +61,7 @@ An **apl-ish**, **write-only** scripting language to be used like bash
 
 ### Variable Naming
 * Variable can only be named with alpha characters of upper or lower case and numbers
-* Upper case variables are constants and exported as environment variables
+* Upper case variables are constants
 * Lower case variables are fixed typed reassign-able variables
 
 ## Comments
