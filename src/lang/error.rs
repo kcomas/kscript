@@ -62,5 +62,5 @@ pub enum Error {
     InvalidReferenceSet,
     InvalidReferenceGet,
     InvalidDereference,
-    SandBoxError,
+    SandBoxLock(SandBoxError),
 }

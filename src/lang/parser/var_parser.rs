@@ -30,7 +30,7 @@ where
 {
     fn check(&self, c: char) -> bool {
         match c {
-            'a'...'z' | 'A'...'Z' => true,
+            '_' | 'a'...'z' | 'A'...'Z' => true,
             _ => false,
         }
     }
@@ -58,6 +58,11 @@ where
             self.state = match self.state {
                 VarParserState::Nothing => {
                     match c {
+                        '_' | '0'...'9' => {
+                            char_container.add_char(c);
+                            parser_data.inc_char();
+                            VarParserState::Nothing
+                        }
                         'a'...'z' => {
                             char_container.add_char(c);
                             parser_data.inc_char();
@@ -73,7 +78,7 @@ where
                 }
                 VarParserState::Variable => {
                     match c {
-                        '0'...'9' | 'a'...'z' => {
+                        '_' | '0'...'9' | 'a'...'z' => {
                             char_container.add_char(c);
                             parser_data.inc_char();
                             VarParserState::Variable
@@ -88,7 +93,7 @@ where
                 }
                 VarParserState::Constant => {
                     match c {
-                        '0'...'9' | 'A'...'Z' => {
+                        '_' | '0'...'9' | 'A'...'Z' => {
                             char_container.add_char(c);
                             parser_data.inc_char();
                             VarParserState::Constant

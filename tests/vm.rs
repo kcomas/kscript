@@ -404,3 +404,17 @@ fn auto_deref_math() {
     let e = kscript.get_root_scope().get_var("e").unwrap();
     assert_eq!(*e.borrow(), DataContainer::Scalar(DataType::Integer(11)));
 }
+
+#[test]
+fn add_underscores_to_vars() {
+    let kscript = create("_a = 1; _1BSD = 2.21", VoidLogger::new(LoggerMode::Void));
+
+    let _a = kscript.get_root_scope().get_var("_a").unwrap();
+    assert_eq!(*_a.borrow(), DataContainer::Scalar(DataType::Integer(1)));
+
+    let _1bsd = kscript.get_root_scope().get_const("_1BSD").unwrap();
+    assert_eq!(
+        *_1bsd.borrow(),
+        DataContainer::Scalar(DataType::Float(2.21))
+    );
+}

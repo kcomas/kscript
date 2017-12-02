@@ -1319,3 +1319,32 @@ fn auto_deref_math() {
     assert_eq!(commands[23], Command::Assign(0, 1));
     last_is_clear(&commands);
 }
+
+#[test]
+fn add_underscores_to_vars() {
+    let kscript = create_builder("_a = 1; _1BSD = 2.21", VoidLogger::new(LoggerMode::Void));
+
+    let commands = get_commands(&kscript);
+
+    assert_eq!(commands.len(), 8);
+    assert_eq!(
+        commands[0],
+        Command::SetRegister(0, DataHolder::Var("_a".to_string()))
+    );
+    assert_eq!(
+        commands[1],
+        Command::SetRegister(1, DataHolder::Anon(DataType::Integer(1)))
+    );
+    assert_eq!(commands[2], Command::Assign(0, 1));
+    assert_eq!(commands[3], Command::ClearRegisters);
+    assert_eq!(
+        commands[4],
+        Command::SetRegister(0, DataHolder::Const("_1BSD".to_string()))
+    );
+    assert_eq!(
+        commands[5],
+        Command::SetRegister(1, DataHolder::Anon(DataType::Float(2.21)))
+    );
+    assert_eq!(commands[6], Command::Assign(0, 1));
+    last_is_clear(&commands);
+}

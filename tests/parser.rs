@@ -906,3 +906,20 @@ fn auto_deref_math() {
     );
     last_is_end(&tokens);
 }
+
+#[test]
+fn add_underscores_to_vars() {
+    let kscript = create_parser("_a = 1; _1BSD = 2.21", VoidLogger::new(LoggerMode::Void));
+
+    let tokens = get_tokens(&kscript);
+
+    assert_eq!(tokens.len(), 8);
+    assert_eq!(tokens[0], Token::Var("_a".to_string()));
+    assert_eq!(tokens[1], Token::Assign);
+    assert_eq!(tokens[2], Token::Integer(1));
+    assert_eq!(tokens[3], Token::End);
+    assert_eq!(tokens[4], Token::Const("_1BSD".to_string()));
+    assert_eq!(tokens[5], Token::Assign);
+    assert_eq!(tokens[6], Token::Float(2.21));
+    last_is_end(&tokens);
+}
