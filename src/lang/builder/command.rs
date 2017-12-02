@@ -195,6 +195,8 @@ pub enum Command {
     Dereference(usize, usize),
     IoWrite(usize, usize),
     IoAppend(usize, usize),
+    IoRead(usize, usize),
+    IoReadAppend(usize, usize),
     // math do op and assigin to new register
     // result left right
     Addition(usize, usize, usize),

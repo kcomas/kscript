@@ -23,7 +23,7 @@ where
 {
     fn check(&self, token: &Token) -> bool {
         match *token {
-            Token::IoWrite | Token::IoAppend => true,
+            Token::IoWrite | Token::IoAppend | Token::IoRead | Token::IoReadAppend => true,
             _ => false,
         }
     }
@@ -69,6 +69,21 @@ where
                         ),
                     );
 
+                }
+                Token::IoRead => {
+                    command_container.add_command(
+                        controller,
+                        Command::IoRead(
+                            left_counter,
+                            right_counter,
+                        ),
+                    );
+                }
+                Token::IoReadAppend => {
+                    command_container.add_command(
+                        controller,
+                        Command::IoReadAppend(left_counter, right_counter),
+                    );
                 }
                 _ => return Err(Error::TokenMismatch),
             }

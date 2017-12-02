@@ -43,6 +43,7 @@ pub enum Error {
     InvalidScopeSink,
     InvalidScopeAssignment,
     InvalidMathType,
+    InvalidIoSource,
     InvalidIoSink,
     CannotDeepCopyType,
     InvalidMathAccess,
