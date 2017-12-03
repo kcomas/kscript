@@ -2,6 +2,7 @@
 use std::ops::{Add, Sub, Mul, Div, Rem};
 use std::collections::HashMap;
 use std::fmt;
+use super::super::Error;
 
 pub type Kmap = HashMap<String, DataHolder>;
 
@@ -53,6 +54,23 @@ impl DataType {
             DataType::Integer(_) => true,
             _ => false,
         }
+    }
+
+    pub fn write_string(&mut self, to_write: String) -> Result<(), Error> {
+        *self = match *self {
+            _ => DataType::String(to_write),
+        };
+        Ok(())
+    }
+
+    pub fn append_string(&mut self, to_append: String) -> Result<(), Error> {
+        *self = match *self {
+            DataType::String(ref self_string) => DataType::String(
+                format!("{}{}", self_string, to_append),
+            ),
+            _ => return Err(Error::UnableToAppendToWrongType),
+        };
+        Ok(())
     }
 }
 

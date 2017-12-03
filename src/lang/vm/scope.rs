@@ -112,7 +112,7 @@ impl Scope {
         );
     }
 
-    fn can_sink(&self, reg: usize, allow_null_const: bool) -> Result<(), Error> {
+    pub fn can_sink(&self, reg: usize, allow_null_const: bool) -> Result<(), Error> {
         match self.registers.get(reg) {
             Some(target) => {
                 match *target {

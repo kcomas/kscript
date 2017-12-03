@@ -3,7 +3,6 @@ use std::io::{self, Write};
 use super::super::error::Error;
 use super::super::builder::command::DataType;
 use super::scope::Scope;
-use super::vm_types::DataContainer;
 
 pub fn io_write(scope: &mut Scope, left_reg: usize, right_reg: usize) -> Result<(), Error> {
     let left = scope.get_ref_holder(left_reg)?;
@@ -46,6 +45,7 @@ pub fn io_append(scope: &mut Scope, left_reg: usize, right_reg: usize) -> Result
 }
 
 pub fn io_read(scope: &mut Scope, left_reg: usize, right_reg: usize) -> Result<(), Error> {
+    let _ = scope.can_sink(left_reg, false)?;
     let left = scope.get_ref_holder(left_reg)?;
     let right = scope.get_ref_holder(right_reg)?;
     if let Some(data_holder) = right.borrow().get_as_data_type_ref() {
@@ -56,7 +56,7 @@ pub fn io_read(scope: &mut Scope, left_reg: usize, right_reg: usize) -> Result<(
                     let _ = io::stdin().read_line(&mut input).unwrap();
                     let trimmed = input.trim_right().len();
                     input.truncate(trimmed);
-                    *left.borrow_mut() = DataContainer::Scalar(DataType::String(input));
+                    left.borrow_mut().write_string(input)?;
                 } else {
                     return Err(Error::InvalidIoSource);
                 }
@@ -69,8 +69,8 @@ pub fn io_read(scope: &mut Scope, left_reg: usize, right_reg: usize) -> Result<(
 }
 
 pub fn io_read_append(scope: &mut Scope, left_reg: usize, right_reg: usize) -> Result<(), Error> {
+    let _ = scope.can_sink(left_reg, false)?;
     let left = scope.get_ref_holder(left_reg)?;
-    let mut left_mut_borrow = left.borrow_mut();
     let right = scope.get_ref_holder(right_reg)?;
     if let Some(data_holder) = right.borrow().get_as_data_type_ref() {
         match *data_holder {
@@ -80,8 +80,7 @@ pub fn io_read_append(scope: &mut Scope, left_reg: usize, right_reg: usize) -> R
                     let _ = io::stdin().read_line(&mut input).unwrap();
                     let trimmed = input.trim_right().len();
                     input.truncate(trimmed);
-                    let string = format!("{}{}", left_mut_borrow, input);
-                    *left_mut_borrow = DataContainer::Scalar(DataType::String(string));
+                    left.borrow_mut().append_string(input)?;
                 } else {
                     return Err(Error::InvalidIoSource);
                 }

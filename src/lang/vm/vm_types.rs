@@ -4,6 +4,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt;
 use super::super::builder::command::{DataType, Command};
+use super::super::Error;
 
 pub type RefHolder = Rc<RefCell<DataContainer>>;
 pub type RefMap = HashMap<String, RefHolder>;
@@ -60,6 +61,20 @@ impl DataContainer {
         match *self {
             DataContainer::Reference(ref reference) => Some(reference.clone()),
             _ => None,
+        }
+    }
+
+    pub fn write_string(&mut self, to_write: String) -> Result<(), Error> {
+        match *self {
+            DataContainer::Scalar(ref mut data_type) => data_type.write_string(to_write),
+            _ => Err(Error::UnableToWriteTo),
+        }
+    }
+
+    pub fn append_string(&mut self, to_append: String) -> Result<(), Error> {
+        match *self {
+            DataContainer::Scalar(ref mut data_type) => data_type.append_string(to_append),
+            _ => Err(Error::UnableToAppendTo),
         }
     }
 }

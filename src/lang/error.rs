@@ -58,4 +58,7 @@ pub enum Error {
     InvalidReferenceSet,
     InvalidReferenceGet,
     InvalidDereference,
+    UnableToWriteTo,
+    UnableToAppendTo,
+    UnableToAppendToWrongType,
 }

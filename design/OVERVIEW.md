@@ -102,6 +102,7 @@ An **apl-ish**, **write-only** scripting language to be used like bash
 #### \<\< Read Append
 * Eg ```a << 'text.text``` append the contents of test.txt to var a
 * Eg ```b << 0``` Read STDIN until return into var b
+* Can only append to files and strings
 
 ### Math ()
 * Can be used with integer and float variables
