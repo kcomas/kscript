@@ -3,7 +3,7 @@ extern crate kscript;
 
 use kscript::lang::Kscript;
 use kscript::lang::logger::{Logger, VoidLogger, LoggerMode};
-use kscript::lang::parser::token::{Token, SystemCommand};
+use kscript::lang::parser::token::{Token, SystemCommand, CastTo};
 
 fn create_parser<T: Logger>(program: &str, logger: T) -> Kscript<T> {
     let mut kscript = Kscript::new(logger);
@@ -921,5 +921,36 @@ fn add_underscores_to_vars() {
     assert_eq!(tokens[4], Token::Const("_1BSD".to_string()));
     assert_eq!(tokens[5], Token::Assign);
     assert_eq!(tokens[6], Token::Float(2.21));
+    last_is_end(&tokens);
+}
+
+#[test]
+fn casting_operations() {
+    let kscript = create_parser(
+        "str = \"3.14\"; float = `p str; s2 = `s float; bool = `b s2",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let tokens = get_tokens(&kscript);
+
+    assert_eq!(tokens.len(), 19);
+    assert_eq!(tokens[0], Token::Var("str".to_string()));
+    assert_eq!(tokens[1], Token::Assign);
+    assert_eq!(tokens[2], Token::String("3.14".to_string()));
+    assert_eq!(tokens[3], Token::End);
+    assert_eq!(tokens[4], Token::Var("float".to_string()));
+    assert_eq!(tokens[5], Token::Assign);
+    assert_eq!(tokens[6], Token::Cast(CastTo::Float));
+    assert_eq!(tokens[7], Token::Var("str".to_string()));
+    assert_eq!(tokens[8], Token::End);
+    assert_eq!(tokens[9], Token::Var("s2".to_string()));
+    assert_eq!(tokens[10], Token::Assign);
+    assert_eq!(tokens[11], Token::Cast(CastTo::String));
+    assert_eq!(tokens[12], Token::Var("float".to_string()));
+    assert_eq!(tokens[13], Token::End);
+    assert_eq!(tokens[14], Token::Var("bool".to_string()));
+    assert_eq!(tokens[15], Token::Assign);
+    assert_eq!(tokens[16], Token::Cast(CastTo::Bool));
+    assert_eq!(tokens[17], Token::Var("s2".to_string()));
     last_is_end(&tokens);
 }

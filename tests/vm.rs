@@ -418,3 +418,32 @@ fn add_underscores_to_vars() {
         DataContainer::Scalar(DataType::Float(2.21))
     );
 }
+
+#[test]
+fn casting_operations() {
+    let kscript = create(
+        "str = \"3.14\"; float = `p str; s2 = `s float; bool = `b s2",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let s = kscript.get_root_scope().get_var("str").unwrap();
+    assert_eq!(
+        *s.borrow(),
+        DataContainer::Scalar(DataType::String("3.14".to_string()))
+    );
+
+    let float = kscript.get_root_scope().get_var("float").unwrap();
+    assert_eq!(
+        *float.borrow(),
+        DataContainer::Scalar(DataType::Float(3.14))
+    );
+
+    let s2 = kscript.get_root_scope().get_var("s2").unwrap();
+    assert_eq!(
+        *s2.borrow(),
+        DataContainer::Scalar(DataType::String("3.14".to_string()))
+    );
+
+    let b = kscript.get_root_scope().get_var("bool").unwrap();
+    assert_eq!(*b.borrow(), DataContainer::Scalar(DataType::Bool(true)));
+}

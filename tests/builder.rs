@@ -3,7 +3,8 @@ extern crate kscript;
 
 use std::collections::HashMap;
 use kscript::lang::Kscript;
-use kscript::lang::builder::command::{Command, DataHolder, DataType, Comparison, SystemCommand};
+use kscript::lang::builder::command::{Command, DataHolder, DataType, Comparison, SystemCommand,
+                                      CastTo};
 use kscript::lang::logger::{Logger, VoidLogger, LoggerMode};
 
 fn create_builder<T: Logger>(program: &str, logger: T) -> Kscript<T> {
@@ -1346,5 +1347,60 @@ fn add_underscores_to_vars() {
         Command::SetRegister(1, DataHolder::Anon(DataType::Float(2.21)))
     );
     assert_eq!(commands[6], Command::Assign(0, 1));
+    last_is_clear(&commands);
+}
+
+#[test]
+fn casting_operations() {
+    let kscript = create_builder(
+        "str = \"3.14\"; float = `p str; s2 = `s float; bool = `b s2",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let commands = get_commands(&kscript);
+
+    assert_eq!(commands.len(), 19);
+    assert_eq!(
+        commands[0],
+        Command::SetRegister(0, DataHolder::Var("str".to_string()))
+    );
+    assert_eq!(
+        commands[1],
+        Command::SetRegister(1, DataHolder::Anon(DataType::String("3.14".to_string())))
+    );
+    assert_eq!(commands[2], Command::Assign(0, 1));
+    assert_eq!(commands[3], Command::ClearRegisters);
+    assert_eq!(
+        commands[4],
+        Command::SetRegister(0, DataHolder::Var("float".to_string()))
+    );
+    assert_eq!(
+        commands[5],
+        Command::SetRegister(1, DataHolder::Var("str".to_string()))
+    );
+    assert_eq!(commands[6], Command::Cast(CastTo::Float, 2, 1));
+    assert_eq!(commands[7], Command::Assign(0, 2));
+    assert_eq!(commands[8], Command::ClearRegisters);
+    assert_eq!(
+        commands[9],
+        Command::SetRegister(0, DataHolder::Var("s2".to_string()))
+    );
+    assert_eq!(
+        commands[10],
+        Command::SetRegister(1, DataHolder::Var("float".to_string()))
+    );
+    assert_eq!(commands[11], Command::Cast(CastTo::String, 2, 1));
+    assert_eq!(commands[12], Command::Assign(0, 2));
+    assert_eq!(commands[13], Command::ClearRegisters);
+    assert_eq!(
+        commands[14],
+        Command::SetRegister(0, DataHolder::Var("bool".to_string()))
+    );
+    assert_eq!(
+        commands[15],
+        Command::SetRegister(1, DataHolder::Var("s2".to_string()))
+    );
+    assert_eq!(commands[16], Command::Cast(CastTo::Bool, 2, 1));
+    assert_eq!(commands[17], Command::Assign(0, 2));
     last_is_clear(&commands);
 }
