@@ -1,5 +1,5 @@
 
-pub use super::super::builder::command::{Comparison, SystemCommand};
+pub use super::super::builder::command::{Comparison, SystemCommand, CastTo};
 
 #[derive(Debug, PartialEq)]
 pub enum Token {
@@ -48,6 +48,7 @@ pub enum Token {
     System(SystemCommand),
     // used to denote value in register
     Reg(usize),
+    Cast(CastTo),
 }
 
 impl Token {

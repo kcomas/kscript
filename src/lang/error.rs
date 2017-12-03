@@ -25,6 +25,7 @@ pub enum Error {
     InvalidPass(char, usize, usize),
     InvalidFunctionCall(char, usize, usize),
     InvalidObjectAccess(char, usize, usize),
+    InvalidCast(char, usize, usize),
     InvalidTokenAccess,
     TokenMismatch,
     InvalidRightRegisterAccess,
@@ -61,4 +62,5 @@ pub enum Error {
     UnableToWriteTo,
     UnableToAppendTo,
     UnableToAppendToWrongType,
+    CastFail,
 }

@@ -7,10 +7,12 @@ use super::sub_parser::SubParser;
 use super::super::logger::Logger;
 use super::super::controller::Controller;
 use super::super::error::Error;
+use super::super::builder::command::CastTo;
 
 pub enum OperatorParserState {
     Nothing,
     Equal,
+    Cast,
 }
 
 pub struct OperatorParser {
@@ -29,7 +31,7 @@ where
 {
     fn check(&self, c: char) -> bool {
         match c {
-            '=' | '>' | '<' | '^' | '&' | '!' | '*' => true,
+            '=' | '>' | '<' | '^' | '&' | '!' | '*' | '`' => true,
             _ => false,
         }
     }
@@ -91,6 +93,10 @@ where
                             token_container.add_token(controller, Token::Dereference);
                             return Ok(false);
                         }
+                        '`' => {
+                            parser_data.inc_char();
+                            OperatorParserState::Cast
+                        }
                         _ => return Err(Error::CheckMismatch(c, ci, li)),
                     }
                 }
@@ -125,6 +131,36 @@ where
                             token_container.add_token(controller, Token::Assign);
                             return Ok(false);
                         }
+                    }
+                }
+                OperatorParserState::Cast => {
+                    match c {
+                        'i' => {
+                            parser_data.inc_char();
+                            token_container.add_token(controller, Token::Cast(CastTo::Integer));
+                            return Ok(false);
+                        }
+                        'p' => {
+                            parser_data.inc_char();
+                            token_container.add_token(controller, Token::Cast(CastTo::Float));
+                            return Ok(false);
+                        }
+                        'b' => {
+                            parser_data.inc_char();
+                            token_container.add_token(controller, Token::Cast(CastTo::Bool));
+                            return Ok(false);
+                        }
+                        's' => {
+                            parser_data.inc_char();
+                            token_container.add_token(controller, Token::Cast(CastTo::String));
+                            return Ok(false);
+                        }
+                        'f' => {
+                            parser_data.inc_char();
+                            token_container.add_token(controller, Token::Cast(CastTo::File));
+                            return Ok(false);
+                        }
+                        _ => return Err(Error::InvalidCast(c, ci, li)),
                     }
                 }
             }

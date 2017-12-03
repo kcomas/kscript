@@ -146,6 +146,15 @@ An **apl-ish**, **write-only** scripting language to be used like bash
 ## Single Commands
 * Takes single argument
 
+### Casting \`[ipsfb]
+* Cast a type to the named type
+* Can be
+    1. i: int
+    2. p: float
+    3. s: string
+    4. f: file
+    5. b: bool
+
 ### Run Commands ```!@["command", "...args"]```
 * Take an array of the command and the args and run
 * Returns an array of [exit_code, STDOUT, STDERR]

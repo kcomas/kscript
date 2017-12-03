@@ -72,6 +72,85 @@ impl DataType {
         };
         Ok(())
     }
+
+    pub fn cast_int(&self) -> Result<i64, Error> {
+        match *self {
+            DataType::Null => Ok(0),
+            DataType::Integer(int) => Ok(int),
+            DataType::Float(float) => Ok(float as i64),
+            DataType::String(ref string) => {
+                match string.parse::<i64>() {
+                    Ok(int) => Ok(int),
+                    Err(_) => Err(Error::CastFail),
+                }
+            }
+            DataType::File(_) => Err(Error::NYI),
+            DataType::Bool(value) => {
+                match value {
+                    true => Ok(1),
+                    false => Ok(0),
+                }
+            }
+        }
+    }
+
+    pub fn cast_float(&self) -> Result<f64, Error> {
+        match *self {
+            DataType::Null => Ok(0.0),
+            DataType::Integer(int) => Ok(int as f64),
+            DataType::Float(float) => Ok(float),
+            DataType::String(ref string) => {
+                match string.parse::<f64>() {
+                    Ok(float) => Ok(float),
+                    Err(_) => Err(Error::CastFail),
+                }
+            }
+            DataType::File(_) => Err(Error::NYI),
+            DataType::Bool(value) => {
+                match value {
+                    true => Ok(1.0),
+                    false => Ok(0.0),
+                }
+            }
+        }
+    }
+
+    pub fn cast_string(&self) -> Result<String, Error> {
+        Ok(format!("{}", self))
+    }
+
+    pub fn cast_file(&self) -> Result<(), Error> {
+        Err(Error::NYI)
+    }
+
+    pub fn cast_bool(&self) -> Result<bool, Error> {
+        match *self {
+            DataType::Null => Ok(false),
+            DataType::Integer(int) => {
+                let mut b = false;
+                if int > 0 {
+                    b = true;
+                }
+                Ok(b)
+            }
+            DataType::Float(float) => {
+                let mut b = false;
+                if float > 0.0 {
+                    b = true;
+                }
+                Ok(b)
+            }
+            DataType::String(ref string) => {
+                let mut b = false;
+                if string.len() > 0 {
+                    b = true;
+                }
+                Ok(b)
+            }
+            DataType::File(_) => Err(Error::NYI),
+            DataType::Bool(b) => Ok(b),
+        }
+    }
 }
 
 impl fmt::Display for DataType {
@@ -180,6 +259,15 @@ pub enum Comparison {
 }
 
 #[derive(Debug, PartialEq, Clone)]
+pub enum CastTo {
+    Integer,
+    Float,
+    String,
+    File,
+    Bool,
+}
+
+#[derive(Debug, PartialEq, Clone)]
 pub enum SystemCommand {
     Exit(u32),
 }
@@ -226,4 +314,5 @@ pub enum Command {
     // coditional true commands false commands
     If(DataHolder, Vec<Command>, Vec<Command>),
     Loop(DataHolder, Vec<Command>),
+    Cast(CastTo, usize, usize),
 }

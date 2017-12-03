@@ -89,6 +89,7 @@ where
                     right_data = r;
                 }
             }
+            Command::Cast(ref cast_to, ref left, ref right) => scope.cast(cast_to, *left, *right)?,
             _ => {}
         };
         Ok(())

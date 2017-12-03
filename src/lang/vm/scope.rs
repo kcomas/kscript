@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use super::super::controller::Controller;
 use super::super::logger::Logger;
 use super::super::error::Error;
-use super::super::builder::command::{DataHolder, DataType, Comparison, coerce_numbers};
+use super::super::builder::command::{DataHolder, DataType, CastTo, Comparison, coerce_numbers};
 use super::util::{get_tuple_data_type, holder_deep_copy_conversion, holder_to_function_args,
                   run_function, access_object};
 use super::vm_types::{RefHolder, RefMap, RefArray, DataContainer};
@@ -341,6 +341,47 @@ impl Scope {
             }
             None => Err(Error::InvalidReferenceGet),
         }
+    }
+
+    pub fn cast(
+        &mut self,
+        cast_to: &CastTo,
+        left_reg: usize,
+        right_reg: usize,
+    ) -> Result<(), Error> {
+        self.check_if_last(left_reg);
+        let right = self.get_ref_holder(right_reg)?;
+        if let Some(data_type) = right.borrow().get_as_data_type_ref() {
+            match *cast_to {
+                CastTo::Integer => {
+                    self.set_value_in_reg(
+                        left_reg,
+                        DataContainer::Scalar(DataType::Integer(data_type.cast_int()?)),
+                    );
+                }
+                CastTo::Float => {
+                    self.set_value_in_reg(
+                        left_reg,
+                        DataContainer::Scalar(DataType::Float(data_type.cast_float()?)),
+                    );
+                }
+                CastTo::String => {
+                    self.set_value_in_reg(
+                        left_reg,
+                        DataContainer::Scalar(DataType::String(data_type.cast_string()?)),
+                    );
+                }
+                CastTo::File => return Err(Error::NYI),
+                CastTo::Bool => {
+                    self.set_value_in_reg(
+                        left_reg,
+                        DataContainer::Scalar(DataType::Bool(data_type.cast_bool()?)),
+                    );
+                }
+            };
+            return Ok(());
+        }
+        Err(Error::CastFail)
     }
 
     pub fn dereference(&mut self, left_reg: usize, right_reg: usize) -> Result<(), Error> {
