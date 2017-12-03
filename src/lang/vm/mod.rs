@@ -10,7 +10,7 @@ use super::error::Error;
 use super::builder::command::Command;
 use self::scope::Scope;
 use self::util::conditional_to_parts;
-use self::io::{io_write, io_append, io_read};
+use self::io::{io_write, io_append, io_read, io_read_append};
 
 pub struct Vm<'a, T: Logger + 'a> {
     controller: &'a mut Controller<T>,
@@ -54,6 +54,7 @@ where
             Command::IoWrite(left, right) => io_write(scope, left, right)?,
             Command::IoAppend(left, right) => io_append(scope, left, right)?,
             Command::IoRead(left, right) => io_read(scope, left, right)?,
+            Command::IoReadAppend(left, right) => io_read_append(scope, left, right)?,
             Command::Addition(sink, left, right) => scope.addition(sink, left, right)?,
             Command::Subtract(sink, left, right) => scope.subtract(sink, left, right)?,
             Command::Multiply(sink, left, right) => scope.multiply(sink, left, right)?,
