@@ -157,18 +157,33 @@ An **apl-ish**, **write-only** scripting language to be used like bash
 
 ### Run Commands ```!@["command", "...args"]```
 * Take an array of the command and the args and run
-* Returns an array of [exit_code, STDOUT, STDERR]
+* Returns an array of [exitcode, STDOUT, STDERR]
 
 ## If statement
-* ```?comparision{true statments}{false statements}```
-* ```?comparision```
+* ````?compare{true statements}{false statements}````
+* ````?compare````
     * This just returns a boolean
 
 ## Loops
-* ```$condition${while condition}```
+* `````$condition${while condition}`````
 
 ## System Commands
-* All commands start with ```\```
+* All commands start with ````\````
 
 ### Exit \\\\code
 * Exits the program with code
+
+## Vector Operations
+* Applies to arrays and are in place
+
+### Len @?
+* Returns the length of an array as an int
+
+### Push @<
+* Pushes an element to the end of an array
+
+### Pop @>
+* Removes an element for the end of an array
+
+### Reverse @^
+* Reverse and array
