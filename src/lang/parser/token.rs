@@ -49,6 +49,11 @@ pub enum Token {
     // used to denote value in register
     Reg(usize),
     Cast(CastTo),
+    Len,
+    Push,
+    Pop,
+    Reverse,
+    Sort,
 }
 
 impl Token {

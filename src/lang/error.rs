@@ -63,4 +63,5 @@ pub enum Error {
     UnableToAppendTo,
     UnableToAppendToWrongType,
     CastFail,
+    InvalidArrayOpCall,
 }

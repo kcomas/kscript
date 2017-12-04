@@ -11,6 +11,7 @@ use super::util::{do_parse_single, object_value_parsers};
 
 pub enum ArrayParserState {
     Nothing,
+    CheckOperation,
     IsArray,
     LoadItem,
 }
@@ -67,9 +68,20 @@ where
                         match c {
                             '@' => {
                                 parser_data.inc_char();
-                                ArrayParserState::IsArray
+                                ArrayParserState::CheckOperation
                             }
                             _ => return Err(Error::CheckMismatch(c, ci, li)),
+                        }
+                    }
+                    ArrayParserState::CheckOperation => {
+                        match c {
+                            '[' => ArrayParserState::IsArray,
+                            '?' => {
+                                parser_data.inc_char();
+                                token_container.add_token(controller, Token::Len);
+                                return Ok(false);
+                            }
+                            _ => return Err(Error::InvalidArrayOp(c, ci, li)),
                         }
                     }
                     ArrayParserState::IsArray => {

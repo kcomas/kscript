@@ -50,6 +50,20 @@ impl DataContainer {
         }
     }
 
+    pub fn is_vector(&self) -> bool {
+        match *self {
+            DataContainer::Vector(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn len(&self) -> usize {
+        match *self {
+            DataContainer::Vector(ref items) => items.len(),
+            _ => 0,
+        }
+    }
+
     pub fn is_reference(&self) -> bool {
         match *self {
             DataContainer::Reference(_) => true,

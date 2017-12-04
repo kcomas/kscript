@@ -315,4 +315,6 @@ pub enum Command {
     If(DataHolder, Vec<Command>, Vec<Command>),
     Loop(DataHolder, Vec<Command>),
     Cast(CastTo, usize, usize),
+    // array commands
+    Len(usize, usize),
 }

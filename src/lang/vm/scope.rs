@@ -384,6 +384,20 @@ impl Scope {
         Err(Error::CastFail)
     }
 
+    pub fn len(&mut self, left_reg: usize, right_reg: usize) -> Result<(), Error> {
+        self.check_if_last(left_reg);
+        let right = self.get_ref_holder(right_reg)?;
+
+        if !right.borrow().is_vector() {
+            return Err(Error::InvalidArrayOpCall);
+        }
+        self.set_value_in_reg(
+            left_reg,
+            DataContainer::Scalar(DataType::Integer(right.borrow().len() as i64)),
+        );
+        Ok(())
+    }
+
     pub fn dereference(&mut self, left_reg: usize, right_reg: usize) -> Result<(), Error> {
         self.check_if_last(left_reg);
         let right = self.get_ref_holder(right_reg)?;

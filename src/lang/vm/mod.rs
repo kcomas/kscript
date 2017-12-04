@@ -90,6 +90,7 @@ where
                 }
             }
             Command::Cast(ref cast_to, ref left, ref right) => scope.cast(cast_to, *left, *right)?,
+            Command::Len(left, right) => scope.len(left, right)?,
             _ => {}
         };
         Ok(())

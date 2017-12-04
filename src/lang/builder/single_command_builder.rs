@@ -21,7 +21,7 @@ where
 {
     fn check(&self, token: &Token) -> bool {
         match *token {
-            Token::Run | Token::Dereference | Token::Cast(_) => true,
+            Token::Run | Token::Dereference | Token::Cast(_) | Token::Len => true,
             _ => false,
         }
     }
@@ -74,6 +74,15 @@ where
                         controller,
                         Command::Cast(
                             cast_to.clone(),
+                            *current_register,
+                            right_counter,
+                        ),
+                    );
+                }
+                Token::Len => {
+                    command_container.add_command(
+                        controller,
+                        Command::Len(
                             *current_register,
                             right_counter,
                         ),

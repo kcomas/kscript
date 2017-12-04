@@ -187,3 +187,7 @@ An **apl-ish**, **write-only** scripting language to be used like bash
 
 ### Reverse @^
 * Reverse and array
+
+### Sort @@
+* Sort by a function which takes a left and right argument
+* The function returns < 0 for less 0 for same or > 0 for greater
