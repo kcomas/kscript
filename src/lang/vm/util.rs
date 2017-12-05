@@ -11,6 +11,7 @@ use super::vm_types::{DataContainer, RefHolder, RefMap, RefArray, FunctionArg};
 use super::Vm;
 
 pub fn unwrap_reference_to_type(container: &DataContainer) -> Option<DataType> {
+    println!("{:?}", container);
     match *container {
         DataContainer::Scalar(ref data_type) => Some(data_type.clone()),
         DataContainer::Reference(ref reference) => {
@@ -280,7 +281,7 @@ pub fn access_object<T: Logger>(
         return access_object(controller, scope, target, &DataHolder::Anon(holder));
     }
 
-    let ref_target = match *target {
+    let mut ref_target = match *target {
         DataHolder::Var(ref name) => {
             match scope.get_var(name) {
                 Some(ref_holder) => ref_holder,
@@ -303,6 +304,15 @@ pub fn access_object<T: Logger>(
         )),
         _ => return Err(Error::InvalidObjectAccessTarget),
     };
+
+    if ref_target.borrow().is_reference() {
+        let clone;
+        {
+            let borrow = ref_target.borrow();
+            clone = borrow.clone();
+        }
+        ref_target = Rc::new(RefCell::new(clone));
+    }
 
     if let Some(data_type_ref) = ref_accessor.borrow().get_as_data_type_ref() {
         return match *ref_target.borrow() {
