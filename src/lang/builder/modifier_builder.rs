@@ -7,27 +7,27 @@ use super::super::error::Error;
 use super::sub_builder::SubBuilder;
 use super::command::Command;
 
-pub struct SingleCommandBuilder {}
+pub struct ModifierBuilder {}
 
-impl SingleCommandBuilder {
-    pub fn new() -> SingleCommandBuilder {
-        SingleCommandBuilder {}
+impl ModifierBuilder {
+    pub fn new() -> ModifierBuilder {
+        ModifierBuilder {}
     }
 }
 
-impl<T> SubBuilder<T> for SingleCommandBuilder
+impl<T> SubBuilder<T> for ModifierBuilder
 where
     T: Logger,
 {
     fn check(&self, token: &Token) -> bool {
         match *token {
-            Token::Run | Token::Len => true,
+            Token::Dereference | Token::Cast(_) => true,
             _ => false,
         }
     }
 
     fn presedence(&self) -> u64 {
-        2
+        3
     }
 
     fn identify(&self) -> &str {
@@ -54,19 +54,17 @@ where
         }
         if let Some(token) = token_container.get_slice_token_mut() {
             match *token {
-                Token::Run => {
+                Token::Dereference => {
                     command_container.add_command(
                         controller,
-                        Command::Run(
-                            *current_register,
-                            right_counter,
-                        ),
+                        Command::Dereference(*current_register, right_counter),
                     );
                 }
-                Token::Len => {
+                Token::Cast(ref cast_to) => {
                     command_container.add_command(
                         controller,
-                        Command::Len(
+                        Command::Cast(
+                            cast_to.clone(),
                             *current_register,
                             right_counter,
                         ),

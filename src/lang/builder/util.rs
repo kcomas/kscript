@@ -8,6 +8,7 @@ use super::super::parser::token::Token;
 use super::command_container::CommandContainer;
 use super::command::{Command, DataHolder, DataType};
 use super::sub_builder::SubBuilder;
+use super::modifier_builder::ModifierBuilder;
 use super::single_command_builder::SingleCommandBuilder;
 use super::double_command_builder::DoubleCommandBuilder;
 use super::io_builder::IoBuilder;
@@ -308,8 +309,9 @@ pub fn create_commands<T: Logger>(
     Ok(())
 }
 
-pub fn top_level_builders<T: Logger>() -> [Box<SubBuilder<T>>; 5] {
+pub fn top_level_builders<T: Logger>() -> [Box<SubBuilder<T>>; 6] {
     [
+        Box::new(ModifierBuilder::new()),
         Box::new(SingleCommandBuilder::new()),
         Box::new(DoubleCommandBuilder::new()),
         Box::new(IoBuilder::new()),

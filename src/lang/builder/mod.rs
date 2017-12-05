@@ -2,6 +2,7 @@
 pub mod command;
 pub mod command_container;
 mod sub_builder;
+mod modifier_builder;
 mod single_command_builder;
 mod double_command_builder;
 mod io_builder;
