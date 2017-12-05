@@ -32,6 +32,8 @@ An **apl-ish**, **write-only** scripting language to be used like bash
 ### Objects
 * Arrays and Dictionaries
 * Passed by deep copy
+* Objects accessed by reference have the reference dereferenced to its value
+* Objects are dereferenced when accessed
 
 #### Array
 * Arrays are always mixed typed of and can be initialized with other variables
@@ -48,7 +50,6 @@ An **apl-ish**, **write-only** scripting language to be used like bash
 * Declared with ```%[key: value]```
 * Pairs separated by comma
 * Accessed with ```dictionary[string|(variable with string)|(constant with string)]```
-* Objects accessed by reference have the reference dereferenced to its value
 
 ### Functions
 * Does not have access to the parent scope
