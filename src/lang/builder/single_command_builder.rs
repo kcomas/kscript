@@ -31,7 +31,7 @@ where
     }
 
     fn identify(&self) -> &str {
-        "Run Builder"
+        "Single Builder"
     }
 
     fn do_clear(&self) -> bool {
