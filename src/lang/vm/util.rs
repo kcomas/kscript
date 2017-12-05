@@ -305,13 +305,12 @@ pub fn access_object<T: Logger>(
         _ => return Err(Error::InvalidObjectAccessTarget),
     };
 
-    if ref_target.borrow().is_reference() {
+    while ref_target.borrow().is_reference() {
         let clone;
         {
-            let borrow = ref_target.borrow();
-            clone = borrow.clone();
+            clone = ref_target.borrow().underlying_reference().unwrap();
         }
-        ref_target = Rc::new(RefCell::new(clone));
+        ref_target = clone;
     }
 
     if let Some(data_type_ref) = ref_accessor.borrow().get_as_data_type_ref() {
