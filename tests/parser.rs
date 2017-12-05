@@ -954,3 +954,33 @@ fn casting_operations() {
     assert_eq!(tokens[17], Token::Var("s2".to_string()));
     last_is_end(&tokens);
 }
+
+#[test]
+fn array_length() {
+    let kscript = create_parser(
+        "a = @[0, 1, 2, 3, 4]; b = @? a",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let tokens = get_tokens(&kscript);
+
+    assert_eq!(tokens.len(), 9);
+    assert_eq!(tokens[0], Token::Var("a".to_string()));
+    assert_eq!(tokens[1], Token::Assign);
+    assert_eq!(
+        tokens[2],
+        Token::Array(vec![
+            Token::Integer(0),
+            Token::Integer(1),
+            Token::Integer(2),
+            Token::Integer(3),
+            Token::Integer(4),
+        ])
+    );
+    assert_eq!(tokens[3], Token::End);
+    assert_eq!(tokens[4], Token::Var("b".to_string()));
+    assert_eq!(tokens[5], Token::Assign);
+    assert_eq!(tokens[6], Token::Len);
+    assert_eq!(tokens[7], Token::Var("a".to_string()));
+    last_is_end(&tokens);
+}

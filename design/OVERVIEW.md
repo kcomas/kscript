@@ -125,7 +125,7 @@ An **apl-ish**, **write-only** scripting language to be used like bash
 
 ### Equals ==
 
-### Not Equals !=
+### Not Equals =!
 
 ### Greater then >
 * Only applies to numbers

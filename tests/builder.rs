@@ -1404,3 +1404,45 @@ fn casting_operations() {
     assert_eq!(commands[17], Command::Assign(0, 2));
     last_is_clear(&commands);
 }
+
+#[test]
+fn array_length() {
+    let kscript = create_builder(
+        "a = @[0, 1, 2, 3, 4]; b = @? a",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let commands = get_commands(&kscript);
+
+    assert_eq!(commands.len(), 9);
+    assert_eq!(
+        commands[0],
+        Command::SetRegister(0, DataHolder::Var("a".to_string()))
+    );
+    assert_eq!(
+        commands[1],
+        Command::SetRegister(
+            1,
+            DataHolder::Array(vec![
+                DataHolder::Anon(DataType::Integer(0)),
+                DataHolder::Anon(DataType::Integer(1)),
+                DataHolder::Anon(DataType::Integer(2)),
+                DataHolder::Anon(DataType::Integer(3)),
+                DataHolder::Anon(DataType::Integer(4)),
+            ]),
+        )
+    );
+    assert_eq!(commands[2], Command::Assign(0, 1));
+    assert_eq!(commands[3], Command::ClearRegisters);
+    assert_eq!(
+        commands[4],
+        Command::SetRegister(0, DataHolder::Var("b".to_string()))
+    );
+    assert_eq!(
+        commands[5],
+        Command::SetRegister(1, DataHolder::Var("a".to_string()))
+    );
+    assert_eq!(commands[6], Command::Len(2, 1));
+    assert_eq!(commands[7], Command::Assign(0, 2));
+    last_is_clear(&commands);
+}

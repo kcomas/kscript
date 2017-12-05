@@ -447,3 +447,14 @@ fn casting_operations() {
     let b = kscript.get_root_scope().get_var("bool").unwrap();
     assert_eq!(*b.borrow(), DataContainer::Scalar(DataType::Bool(true)));
 }
+
+#[test]
+fn array_length() {
+    let kscript = create(
+        "a = @[0, 1, 2, 3, 4]; b = @? a",
+        VoidLogger::new(LoggerMode::Void),
+    );
+
+    let b = kscript.get_root_scope().get_var("b").unwrap();
+    assert_eq!(*b.borrow(), DataContainer::Scalar(DataType::Integer(5)));
+}
