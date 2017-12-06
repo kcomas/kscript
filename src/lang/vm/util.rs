@@ -330,7 +330,7 @@ pub fn access_object<T: Logger>(
                 match *data_type_ref {
                     DataType::String(ref string) => {
                         match map.get(string) {
-                            Some(hash_item_holder) => Ok(hash_item_holder.clone()),
+                            Some(hash_item_holder) => Ok(Rc::clone(hash_item_holder)),
                             _ => Err(Error::InvalidHashKey),
                         }
                     }

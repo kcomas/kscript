@@ -55,7 +55,7 @@ impl Scope {
 
     pub fn get_var(&self, name: &str) -> Option<RefHolder> {
         match self.vars.get(name) {
-            Some(ref_holder) => Some(ref_holder.clone()),
+            Some(ref_holder) => Some(Rc::clone(ref_holder)),
             None => None,
         }
     }
@@ -66,7 +66,7 @@ impl Scope {
 
     pub fn get_const(&self, name: &str) -> Option<RefHolder> {
         match self.consts.get(name) {
-            Some(ref_holder) => Some(ref_holder.clone()),
+            Some(ref_holder) => Some(Rc::clone(ref_holder)),
             None => None,
         }
     }
@@ -146,7 +146,7 @@ impl Scope {
                     Some(reg_item) => {
                         match *reg_item.borrow() {
                             DataContainer::Math(math_reg) => Ok(self.get_ref_holder(math_reg)?),
-                            _ => Ok(reg_item.clone()),
+                            _ => Ok(Rc::clone(&reg_item)),
                         }
                     }
                     None => Err(Error::InvalidScopeRegisterGet),
@@ -333,7 +333,7 @@ impl Scope {
                 match **target {
                     RegItem::Var(ref ref_holder) |
                     RegItem::Access(ref ref_holder) => {
-                        *left.borrow_mut() = DataContainer::Reference(ref_holder.clone());
+                        *left.borrow_mut() = DataContainer::Reference(Rc::clone(ref_holder));
                         Ok(())
                     }
                     _ => Err(Error::InvalidReferenceGet),

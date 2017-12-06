@@ -73,7 +73,7 @@ impl DataContainer {
 
     pub fn underlying_reference(&self) -> Option<RefHolder> {
         match *self {
-            DataContainer::Reference(ref reference) => Some(reference.clone()),
+            DataContainer::Reference(ref reference) => Some(Rc::clone(reference)),
             _ => None,
         }
     }
@@ -88,7 +88,7 @@ impl DataContainer {
     pub fn reference_or_clone(&self) -> DataContainer {
         match *self {
             DataContainer::Reference(ref ref_holder) => DataContainer::Reference(
-                ref_holder.clone(),
+                Rc::clone(ref_holder),
             ),
             _ => self.clone(),
         }
