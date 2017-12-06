@@ -34,9 +34,11 @@ impl<'a> TokenContainer<'a> {
 
     pub fn last_is_end(&self) -> bool {
         match self.tokens.last() {
-            Some(token) => match *token {
-                Token::End => true,
-                _ => false,
+            Some(token) => {
+                match *token {
+                    Token::End => true,
+                    _ => false,
+                }
             }
             None => false,
         }
@@ -154,16 +156,15 @@ impl<'a> TokenContainer<'a> {
                     *token = Token::Used;
                     return Some(reg_counter);
                 } else {
-                    match *token {
-                        Token::Used => {
-                            if inc_up && pos < end {
-                                pos += 1;
-                            } else if pos > start {
-                                pos -= 1;
-                            }
+                    if token.can_look_other() {
+                        if inc_up && pos < end {
+                            pos += 1;
+                        } else if pos > start {
+                            pos -= 1;
                         }
-                        _ => break,
-                    };
+                    } else {
+                        break;
+                    }
                 }
             }
         }

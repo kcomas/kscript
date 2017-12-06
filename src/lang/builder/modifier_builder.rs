@@ -49,6 +49,8 @@ where
         let right_counter;
         if let Some(reg_counter) = token_container.get_right_register_and_use() {
             right_counter = reg_counter;
+        } else if let Some(reg_counter) = token_container.get_left_register_and_use() {
+            right_counter = reg_counter;
         } else {
             return Err(Error::InvalidRightRegisterAccess);
         }

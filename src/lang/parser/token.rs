@@ -94,6 +94,13 @@ impl Token {
         }
     }
 
+    pub fn can_look_other(&self) -> bool {
+        match *self {
+            Token::Used | Token::Dereference | Token::Cast(_) => true,
+            _ => false,
+        }
+    }
+
     pub fn to_comparison(&self) -> Option<Comparison> {
         match *self {
             Token::Equals => Some(Comparison::Equals),
