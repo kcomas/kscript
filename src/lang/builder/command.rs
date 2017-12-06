@@ -317,4 +317,5 @@ pub enum Command {
     Cast(CastTo, usize, usize),
     // array commands
     Len(usize, usize),
+    Push(usize, usize),
 }

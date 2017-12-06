@@ -3,6 +3,7 @@ pub mod scope;
 pub mod vm_types;
 mod util;
 mod io;
+mod vector;
 
 use super::controller::Controller;
 use super::logger::Logger;
@@ -11,6 +12,7 @@ use super::builder::command::Command;
 use self::scope::Scope;
 use self::util::conditional_to_parts;
 use self::io::{io_write, io_append, io_read, io_read_append};
+use self::vector::{len, push};
 
 pub struct Vm<'a, T: Logger + 'a> {
     controller: &'a mut Controller<T>,
@@ -90,7 +92,8 @@ where
                 }
             }
             Command::Cast(ref cast_to, ref left, ref right) => scope.cast(cast_to, *left, *right)?,
-            Command::Len(left, right) => scope.len(left, right)?,
+            Command::Len(left, right) => len(scope, left, right)?,
+            Command::Push(left, right) => push(scope, left, right)?,
             _ => {}
         };
         Ok(())

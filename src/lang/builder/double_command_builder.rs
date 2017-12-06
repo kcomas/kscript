@@ -23,7 +23,7 @@ where
 {
     fn check(&self, token: &Token) -> bool {
         match *token {
-            Token::Assign | Token::TakeReference => true,
+            Token::Assign | Token::TakeReference | Token::Push => true,
             _ => false,
         }
     }
@@ -65,6 +65,12 @@ where
                     command_container.add_command(
                         controller,
                         Command::TakeReference(left_counter, right_counter),
+                    );
+                }
+                Token::Push => {
+                    command_container.add_command(
+                        controller,
+                        Command::Push(left_counter, right_counter),
                     );
                 }
                 _ => return Err(Error::TokenMismatch),

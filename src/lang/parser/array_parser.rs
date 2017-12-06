@@ -81,6 +81,11 @@ where
                                 token_container.add_token(controller, Token::Len);
                                 return Ok(false);
                             }
+                            '<' => {
+                                parser_data.inc_char();
+                                token_container.add_token(controller, Token::Push);
+                                return Ok(false);
+                            }
                             _ => return Err(Error::InvalidArrayOp(c, ci, li)),
                         }
                     }

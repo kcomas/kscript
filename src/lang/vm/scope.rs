@@ -156,13 +156,13 @@ impl Scope {
         }
     }
 
-    fn check_if_last(&mut self, reg: usize) {
+    pub fn check_if_last(&mut self, reg: usize) {
         if reg == self.registers.len() {
             self.registers.push(RegItem::Empty);
         }
     }
 
-    fn set_value_in_reg(&mut self, sink_reg: usize, value: DataContainer) {
+    pub fn set_value_in_reg(&mut self, sink_reg: usize, value: DataContainer) {
         self.registers[sink_reg] = RegItem::Value(Rc::new(RefCell::new(value)));
     }
 
@@ -382,20 +382,6 @@ impl Scope {
             return Ok(());
         }
         Err(Error::CastFail)
-    }
-
-    pub fn len(&mut self, left_reg: usize, right_reg: usize) -> Result<(), Error> {
-        self.check_if_last(left_reg);
-        let right = self.get_ref_holder(right_reg)?;
-
-        if !right.borrow().is_vector() {
-            return Err(Error::InvalidArrayOpCall);
-        }
-        self.set_value_in_reg(
-            left_reg,
-            DataContainer::Scalar(DataType::Integer(right.borrow().len() as i64)),
-        );
-        Ok(())
     }
 
     pub fn dereference(&mut self, left_reg: usize, right_reg: usize) -> Result<(), Error> {

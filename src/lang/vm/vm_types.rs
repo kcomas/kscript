@@ -78,6 +78,22 @@ impl DataContainer {
         }
     }
 
+    pub fn underlying_array_mut(&mut self) -> Option<&mut Vec<RefHolder>> {
+        match *self {
+            DataContainer::Vector(ref mut array) => Some(array),
+            _ => None,
+        }
+    }
+
+    pub fn reference_or_clone(&self) -> DataContainer {
+        match *self {
+            DataContainer::Reference(ref ref_holder) => DataContainer::Reference(
+                ref_holder.clone(),
+            ),
+            _ => self.clone(),
+        }
+    }
+
     pub fn write_string(&mut self, to_write: String) -> Result<(), Error> {
         match *self {
             DataContainer::Scalar(ref mut data_type) => data_type.write_string(to_write),
