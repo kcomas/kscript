@@ -10,7 +10,7 @@ pub enum Command {
     // remove from stack
     Pop,
     // load argument from saved stack position
-    LoadArg,
+    Load,
     // save value to save stack
     Save,
     // restore value from save stack
@@ -63,21 +63,24 @@ pub fn load_commands<'a>(
                             let fn_name = ast[highest_presedence_index].get_function_name()?;
                             add_main_halt = symbols.register_function(fn_name, commands.len())?;
                         }
-                        let mut function_symbol_table = SymbolTable::new(false);
+                        let mut function_symbol_table = symbols.get_sub_table();
                         {
                             let args = ast[highest_presedence_index].get_function_args()?;
                             // convert the args to indexes
                             for arg in args.iter() {
                                 if let Some(var) = arg.get(0) {
                                     let var_name = var.get_var_name()?;
-                                    function_symbol_table.register_var(var_name);
+                                    function_symbol_table.register_var(var_name)?;
                                 }
                             }
                         }
                         let fn_body = ast[highest_presedence_index].get_function_body_mut()?;
                         load_commands(fn_body, commands, &mut function_symbol_table)?;
+                    // add a halt or return if needed
                     } else {
                         // function call
+                        let fn_index = symbols.get_function_index(ast[highest_presedence_index]
+                            .get_function_name()?)?;
                     }
                 }
                 ast[highest_presedence_index] = Ast::Used;

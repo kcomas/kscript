@@ -1,33 +1,45 @@
+use std::rc::Rc;
+use std::cell::RefCell;
 use std::collections::HashMap;
 use super::error::Error;
 
 #[derive(Debug)]
 pub struct SymbolTable {
     // name, index
-    functions: HashMap<String, usize>,
+    functions: Rc<RefCell<HashMap<String, usize>>>,
     vars: HashMap<String, usize>,
     var_counter: usize,
     root: bool,
 }
 
 impl<'a> SymbolTable {
-    pub fn new(root: bool) -> SymbolTable {
+    pub fn new(functions: &Rc<RefCell<HashMap<String, usize>>>) -> SymbolTable {
         SymbolTable {
-            functions: HashMap::new(),
+            functions: Rc::clone(functions),
             vars: HashMap::new(),
             var_counter: 0,
-            root: root,
+            root: true,
+        }
+    }
+
+    pub fn get_sub_table(&self) -> SymbolTable {
+        SymbolTable {
+            functions: Rc::clone(&self.functions),
+            vars: HashMap::new(),
+            var_counter: 0,
+            root: false,
         }
     }
 
     pub fn register_function(&mut self, name: &str, position: usize) -> Result<bool, Error<'a>> {
-        if let Some(_) = self.functions.get(name) {
+        let mut borrowed_functions = self.functions.borrow_mut();
+        if let Some(_) = borrowed_functions.get(name) {
             return Err(Error::FunctionDeclared(
                 name.to_string(),
                 "Function allready declared",
             ));
         }
-        self.functions.insert(name.to_string(), position);
+        borrowed_functions.insert(name.to_string(), position);
         if name == "main" {
             if !self.root {
                 return Err(Error::CannotDeclareSubMain("Main can only be top level"));
@@ -35,6 +47,16 @@ impl<'a> SymbolTable {
             return Ok(true);
         }
         Ok(false)
+    }
+
+    pub fn get_function_index(&mut self, name: &str) -> Result<usize, Error<'a>> {
+        if let Some(index) = self.functions.borrow_mut().get(name) {
+            return Ok(*index);
+        }
+        Err(Error::FunctionNotDeclared(
+            name.to_string(),
+            "Function not declared",
+        ))
     }
 
     pub fn register_var(&mut self, name: &str) -> Result<(), Error<'a>> {

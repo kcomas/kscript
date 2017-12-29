@@ -33,10 +33,10 @@ impl<'a> Ast {
     pub fn presedence(&self) -> usize {
         match *self {
             Ast::If(_) => 1,
-            Ast::Function(_, _, _) => 2,
-            Ast::Equals => 3,
-            Ast::Add | Ast::Sub => 4,
-            Ast::IoWrite | Ast::IoAppend | Ast::Assign => 5,
+            Ast::Equals => 2,
+            Ast::Add | Ast::Sub => 3,
+            Ast::IoWrite | Ast::IoAppend | Ast::Assign => 4,
+            Ast::Function(_, _, _) => 5,
             _ => 0,
         }
     }

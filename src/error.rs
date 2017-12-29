@@ -8,6 +8,7 @@ pub enum Error<'a> {
     InvalidIoWrite(&'a str),
     InvalidArgs(&'a str),
     FunctionDeclared(String, &'a str),
+    FunctionNotDeclared(String, &'a str),
     AstIsNotAFunction(&'a str),
     VarDeclared(String, &'a str),
     AstNotVar(&'a str),
