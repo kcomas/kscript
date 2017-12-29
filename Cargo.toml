@@ -1,0 +1,6 @@
+[package]
+name = "kscript"
+version = "0.1.0"
+authors = ["kcomas <kevin.comas.git@gmail.com>"]
+
+[dependencies]
