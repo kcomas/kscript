@@ -5,6 +5,7 @@ use super::error::Error;
 
 #[derive(Debug)]
 pub enum Ast {
+    Used,
     Comment(String),
     End,
     Var(String),
@@ -27,6 +28,40 @@ impl Ast {
             return true;
         }
         false
+    }
+
+    pub fn presedence(&self) -> usize {
+        match *self {
+            Ast::Function(_, _, _) => 1,
+            Ast::Equals => 2,
+            Ast::Add | Ast::Sub => 3,
+            Ast::IoWrite | Ast::IoAppend | Ast::Assign => 4,
+            _ => 0,
+        }
+    }
+
+    pub fn get_function_name(&self) -> &str {
+        match *self {
+            Ast::Function(ref name_token, _, _) => match **name_token {
+                Ast::Var(ref name) => name,
+                _ => "",
+            },
+            _ => "",
+        }
+    }
+
+    pub fn is_function(&self) -> bool {
+        match *self {
+            Ast::Function(_, _, _) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_function_def(&self) -> bool {
+        match *self {
+            Ast::Function(_, _, ref body) => body.len() > 0,
+            _ => false,
+        }
     }
 }
 
