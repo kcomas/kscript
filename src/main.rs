@@ -17,7 +17,7 @@ fn main() {
     let mut ast = load_ast(&mut iter).unwrap();
     println!("{:#?}", ast);
     let mut commands = Vec::new();
-    let mut root_symbols = SymbolTable::new();
+    let mut root_symbols = SymbolTable::new(true);
     load_commands(&mut ast, &mut commands, &mut root_symbols).unwrap();
     println!("{:?}", root_symbols);
 }

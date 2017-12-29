@@ -34,7 +34,7 @@ pub fn load_commands<'a>(
     let mut end_index = 0;
     while start_index < ast.len() - 1 {
         // find the next end token or get to the end of the commands
-        while !ast[end_index].is_end() && end_index < ast.len() {
+        while end_index < ast.len() && !ast[end_index].is_end() {
             end_index += 1;
         }
         if start_index < end_index {
@@ -58,10 +58,26 @@ pub fn load_commands<'a>(
                 println!("{:?}", ast[highest_presedence_index]);
                 if ast[highest_presedence_index].is_function() {
                     if ast[highest_presedence_index].is_function_def() {
-                        let fn_name = ast[highest_presedence_index].get_function_name();
-                        symbols.register_function(fn_name, commands.len())?;
+                        let add_main_halt;
+                        {
+                            let fn_name = ast[highest_presedence_index].get_function_name()?;
+                            add_main_halt = symbols.register_function(fn_name, commands.len())?;
+                        }
+                        let mut function_symbol_table = SymbolTable::new(false);
+                        {
+                            let args = ast[highest_presedence_index].get_function_args()?;
+                            // convert the args to indexes
+                            for arg in args.iter() {
+                                if let Some(var) = arg.get(0) {
+                                    let var_name = var.get_var_name()?;
+                                    function_symbol_table.register_var(var_name);
+                                }
+                            }
+                        }
+                        let fn_body = ast[highest_presedence_index].get_function_body_mut()?;
+                        load_commands(fn_body, commands, &mut function_symbol_table)?;
                     } else {
-
+                        // function call
                     }
                 }
                 ast[highest_presedence_index] = Ast::Used;

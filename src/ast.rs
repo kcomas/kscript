@@ -22,7 +22,7 @@ pub enum Ast {
     Return,
 }
 
-impl Ast {
+impl<'a> Ast {
     pub fn is_end(&self) -> bool {
         if let Ast::End = *self {
             return true;
@@ -32,21 +32,47 @@ impl Ast {
 
     pub fn presedence(&self) -> usize {
         match *self {
-            Ast::Function(_, _, _) => 1,
-            Ast::Equals => 2,
-            Ast::Add | Ast::Sub => 3,
-            Ast::IoWrite | Ast::IoAppend | Ast::Assign => 4,
+            Ast::If(_) => 1,
+            Ast::Function(_, _, _) => 2,
+            Ast::Equals => 3,
+            Ast::Add | Ast::Sub => 4,
+            Ast::IoWrite | Ast::IoAppend | Ast::Assign => 5,
             _ => 0,
         }
     }
 
-    pub fn get_function_name(&self) -> &str {
+    pub fn get_var_name(&self) -> Result<&str, Error<'a>> {
+        match *self {
+            Ast::Var(ref name) => Ok(name),
+            _ => Err(Error::AstNotVar("Token not a var")),
+        }
+    }
+
+    pub fn get_function_name(&self) -> Result<&str, Error<'a>> {
         match *self {
             Ast::Function(ref name_token, _, _) => match **name_token {
-                Ast::Var(ref name) => name,
-                _ => "",
+                Ast::Var(ref name) => Ok(name),
+                _ => Err(Error::AstIsNotAFunction("Function name is not a var")),
             },
-            _ => "",
+            _ => Err(Error::AstIsNotAFunction("Not a function cannot get name")),
+        }
+    }
+
+    pub fn get_function_args(&self) -> Result<&Vec<Vec<Ast>>, Error<'a>> {
+        match *self {
+            Ast::Function(_, ref args, _) => Ok(args),
+            _ => Err(Error::AstIsNotAFunction(
+                "Not a function cannot get function args",
+            )),
+        }
+    }
+
+    pub fn get_function_body_mut(&mut self) -> Result<&mut Vec<Ast>, Error<'a>> {
+        match *self {
+            Ast::Function(_, _, ref mut body) => Ok(body),
+            _ => Err(Error::AstIsNotAFunction(
+                "Not a function cannot get function body",
+            )),
         }
     }
 
