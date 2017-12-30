@@ -59,6 +59,13 @@ impl<'a> SymbolTable {
         ))
     }
 
+    pub fn get_main(&self) -> Result<usize, Error<'a>> {
+        if let Some(index) = self.functions.borrow_mut().get("main") {
+            return Ok(*index);
+        }
+        Err(Error::MainNotDeclared("Main not declared"))
+    }
+
     pub fn register_var(&mut self, name: &str) -> Result<(), Error<'a>> {
         if let Some(_) = self.vars.get(name) {
             return Err(Error::VarDeclared(

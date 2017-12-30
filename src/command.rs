@@ -8,7 +8,7 @@ pub enum Command {
     // add to stack
     Push(DataType),
     // remove from stack
-    Pop,
+    // Pop,
     // load argument from the var stack
     Load(usize),
     // save value to save stack
@@ -128,7 +128,7 @@ pub fn load_commands<'a>(
                         &mut if_commands,
                         symbols,
                     )?;
-                    let jmpf = Command::Jmpf(commands.len() + if_commands.len());
+                    let jmpf = Command::Jmpf(commands.len() + if_commands.len() + 1);
                     commands.push(jmpf);
                     commands.append(&mut if_commands);
                 } else {

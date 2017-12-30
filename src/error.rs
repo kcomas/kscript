@@ -19,4 +19,5 @@ pub enum Error<'a> {
     CannotDeclareSubMain(&'a str),
     CannotConvertToDataType(Ast, &'a str),
     CannotGetIfBody(&'a str),
+    MainNotDeclared(&'a str),
 }

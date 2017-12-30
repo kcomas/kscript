@@ -21,4 +21,6 @@ fn main() {
     load_commands(&mut ast, &mut commands, &mut root_symbols).unwrap();
     println!("{:?}", root_symbols);
     println!("{:#?}", commands);
+    let entry = root_symbols.get_main().unwrap();
+    println!("Entry: {}", entry);
 }
