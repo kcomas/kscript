@@ -22,5 +22,5 @@ fn main() {
     println!("{:?}", root_symbols);
     println!("{:#?}", commands);
     let entry = root_symbols.get_main().unwrap();
-    println!("Entry: {}", entry);
+    println!("Entry: {}, {:?}", entry, commands[entry]);
 }

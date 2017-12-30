@@ -26,12 +26,13 @@ pub enum Ast {
 impl<'a> Ast {
     pub fn presedence(&self) -> usize {
         match *self {
-            Ast::If(_) => 1,
-            Ast::Equals => 2,
-            Ast::Add | Ast::Sub => 3,
+            Ast::Var(_) | Ast::Integer(_) => 1,
+            Ast::Return => 2,
+            Ast::If(_) => 3,
             Ast::IoWrite | Ast::IoAppend | Ast::Assign => 4,
-            Ast::Function(_, _, _) => 5,
-            Ast::Return => 6,
+            Ast::Equals => 5,
+            Ast::Add | Ast::Sub => 6,
+            Ast::Function(_, _, _) => 7,
             _ => 0,
         }
     }
@@ -48,6 +49,17 @@ impl<'a> Ast {
             return true;
         }
         false
+    }
+
+    pub fn is_number(&self) -> bool {
+        match *self {
+            Ast::Integer(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_data(&self) -> bool {
+        self.is_var() || self.is_number()
     }
 
     pub fn is_var(&self) -> bool {
