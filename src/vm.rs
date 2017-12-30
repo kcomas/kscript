@@ -27,7 +27,7 @@ impl<'a> Vm {
         }
     }
 
-    pub fn run(&mut self, commands: &Vec<Command>, entry: usize) -> Result<usize, Error<'a>> {
+    pub fn run(&mut self, commands: &Vec<Command>, entry: usize) -> Result<i32, Error<'a>> {
         let mut current_command_index = entry;
         loop {
             let mabe_command = commands.get(current_command_index);
@@ -66,7 +66,7 @@ impl<'a> Vm {
         &mut self,
         command: &Command,
         current_command_index: usize,
-    ) -> Result<(usize, Option<usize>), Error<'a>> {
+    ) -> Result<(usize, Option<i32>), Error<'a>> {
         match *command {
             Command::Push(ref data_type) => self.stack.push(data_type.clone()),
             Command::Load(index) => {

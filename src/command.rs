@@ -24,7 +24,7 @@ pub enum Command {
     Call(usize, usize),
     Return,
     // exit code
-    Halt(usize),
+    Halt(i32),
 }
 
 impl Command {

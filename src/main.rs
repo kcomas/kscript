@@ -6,6 +6,7 @@ mod symbol;
 mod command;
 mod vm;
 
+use std::process;
 use self::util::load_file_to_string;
 use self::ast::load_ast;
 use self::command::load_commands;
@@ -26,6 +27,7 @@ fn main() {
     let entry = root_symbols.get_main().unwrap();
     // println!("Entry: {}, {:?}", entry, commands[entry]);
     let mut vm = Vm::new();
-    vm.run(&commands, entry).unwrap();
+    let exit_code = vm.run(&commands, entry).unwrap();
     // println!("{:?}", vm);
+    process::exit(exit_code);
 }
