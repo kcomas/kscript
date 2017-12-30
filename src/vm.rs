@@ -86,9 +86,16 @@ impl<'a> Vm {
                     } else {
                         // load from locals
                         // index - num_args is local position
+                        if let Some(data) = self.locals.get(index - function_data.num_args) {
+                            new_data = Some(data.clone());
+                        }
+                    }
+                } else {
+                    // load from the locals
+                    if let Some(data) = self.locals.get(index) {
+                        new_data = Some(data.clone());
                     }
                 }
-                // load from the locals
                 if let Some(data) = new_data {
                     self.stack.push(data);
                 }
