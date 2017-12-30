@@ -23,7 +23,6 @@ pub enum Error<'a> {
     MainNotDeclared(&'a str),
     InvalidCommandIndex(usize, &'a str),
     StackEmpty(&'a str),
-    InvalidLocal(usize, &'a str),
     CannotCompare(DataType, DataType, &'a str),
     InvalidWriteTarget(DataType, &'a str),
     CannotReturn(&'a str),

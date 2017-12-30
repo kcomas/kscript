@@ -1,6 +1,6 @@
 
 .add,x,y,z {
-    x + y - z
+    z - y - x
 }
 
 .main, {

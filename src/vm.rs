@@ -72,7 +72,9 @@ impl<'a> Vm {
             Command::Load(index) => {
                 let mut new_data = None;
                 if let Some(function_data) = self.function_return.last() {
-                    if let Some(data_type) = self.stack.get(function_data.stack_position - index) {
+                    if let Some(data_type) = self.stack
+                        .get(function_data.stack_position - function_data.num_args + index)
+                    {
                         new_data = Some(data_type.clone());
                     } else {
                         // load from locals
@@ -141,7 +143,7 @@ impl<'a> Vm {
             Command::Call(args, index) => {
                 let function_data = FunctionInfo {
                     return_index: current_command_index + 1,
-                    stack_position: self.stack.len() - 1,
+                    stack_position: self.stack.len(),
                     num_args: args,
                 };
                 self.function_return.push(function_data);

@@ -14,18 +14,18 @@ use self::vm::Vm;
 
 fn main() {
     let program = load_file_to_string("./examples/ack.ks").unwrap();
-    println!("{}", program);
+    // println!("{}", program);
     let mut iter = program.chars().peekable();
     let mut ast = load_ast(&mut iter).unwrap();
-    println!("{:#?}", ast);
+    // println!("{:#?}", ast);
     let mut commands = Vec::new();
     let mut root_symbols = SymbolTable::new();
     load_commands(&mut ast, &mut commands, &mut root_symbols).unwrap();
-    println!("{:?}", root_symbols);
-    println!("{:#?}", commands);
+    // println!("{:?}", root_symbols);
+    // println!("{:#?}", commands);
     let entry = root_symbols.get_main().unwrap();
-    println!("Entry: {}, {:?}", entry, commands[entry]);
+    // println!("Entry: {}, {:?}", entry, commands[entry]);
     let mut vm = Vm::new();
     vm.run(&commands, entry).unwrap();
-    println!("{:?}", vm);
+    // println!("{:?}", vm);
 }
