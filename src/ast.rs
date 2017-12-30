@@ -69,6 +69,20 @@ impl<'a> Ast {
         false
     }
 
+    pub fn is_function(&self) -> bool {
+        match *self {
+            Ast::Function(_, _, _) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_function_def(&self) -> bool {
+        match *self {
+            Ast::Function(_, _, ref body) => body.len() > 0,
+            _ => false,
+        }
+    }
+
     pub fn get_var_name(&self) -> Result<&str, Error<'a>> {
         match *self {
             Ast::Var(ref name) => Ok(name),
@@ -110,20 +124,6 @@ impl<'a> Ast {
             _ => Err(Error::AstIsNotAFunction(
                 "Not a function cannot get function body",
             )),
-        }
-    }
-
-    pub fn is_function(&self) -> bool {
-        match *self {
-            Ast::Function(_, _, _) => true,
-            _ => false,
-        }
-    }
-
-    pub fn is_function_def(&self) -> bool {
-        match *self {
-            Ast::Function(_, _, ref body) => body.len() > 0,
-            _ => false,
         }
     }
 

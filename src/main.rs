@@ -4,14 +4,16 @@ mod ast;
 mod data_type;
 mod symbol;
 mod command;
+mod vm;
 
 use self::util::load_file_to_string;
 use self::ast::load_ast;
 use self::command::load_commands;
 use self::symbol::SymbolTable;
+use self::vm::Vm;
 
 fn main() {
-    let program = load_file_to_string("./examples/fib.ks").unwrap();
+    let program = load_file_to_string("./examples/ack.ks").unwrap();
     println!("{}", program);
     let mut iter = program.chars().peekable();
     let mut ast = load_ast(&mut iter).unwrap();
@@ -23,4 +25,7 @@ fn main() {
     println!("{:#?}", commands);
     let entry = root_symbols.get_main().unwrap();
     println!("Entry: {}, {:?}", entry, commands[entry]);
+    let mut vm = Vm::new();
+    vm.run(&commands, entry).unwrap();
+    println!("{:?}", vm);
 }

@@ -1,4 +1,5 @@
 use super::ast::Ast;
+use super::data_type::DataType;
 
 #[derive(Debug)]
 pub enum Error<'a> {
@@ -20,4 +21,10 @@ pub enum Error<'a> {
     CannotConvertToDataType(Ast, &'a str),
     CannotGetIfBody(&'a str),
     MainNotDeclared(&'a str),
+    InvalidCommandIndex(usize, &'a str),
+    StackEmpty(&'a str),
+    InvalidLocal(usize, &'a str),
+    CannotCompare(DataType, DataType, &'a str),
+    InvalidWriteTarget(DataType, &'a str),
+    CannotReturn(&'a str),
 }

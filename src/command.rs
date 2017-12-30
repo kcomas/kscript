@@ -9,12 +9,13 @@ pub enum Command {
     Push(DataType),
     // remove from stack
     // Pop,
-    // load argument from the var stack
+    // load argument from the locals stack
     Load(usize),
-    // save value to save stack
+    // save value to locals stack
+    // Save(usize)
     Equals,
-    Sub,
     Add,
+    Sub,
     IoWrite,
     IoAppend,
     // jump to position if false
@@ -70,7 +71,7 @@ pub fn load_commands<'a>(
                 break;
             }
             // work with this token
-            println!("{:?}", ast[highest_presedence_index]);
+            // println!("{:?}", ast[highest_presedence_index]);
             if ast[highest_presedence_index].is_function() {
                 if ast[highest_presedence_index].is_function_def() {
                     let add_main_halt;
