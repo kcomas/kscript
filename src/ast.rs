@@ -67,6 +67,15 @@ impl<'a> Ast {
         }
     }
 
+    pub fn get_function_args_mut(&mut self) -> Result<&mut Vec<Vec<Ast>>, Error<'a>> {
+        match *self {
+            Ast::Function(_, ref mut args, _) => Ok(args),
+            _ => Err(Error::AstIsNotAFunction(
+                "Not a function cannot get function args mut",
+            )),
+        }
+    }
+
     pub fn get_function_body_mut(&mut self) -> Result<&mut Vec<Ast>, Error<'a>> {
         match *self {
             Ast::Function(_, _, ref mut body) => Ok(body),

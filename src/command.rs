@@ -81,6 +81,10 @@ pub fn load_commands<'a>(
                         // function call
                         let fn_index = symbols.get_function_index(ast[highest_presedence_index]
                             .get_function_name()?)?;
+                        let args = ast[highest_presedence_index].get_function_args_mut()?;
+                        for arg in args.iter_mut() {
+                            load_commands(arg, commands, symbols)?;
+                        }
                     }
                 }
                 ast[highest_presedence_index] = Ast::Used;

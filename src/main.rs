@@ -5,9 +5,6 @@ mod data_type;
 mod symbol;
 mod command;
 
-use std::collections::HashMap;
-use std::rc::Rc;
-use std::cell::RefCell;
 use self::util::load_file_to_string;
 use self::ast::load_ast;
 use self::command::load_commands;
@@ -20,8 +17,7 @@ fn main() {
     let mut ast = load_ast(&mut iter).unwrap();
     println!("{:#?}", ast);
     let mut commands = Vec::new();
-    let functions = Rc::new(RefCell::new(HashMap::new()));
-    let mut root_symbols = SymbolTable::new(&functions);
+    let mut root_symbols = SymbolTable::new();
     load_commands(&mut ast, &mut commands, &mut root_symbols).unwrap();
     println!("{:?}", root_symbols);
     println!("{:#?}", commands);

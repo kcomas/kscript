@@ -13,9 +13,9 @@ pub struct SymbolTable {
 }
 
 impl<'a> SymbolTable {
-    pub fn new(functions: &Rc<RefCell<HashMap<String, usize>>>) -> SymbolTable {
+    pub fn new() -> SymbolTable {
         SymbolTable {
-            functions: Rc::clone(functions),
+            functions: Rc::new(RefCell::new(HashMap::new())),
             vars: HashMap::new(),
             var_counter: 0,
             root: true,
