@@ -72,12 +72,20 @@ impl<'a> Vm {
             Command::Load(index) => {
                 let mut new_data = None;
                 if let Some(function_data) = self.function_return.last() {
-                    if let Some(data_type) = self.stack
-                        .get(function_data.stack_position - function_data.num_args + index)
-                    {
-                        new_data = Some(data_type.clone());
+                    if index < function_data.num_args {
+                        if let Some(data_type) = self.stack
+                            .get(function_data.stack_position - function_data.num_args + index)
+                        {
+                            new_data = Some(data_type.clone());
+                        } else {
+                            return Err(Error::InvalidFunctionArgument(
+                                index,
+                                "Invalid function argument",
+                            ));
+                        }
                     } else {
                         // load from locals
+                        // index - num_args is local position
                     }
                 }
                 // load from the locals

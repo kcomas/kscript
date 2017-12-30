@@ -26,4 +26,5 @@ pub enum Error<'a> {
     CannotCompare(DataType, DataType, &'a str),
     InvalidWriteTarget(DataType, &'a str),
     CannotReturn(&'a str),
+    InvalidFunctionArgument(usize, &'a str),
 }
