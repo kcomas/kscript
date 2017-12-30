@@ -9,20 +9,37 @@ pub enum Command {
     Push(DataType),
     // remove from stack
     Pop,
-    // load argument from saved stack position
-    Load,
+    // load argument from the var stack
+    Load(usize),
     // save value to save stack
-    Save,
-    // restore value from save stack
-    Restore,
     Equals,
     Sub,
     Add,
+    IoWrite,
+    IoAppend,
+    // jump to position if false
+    Jmpf(usize),
     // number of args, function position
     Call(usize, usize),
     Return,
     // exit code
     Halt(usize),
+}
+
+impl Command {
+    pub fn is_return(&self) -> bool {
+        if let Command::Return = *self {
+            return true;
+        }
+        false
+    }
+
+    pub fn is_halt(&self) -> bool {
+        if let Command::Halt(_) = *self {
+            return true;
+        }
+        false
+    }
 }
 
 pub fn load_commands<'a>(
@@ -76,7 +93,24 @@ pub fn load_commands<'a>(
                         }
                         let fn_body = ast[highest_presedence_index].get_function_body_mut()?;
                         load_commands(fn_body, commands, &mut function_symbol_table)?;
-                    // add a halt or return if needed
+                        // add a halt or return if needed
+                        if add_main_halt {
+                            let mut add_halt = false;
+                            if let Some(cmd) = commands.last() {
+                                add_halt = !cmd.is_halt();
+                            }
+                            if add_halt {
+                                commands.push(Command::Halt(0));
+                            }
+                        } else {
+                            let mut add_return = false;
+                            if let Some(cmd) = commands.last() {
+                                add_return = !cmd.is_return();
+                            }
+                            if add_return {
+                                commands.push(Command::Return);
+                            }
+                        }
                     } else {
                         // function call
                         let fn_index = symbols.get_function_index(ast[highest_presedence_index]
@@ -86,6 +120,10 @@ pub fn load_commands<'a>(
                             load_commands(arg, commands, symbols)?;
                         }
                     }
+                } else if ast[highest_presedence_index].is_if() {
+
+                } else {
+                    add_commands(ast, highest_presedence_index, commands, symbols)?;
                 }
                 ast[highest_presedence_index] = Ast::Used;
                 // reset
@@ -98,4 +136,44 @@ pub fn load_commands<'a>(
         start_index = end_index;
     }
     Ok(())
+}
+
+fn add_commands<'a>(
+    ast: &mut Vec<Ast>,
+    index: usize,
+    commands: &mut Vec<Command>,
+    symbols: &SymbolTable,
+) -> Result<(), Error<'a>> {
+    if ast[index].is_dyadic() {
+        if index > 0 && !ast[index - 1].is_used() {
+            commands.push(transform_command(&ast[index - 1], symbols)?);
+            ast[index - 1] = Ast::Used;
+        }
+        if index < ast.len() && !ast[index + 1].is_used() {
+            commands.push(transform_command(&ast[index + 1], symbols)?);
+            ast[index + 1] = Ast::Used;
+        }
+    }
+    let command = match ast[index] {
+        Ast::Equals => Command::Equals,
+        Ast::Add => Command::Add,
+        Ast::Sub => Command::Sub,
+        Ast::IoWrite => Command::IoWrite,
+        Ast::IoAppend => Command::IoAppend,
+        _ => {
+            return Err(Error::InvalidAstForCommand(
+                ast[index].clone(),
+                "Cannot convert to command",
+            ))
+        }
+    };
+    commands.push(command);
+    Ok(())
+}
+
+fn transform_command<'a>(ast: &Ast, symbols: &SymbolTable) -> Result<Command, Error<'a>> {
+    if ast.is_var() {
+        return Ok(Command::Load(symbols.get_var_index(ast.get_var_name()?)?));
+    }
+    Ok(Command::Push(ast.to_data_type()?))
 }

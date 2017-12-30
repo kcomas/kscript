@@ -1,9 +1,10 @@
 use std::str::Chars;
 use std::iter::Peekable;
 
+use super::data_type::DataType;
 use super::error::Error;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Ast {
     Used,
     Comment(String),
@@ -23,13 +24,6 @@ pub enum Ast {
 }
 
 impl<'a> Ast {
-    pub fn is_end(&self) -> bool {
-        if let Ast::End = *self {
-            return true;
-        }
-        false
-    }
-
     pub fn presedence(&self) -> usize {
         match *self {
             Ast::If(_) => 1,
@@ -39,6 +33,27 @@ impl<'a> Ast {
             Ast::Function(_, _, _) => 5,
             _ => 0,
         }
+    }
+
+    pub fn is_end(&self) -> bool {
+        if let Ast::End = *self {
+            return true;
+        }
+        false
+    }
+
+    pub fn is_used(&self) -> bool {
+        if let Ast::Used = *self {
+            return true;
+        }
+        false
+    }
+
+    pub fn is_var(&self) -> bool {
+        if let Ast::Var(_) = *self {
+            return true;
+        }
+        false
     }
 
     pub fn get_var_name(&self) -> Result<&str, Error<'a>> {
@@ -97,6 +112,30 @@ impl<'a> Ast {
             Ast::Function(_, _, ref body) => body.len() > 0,
             _ => false,
         }
+    }
+
+    pub fn is_dyadic(&self) -> bool {
+        match *self {
+            Ast::Assign | Ast::Equals | Ast::Add | Ast::Sub | Ast::IoWrite | Ast::IoAppend => true,
+            _ => false,
+        }
+    }
+
+    pub fn to_data_type(&self) -> Result<DataType, Error<'a>> {
+        match *self {
+            Ast::Integer(int) => Ok(DataType::Integer(int)),
+            _ => Err(Error::CannotConvertToDataType(
+                self.clone(),
+                "Cannot convert to data type",
+            )),
+        }
+    }
+
+    pub fn is_if(&self) -> bool {
+        if let Ast::If(_) = *self {
+            return true;
+        }
+        false
     }
 }
 

@@ -70,4 +70,11 @@ impl<'a> SymbolTable {
         self.var_counter += 1;
         Ok(())
     }
+
+    pub fn get_var_index(&self, name: &str) -> Result<usize, Error<'a>> {
+        if let Some(index) = self.vars.get(name) {
+            return Ok(*index);
+        }
+        Err(Error::VarNotDeclared(name.to_string(), "Var not declared"))
+    }
 }
