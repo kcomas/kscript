@@ -31,6 +31,7 @@ impl<'a> Ast {
             Ast::Add | Ast::Sub => 3,
             Ast::IoWrite | Ast::IoAppend | Ast::Assign => 4,
             Ast::Function(_, _, _) => 5,
+            Ast::Return => 6,
             _ => 0,
         }
     }
@@ -121,6 +122,13 @@ impl<'a> Ast {
         }
     }
 
+    pub fn is_monadic(&self) -> bool {
+        match *self {
+            Ast::Return => true,
+            _ => false,
+        }
+    }
+
     pub fn to_data_type(&self) -> Result<DataType, Error<'a>> {
         match *self {
             Ast::Integer(int) => Ok(DataType::Integer(int)),
@@ -136,6 +144,13 @@ impl<'a> Ast {
             return true;
         }
         false
+    }
+
+    pub fn get_if_body_mut(&mut self) -> Result<&mut Vec<Ast>, Error<'a>> {
+        if let Ast::If(ref mut body) = *self {
+            return Ok(body);
+        }
+        Err(Error::CannotGetIfBody("Not an if"))
     }
 }
 

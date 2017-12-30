@@ -119,9 +119,18 @@ pub fn load_commands<'a>(
                         for arg in args.iter_mut() {
                             load_commands(arg, commands, symbols)?;
                         }
+                        commands.push(Command::Call(args.len(), fn_index));
                     }
                 } else if ast[highest_presedence_index].is_if() {
-
+                    let mut if_commands = Vec::new();
+                    load_commands(
+                        ast[highest_presedence_index].get_if_body_mut()?,
+                        &mut if_commands,
+                        symbols,
+                    )?;
+                    let jmpf = Command::Jmpf(commands.len() + if_commands.len());
+                    commands.push(jmpf);
+                    commands.append(&mut if_commands);
                 } else {
                     add_commands(ast, highest_presedence_index, commands, symbols)?;
                 }
@@ -154,12 +163,19 @@ fn add_commands<'a>(
             ast[index + 1] = Ast::Used;
         }
     }
+    if ast[index].is_monadic() {
+        if index > 0 && !ast[index - 1].is_used() {
+            commands.push(transform_command(&ast[index - 1], symbols)?);
+            ast[index - 1] = Ast::Used;
+        }
+    }
     let command = match ast[index] {
         Ast::Equals => Command::Equals,
         Ast::Add => Command::Add,
         Ast::Sub => Command::Sub,
         Ast::IoWrite => Command::IoWrite,
         Ast::IoAppend => Command::IoAppend,
+        Ast::Return => Command::Return,
         _ => {
             return Err(Error::InvalidAstForCommand(
                 ast[index].clone(),

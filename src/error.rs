@@ -18,4 +18,5 @@ pub enum Error<'a> {
     AstNotVar(&'a str),
     CannotDeclareSubMain(&'a str),
     CannotConvertToDataType(Ast, &'a str),
+    CannotGetIfBody(&'a str),
 }
