@@ -100,6 +100,38 @@ impl<'a> Vm {
                     self.stack.push(data);
                 }
             }
+            Command::Save(index) => {
+                let to_save = self.pop_stack()?;
+                let mut local_index = index;
+                if let Some(function_data) = self.function_return.last() {
+                    if index < function_data.num_args {
+                        // update the current stack
+                        if let Some(data_type) = self.stack
+                            .get_mut(function_data.stack_position - function_data.num_args + index)
+                        {
+                            *data_type = to_save;
+                            return Ok((current_command_index + 1, None));
+                        } else {
+                            return Err(Error::CannotSave(
+                                function_data.stack_position - function_data.num_args + index,
+                                "No data in stack",
+                            ));
+                        }
+                    } else {
+                        local_index = index - function_data.num_args;
+                    }
+                }
+                if local_index < self.locals.len() {
+                    self.locals[local_index] = to_save;
+                } else if local_index == self.locals.len() {
+                    self.locals.push(to_save);
+                } else {
+                    return Err(Error::CannotSave(
+                        local_index,
+                        "Local index is greater then the local size",
+                    ));
+                }
+            }
             Command::Equals => {
                 let right = self.pop_stack()?;
                 let left = self.pop_stack()?;

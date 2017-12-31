@@ -78,10 +78,12 @@ impl<'a> SymbolTable {
         Ok(())
     }
 
-    pub fn get_var_index(&self, name: &str) -> Result<usize, Error<'a>> {
+    pub fn get_var_index(&mut self, name: &str) -> Result<usize, Error<'a>> {
         if let Some(index) = self.vars.get(name) {
             return Ok(*index);
         }
-        Err(Error::VarNotDeclared(name.to_string(), "Var not declared"))
+        // add the var
+        self.register_var(name)?;
+        self.get_var_index(name)
     }
 }

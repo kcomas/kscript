@@ -15,7 +15,6 @@ pub enum Error<'a> {
     FunctionNotDeclared(String, &'a str),
     AstIsNotAFunction(&'a str),
     VarDeclared(String, &'a str),
-    VarNotDeclared(String, &'a str),
     AstNotVar(&'a str),
     CannotDeclareSubMain(&'a str),
     CannotConvertToDataType(Ast, &'a str),
@@ -27,4 +26,6 @@ pub enum Error<'a> {
     InvalidWriteTarget(DataType, &'a str),
     CannotReturn(&'a str),
     InvalidFunctionArgument(usize, &'a str),
+    CannotAssign(&'a str),
+    CannotSave(usize, &'a str),
 }

@@ -12,7 +12,7 @@ pub enum Command {
     // load argument from the locals stack
     Load(usize),
     // save value to locals stack
-    // Save(usize)
+    Save(usize),
     Equals,
     Add,
     Sub,
@@ -168,11 +168,26 @@ fn add_commands<'a>(
         return Ok(());
     }
     if ast[index].is_dyadic() {
-        if index > 0 {
-            build_command(ast, index - 1, commands, symbols)?;
-        }
-        if index < ast.len() {
+        if ast[index].is_assign() {
+            // get the right
+            if index + 1 >= ast.len() {
+                return Err(Error::CannotAssign("Right side does not exist"));
+            }
             build_command(ast, index + 1, commands, symbols)?;
+            if index == 0 {
+                return Err(Error::CannotAssign("Left side does not exist"));
+            }
+            commands.push(Command::Save(symbols
+                .get_var_index(ast[index - 1].get_var_name()?)?));
+            ast[index - 1] = Ast::Used;
+            return Ok(());
+        } else {
+            if index > 0 {
+                build_command(ast, index - 1, commands, symbols)?;
+            }
+            if index < ast.len() {
+                build_command(ast, index + 1, commands, symbols)?;
+            }
         }
     }
     if ast[index].is_monadic() {
@@ -218,7 +233,7 @@ fn build_command<'a>(
     Ok(())
 }
 
-fn transform_command<'a>(ast: &Ast, symbols: &SymbolTable) -> Result<Command, Error<'a>> {
+fn transform_command<'a>(ast: &Ast, symbols: &mut SymbolTable) -> Result<Command, Error<'a>> {
     if ast.is_var() {
         return Ok(Command::Load(symbols.get_var_index(ast.get_var_name()?)?));
     }

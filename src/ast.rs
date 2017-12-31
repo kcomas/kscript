@@ -177,6 +177,13 @@ impl<'a> Ast {
         }
         Err(Error::CannotGetIfBody("Not an if"))
     }
+
+    pub fn is_assign(&self) -> bool {
+        if let Ast::Assign = *self {
+            return true;
+        }
+        false
+    }
 }
 
 pub fn load_ast<'a>(iter: &mut Peekable<Chars>) -> Result<Vec<Ast>, Error<'a>> {
