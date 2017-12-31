@@ -29,4 +29,5 @@ pub enum Error<'a> {
     CannotAssign(&'a str),
     CannotSave(usize, &'a str),
     CannotExp(DataType, DataType, &'a str),
+    InvalidGroup(&'a str),
 }

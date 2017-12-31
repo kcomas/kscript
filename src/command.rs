@@ -128,6 +128,12 @@ pub fn load_commands<'a>(
                 let jmpf = Command::Jmpf(commands.len() + if_commands.len() + 1);
                 commands.push(jmpf);
                 commands.append(&mut if_commands);
+            } else if ast[highest_presedence_index].is_group() {
+                load_commands(
+                    ast[highest_presedence_index].get_group_body_mut()?,
+                    commands,
+                    symbols,
+                )?;
             } else {
                 add_commands(ast, highest_presedence_index, commands, symbols)?;
             }
@@ -227,6 +233,8 @@ fn build_command<'a>(
     if !ast[next_index].is_used() {
         if ast[next_index].is_function() {
             build_function_call(ast, next_index, commands, symbols)?;
+        } else if ast[next_index].is_group() {
+            load_commands(ast[next_index].get_group_body_mut()?, commands, symbols)?;
         } else {
             commands.push(transform_command(&ast[next_index], symbols)?);
         }

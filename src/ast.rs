@@ -11,6 +11,7 @@ pub enum Ast {
     End,
     Var(String),
     Integer(i64),
+    Group(Vec<Ast>), // (...)
     // var, args, body
     Function(Box<Ast>, Vec<Vec<Ast>>, Vec<Ast>),
     If(Vec<Ast>),
@@ -73,6 +74,20 @@ impl<'a> Ast {
             return true;
         }
         false
+    }
+
+    pub fn is_group(&self) -> bool {
+        if let Ast::Group(_) = *self {
+            return true;
+        }
+        false
+    }
+
+    pub fn get_group_body_mut(&mut self) -> Result<&mut Vec<Ast>, Error<'a>> {
+        if let Ast::Group(ref mut body) = *self {
+            return Ok(body);
+        }
+        Err(Error::InvalidGroup("Not a group"))
     }
 
     pub fn is_function(&self) -> bool {
@@ -221,11 +236,12 @@ fn load_statement<'a>(iter: &mut Peekable<Chars>) -> Result<Option<Ast>, Error<'
                 }
                 return Ok(Some(Ast::End));
             }
+            '(' => return Ok(Some(Ast::Group(load_block(iter, '(', ')')?))),
             '.' => {
                 iter.next();
                 let fn_name = load_var(iter)?;
                 let fn_args = load_args(iter)?;
-                let body = load_block(iter)?;
+                let body = load_block(iter, '{', '}')?;
                 return Ok(Some(Ast::Function(Box::new(fn_name), fn_args, body)));
             }
             '#' => return Ok(Some(load_comment(iter)?)),
@@ -270,7 +286,7 @@ fn load_statement<'a>(iter: &mut Peekable<Chars>) -> Result<Option<Ast>, Error<'
                 }
             }
             '=' => return Ok(Some(load_eqauls(iter)?)),
-            '?' => return Ok(Some(Ast::If(load_block(iter)?))),
+            '?' => return Ok(Some(Ast::If(load_block(iter, '{', '}')?))),
             '>' => return Ok(Some(load_io_out(iter)?)),
             _ => return Ok(None),
         };
@@ -313,7 +329,11 @@ fn load_args<'a>(iter: &mut Peekable<Chars>) -> Result<Vec<Vec<Ast>>, Error<'a>>
     }
 }
 
-fn load_block<'a>(iter: &mut Peekable<Chars>) -> Result<Vec<Ast>, Error<'a>> {
+fn load_block<'a>(
+    iter: &mut Peekable<Chars>,
+    start: char,
+    end: char,
+) -> Result<Vec<Ast>, Error<'a>> {
     let mut ast = Vec::new();
     // get opening block
     loop {
@@ -324,7 +344,7 @@ fn load_block<'a>(iter: &mut Peekable<Chars>) -> Result<Vec<Ast>, Error<'a>> {
         if c == ';' || c == '\n' {
             return Ok(ast);
         }
-        if c == '{' {
+        if c == start {
             break;
         }
     }
@@ -333,7 +353,7 @@ fn load_block<'a>(iter: &mut Peekable<Chars>) -> Result<Vec<Ast>, Error<'a>> {
             Some(c) => *c,
             None => return Err(Error::InvalidBlock("No more charaters brefore }")),
         };
-        if c != '}' {
+        if c != end {
             if let Some(statement) = load_statement(iter)? {
                 ast.push(statement);
             } else {
