@@ -46,6 +46,7 @@ fn main() {
         Err(err) => {
             println!("{:?}", vm);
             println!("{:?}", err);
+            println!("Add KSCRIPT_DEBUG=1 for backtrace");
         }
     }
     if kscript_debug {
