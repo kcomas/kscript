@@ -1,9 +1,8 @@
 
 .add,a,b,c,d,e {
-    f = d
-    f >> 1
-    # a + b * c / f >> 1
-    f ** (b + a) * c + e
+    d_copy = d
+    d_copy >> 1
+    d_copy ** (b + a) * c + e
 }
 
 .main, {
