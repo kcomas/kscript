@@ -14,23 +14,32 @@ use self::symbol::SymbolTable;
 use self::vm::Vm;
 
 fn main() {
+    let kscript_debug = env::var("KSCRIPT_DEBUG").is_ok();
     let args: Vec<String> = env::args().collect();
     if args.len() != 2 {
         eprintln!("Usage {} file.ks", args[0]);
         process::exit(1);
     }
     let program = load_file_to_string(&args[1]).unwrap();
-    // println!("{}", program);
+    if kscript_debug {
+        println!("{}", program);
+    }
     let mut iter = program.chars().peekable();
     let mut ast = load_ast(&mut iter).unwrap();
-    // println!("{:#?}", ast);
+    if kscript_debug {
+        println!("{:#?}", ast);
+    }
     let mut commands = Vec::new();
     let mut root_symbols = SymbolTable::new();
     load_commands(&mut ast, &mut commands, &mut root_symbols).unwrap();
-    // println!("{:?}", root_symbols);
-    // println!("{:#?}", commands);
+    if kscript_debug {
+        println!("{:?}", root_symbols);
+        println!("{:#?}", commands);
+    }
     let entry = root_symbols.get_main().unwrap();
-    // println!("Entry: {}, {:?}", entry, commands[entry]);
+    if kscript_debug {
+        println!("Entry: {}, {:?}", entry, commands[entry]);
+    }
     let mut vm = Vm::new();
     match vm.run(&commands, entry) {
         Ok(exit_code) => process::exit(exit_code),
@@ -38,5 +47,8 @@ fn main() {
             println!("{:?}", vm);
             println!("{:?}", err);
         }
+    }
+    if kscript_debug {
+        println!("{:?}", vm);
     }
 }
