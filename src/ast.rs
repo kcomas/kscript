@@ -28,8 +28,8 @@ impl<'a> Ast {
         match *self {
             Ast::Var(_) | Ast::Integer(_) => 1,
             Ast::Return => 2,
-            Ast::If(_) => 3,
-            Ast::IoWrite | Ast::IoAppend | Ast::Assign => 4,
+            Ast::IoWrite | Ast::IoAppend | Ast::Assign => 3,
+            Ast::If(_) => 4,
             Ast::Equals => 5,
             Ast::Add | Ast::Sub => 6,
             Ast::Function(_, _, _) => 7,
