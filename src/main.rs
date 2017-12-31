@@ -32,7 +32,11 @@ fn main() {
     let entry = root_symbols.get_main().unwrap();
     // println!("Entry: {}, {:?}", entry, commands[entry]);
     let mut vm = Vm::new();
-    let exit_code = vm.run(&commands, entry).unwrap();
-    // println!("{:?}", vm);
-    process::exit(exit_code);
+    match vm.run(&commands, entry) {
+        Ok(exit_code) => process::exit(exit_code),
+        Err(err) => {
+            println!("{:?}", vm);
+            println!("{:?}", err);
+        }
+    }
 }

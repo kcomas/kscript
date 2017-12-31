@@ -18,6 +18,9 @@ pub enum Ast {
     Equals,
     Add,
     Sub,
+    Mul,
+    Div,
+    Rem,
     IoWrite,
     IoAppend,
     Return,
@@ -32,7 +35,8 @@ impl<'a> Ast {
             Ast::If(_) => 4,
             Ast::Equals => 5,
             Ast::Add | Ast::Sub => 6,
-            Ast::Function(_, _, _) => 7,
+            Ast::Mul | Ast::Div | Ast::Rem => 7,
+            Ast::Function(_, _, _) => 8,
             _ => 0,
         }
     }
@@ -127,9 +131,18 @@ impl<'a> Ast {
         }
     }
 
+    // have to specify
     pub fn is_dyadic(&self) -> bool {
         match *self {
-            Ast::Assign | Ast::Equals | Ast::Add | Ast::Sub | Ast::IoWrite | Ast::IoAppend => true,
+            Ast::Assign
+            | Ast::Equals
+            | Ast::Add
+            | Ast::Sub
+            | Ast::Mul
+            | Ast::Div
+            | Ast::Rem
+            | Ast::IoWrite
+            | Ast::IoAppend => true,
             _ => false,
         }
     }
@@ -215,6 +228,25 @@ fn load_statement<'a>(iter: &mut Peekable<Chars>) -> Result<Option<Ast>, Error<'
             '-' => {
                 iter.next();
                 return Ok(Some(Ast::Sub));
+            }
+            '*' => {
+                iter.next();
+                return Ok(Some(Ast::Mul));
+            }
+            '/' => {
+                iter.next();
+                let mut has_rem = false;
+                if let Some(c) = iter.peek() {
+                    if *c == '/' {
+                        has_rem = true;
+                    }
+                }
+                if has_rem {
+                    iter.next();
+                    return Ok(Some(Ast::Rem));
+                } else {
+                    return Ok(Some(Ast::Div));
+                }
             }
             '=' => return Ok(Some(load_eqauls(iter)?)),
             '?' => return Ok(Some(Ast::If(load_block(iter)?))),

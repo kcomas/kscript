@@ -127,6 +127,21 @@ impl<'a> Vm {
                 let left = self.pop_stack()?;
                 self.stack.push(left - right);
             }
+            Command::Mul => {
+                let right = self.pop_stack()?;
+                let left = self.pop_stack()?;
+                self.stack.push(left * right);
+            }
+            Command::Div => {
+                let right = self.pop_stack()?;
+                let left = self.pop_stack()?;
+                self.stack.push(left / right);
+            }
+            Command::Rem => {
+                let right = self.pop_stack()?;
+                let left = self.pop_stack()?;
+                self.stack.push(left % right);
+            }
             Command::IoWrite => {
                 let target = self.pop_stack()?;
                 let source = self.pop_stack()?;

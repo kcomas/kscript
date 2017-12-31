@@ -1,4 +1,4 @@
-use std::ops::{Add, Sub};
+use std::ops::{Add, Div, Mul, Rem, Sub};
 use std::fmt;
 
 #[derive(Debug)]
@@ -93,5 +93,38 @@ impl Sub for DataType {
             return DataType::Float(self.get_float() - right.get_float());
         }
         DataType::Integer(self.get_int() - right.get_int())
+    }
+}
+
+impl Mul for DataType {
+    type Output = DataType;
+
+    fn mul(self, right: DataType) -> DataType {
+        if self.is_float() || right.is_float() {
+            return DataType::Float(self.get_float() * right.get_float());
+        }
+        DataType::Integer(self.get_int() * right.get_int())
+    }
+}
+
+impl Div for DataType {
+    type Output = DataType;
+
+    fn div(self, right: DataType) -> DataType {
+        if self.is_float() || right.is_float() {
+            return DataType::Float(self.get_float() / right.get_float());
+        }
+        DataType::Integer(self.get_int() / right.get_int())
+    }
+}
+
+impl Rem for DataType {
+    type Output = DataType;
+
+    fn rem(self, right: DataType) -> DataType {
+        if self.is_float() || right.is_float() {
+            return DataType::Float(self.get_float() % right.get_float());
+        }
+        DataType::Integer(self.get_int() % right.get_int())
     }
 }
