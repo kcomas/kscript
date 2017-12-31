@@ -167,9 +167,8 @@ impl<'a> Vm {
             Command::Return => {
                 self.locals.clear();
                 let function_data = self.pop_function_return()?;
-                let total_args = self.stack.len() - function_data.stack_position;
                 let mut restore = None;
-                if total_args != function_data.num_args {
+                if self.stack.len() > function_data.stack_position {
                     restore = self.stack.pop();
                 }
                 for _ in 0..function_data.num_args {
