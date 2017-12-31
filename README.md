@@ -16,7 +16,7 @@ A scripting language written in Rust.
 
 ### Debug with
 ```
-KSCRIPT_DEBUG=1 ./target/release/kscript file.ks
+    KSCRIPT_DEBUG=1 ./target/release/kscript file.ks
 ```
 
 #### Examples can be found in the examples folder
