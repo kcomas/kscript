@@ -73,6 +73,12 @@ impl<'a> Vm {
                 let mut new_data = None;
                 if let Some(function_data) = self.function_return.last() {
                     if index < function_data.num_args {
+                        if function_data.num_args > function_data.stack_position {
+                            // no more on stack
+                            return Err(Error::StackEmpty(
+                                "Cannot load non existant data from stack",
+                            ));
+                        }
                         if let Some(data_type) = self.stack
                             .get(function_data.stack_position - function_data.num_args + index)
                         {
