@@ -2,7 +2,8 @@
 .add,a,b,c,d {
     f = d
     f >> 1
-    a + b * c / f >> 1
+    # a + b * c / f >> 1
+    f ** b >> 1
 }
 
 .main, {

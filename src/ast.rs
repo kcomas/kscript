@@ -19,6 +19,7 @@ pub enum Ast {
     Add,
     Sub,
     Mul,
+    Exp,
     Div,
     Rem,
     IoWrite,
@@ -36,7 +37,8 @@ impl<'a> Ast {
             Ast::Equals => 5,
             Ast::Add | Ast::Sub => 6,
             Ast::Mul | Ast::Div | Ast::Rem => 7,
-            Ast::Function(_, _, _) => 8,
+            Ast::Exp => 8,
+            Ast::Function(_, _, _) => 9,
             _ => 0,
         }
     }
@@ -139,6 +141,7 @@ impl<'a> Ast {
             | Ast::Add
             | Ast::Sub
             | Ast::Mul
+            | Ast::Exp
             | Ast::Div
             | Ast::Rem
             | Ast::IoWrite
@@ -147,7 +150,7 @@ impl<'a> Ast {
         }
     }
 
-    pub fn is_monadic(&self) -> bool {
+    pub fn is_monadic_left(&self) -> bool {
         match *self {
             Ast::Return => true,
             _ => false,
@@ -238,7 +241,18 @@ fn load_statement<'a>(iter: &mut Peekable<Chars>) -> Result<Option<Ast>, Error<'
             }
             '*' => {
                 iter.next();
-                return Ok(Some(Ast::Mul));
+                let mut has_exp = false;
+                if let Some(c) = iter.peek() {
+                    if *c == '*' {
+                        has_exp = true;
+                    }
+                }
+                if has_exp {
+                    iter.next();
+                    return Ok(Some(Ast::Exp));
+                } else {
+                    return Ok(Some(Ast::Mul));
+                }
             }
             '/' => {
                 iter.next();

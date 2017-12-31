@@ -164,6 +164,29 @@ impl<'a> Vm {
                 let left = self.pop_stack()?;
                 self.stack.push(left * right);
             }
+            Command::Exp => {
+                let right = self.pop_stack()?;
+                let left = self.pop_stack()?;
+                if !left.is_number() || !right.is_number() {
+                    return Err(Error::CannotExp(
+                        left.clone(),
+                        right.clone(),
+                        "Cannot exp non number",
+                    ));
+                }
+                if left.is_int() && right.is_int() {
+                    self.stack.push(DataType::Integer(
+                        left.get_int().pow(right.get_int() as u32),
+                    ));
+                } else if left.is_float() && right.is_int() {
+                    self.stack.push(DataType::Float(
+                        left.get_float().powi(right.get_int() as i32),
+                    ));
+                } else {
+                    self.stack
+                        .push(DataType::Float(left.get_float().powf(right.get_float())));
+                }
+            }
             Command::Div => {
                 let right = self.pop_stack()?;
                 let left = self.pop_stack()?;

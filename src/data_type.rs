@@ -45,6 +45,10 @@ impl DataType {
         }
     }
 
+    pub fn is_number(&self) -> bool {
+        self.is_int() || self.is_float()
+    }
+
     pub fn get_bool(&self) -> bool {
         match *self {
             DataType::Bool(b) => b,

@@ -17,6 +17,7 @@ pub enum Command {
     Add,
     Sub,
     Mul,
+    Exp,
     Div,
     Rem,
     IoWrite,
@@ -190,7 +191,7 @@ fn add_commands<'a>(
             }
         }
     }
-    if ast[index].is_monadic() {
+    if ast[index].is_monadic_left() {
         if index > 0 {
             build_command(ast, index - 1, commands, symbols)?;
         }
@@ -200,6 +201,7 @@ fn add_commands<'a>(
         Ast::Add => Command::Add,
         Ast::Sub => Command::Sub,
         Ast::Mul => Command::Mul,
+        Ast::Exp => Command::Exp,
         Ast::Div => Command::Div,
         Ast::Rem => Command::Rem,
         Ast::IoWrite => Command::IoWrite,

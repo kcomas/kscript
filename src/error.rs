@@ -28,4 +28,5 @@ pub enum Error<'a> {
     InvalidFunctionArgument(usize, &'a str),
     CannotAssign(&'a str),
     CannotSave(usize, &'a str),
+    CannotExp(DataType, DataType, &'a str),
 }
