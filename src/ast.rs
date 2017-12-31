@@ -11,6 +11,7 @@ pub enum Ast {
     End,
     Var(String),
     Integer(i64),
+    Float(f64),
     Group(Vec<Ast>), // (...)
     // var, args, body
     Function(Box<Ast>, Vec<Vec<Ast>>, Vec<Ast>),
@@ -60,7 +61,7 @@ impl<'a> Ast {
 
     pub fn is_number(&self) -> bool {
         match *self {
-            Ast::Integer(_) => true,
+            Ast::Integer(_) | Ast::Float(_) => true,
             _ => false,
         }
     }
@@ -175,6 +176,7 @@ impl<'a> Ast {
     pub fn to_data_type(&self) -> Result<DataType, Error<'a>> {
         match *self {
             Ast::Integer(int) => Ok(DataType::Integer(int)),
+            Ast::Float(float) => Ok(DataType::Float(float)),
             _ => Err(Error::CannotConvertToDataType(
                 self.clone(),
                 "Cannot convert to data type",
@@ -404,6 +406,7 @@ fn load_var<'a>(iter: &mut Peekable<Chars>) -> Result<Ast, Error<'a>> {
 
 fn load_number<'a>(iter: &mut Peekable<Chars>) -> Result<Ast, Error<'a>> {
     let mut number = String::new();
+    let mut is_float = false;
     loop {
         let c = match iter.peek() {
             Some(c) => *c,
@@ -414,9 +417,23 @@ fn load_number<'a>(iter: &mut Peekable<Chars>) -> Result<Ast, Error<'a>> {
                 number.push(c);
                 iter.next();
             }
+            '.' => {
+                if !is_float {
+                    number.push(c);
+                    iter.next();
+                    is_float = true;
+                } else {
+                    return Err(Error::InvalidNumber("Came across another ."));
+                }
+            }
             _ => {
-                let int: i64 = number.parse().unwrap();
-                return Ok(Ast::Integer(int));
+                if !is_float {
+                    let int: i64 = number.parse().unwrap();
+                    return Ok(Ast::Integer(int));
+                } else {
+                    let float: f64 = number.parse().unwrap();
+                    return Ok(Ast::Float(float));
+                }
             }
         };
     }
