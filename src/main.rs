@@ -6,7 +6,7 @@ mod symbol;
 mod command;
 mod vm;
 
-use std::process;
+use std::{env, process};
 use self::util::load_file_to_string;
 use self::ast::load_ast;
 use self::command::load_commands;
@@ -14,7 +14,12 @@ use self::symbol::SymbolTable;
 use self::vm::Vm;
 
 fn main() {
-    let program = load_file_to_string("./examples/ack.ks").unwrap();
+    let args: Vec<String> = env::args().collect();
+    if args.len() != 2 {
+        eprintln!("Usage {} file.ks", args[0]);
+        process::exit(1);
+    }
+    let program = load_file_to_string(&args[1]).unwrap();
     // println!("{}", program);
     let mut iter = program.chars().peekable();
     let mut ast = load_ast(&mut iter).unwrap();
