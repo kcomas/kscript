@@ -42,14 +42,16 @@ fn main() {
     }
     let mut vm = Vm::new();
     match vm.run(&commands, entry) {
-        Ok(exit_code) => process::exit(exit_code),
+        Ok(exit_code) => {
+            if kscript_debug {
+                println!("{:?}", vm);
+            }
+            process::exit(exit_code);
+        }
         Err(err) => {
             println!("{:?}", vm);
             println!("{:?}", err);
             println!("Add KSCRIPT_DEBUG=1 for backtrace");
         }
-    }
-    if kscript_debug {
-        println!("{:?}", vm);
     }
 }
