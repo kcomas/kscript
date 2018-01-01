@@ -332,6 +332,18 @@ fn load_string<'a>(iter: &mut Peekable<Chars>) -> Result<Ast, Error<'a>> {
                 iter.next();
                 return Ok(Ast::String(string));
             }
+            '\\' => {
+                iter.next();
+                let next = match iter.next() {
+                    Some(n) => n,
+                    None => return Err(Error::InvalidString("No more charaters for escape")),
+                };
+                match next {
+                    '\\' => string.push('\\'),
+                    'n' => string.push('\n'),
+                    _ => return Err(Error::InvalidString("Invalid escape")),
+                }
+            }
             _ => {
                 string.push(c);
                 iter.next();
