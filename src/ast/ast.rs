@@ -11,6 +11,7 @@ pub enum Ast {
     Integer(i64),
     Float(f64),
     String(String),
+    Array(Vec<Vec<Ast>>),
     Group(Vec<Ast>), // (...)
     // var, args, body
     Function(Box<Ast>, Vec<Vec<Ast>>, Vec<Ast>),
@@ -111,6 +112,20 @@ impl<'a> Ast {
             return Ok(body);
         }
         Err(Error::InvalidGroup("Not a group"))
+    }
+
+    pub fn is_array(&self) -> bool {
+        if let Ast::Array(_) = *self {
+            return true;
+        }
+        false
+    }
+
+    pub fn get_array_body_mut(&mut self) -> Result<&mut Vec<Vec<Ast>>, Error<'a>> {
+        match *self {
+            Ast::Array(ref mut body) => Ok(body),
+            _ => Err(Error::InvalidArray("Ast is not an array")),
+        }
     }
 
     pub fn is_function(&self) -> bool {

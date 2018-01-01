@@ -13,6 +13,10 @@ use self::command::{load_commands, CommandState};
 use self::symbol::SymbolTable;
 use self::vm::Vm;
 
+fn printer(title: &str) {
+    println!("{:-<10} {} {:-<10}", "", title, "");
+}
+
 fn main() {
     let kscript_debug = env::var("KSCRIPT_DEBUG").is_ok();
     let args: Vec<String> = env::args().collect();
@@ -22,12 +26,16 @@ fn main() {
     }
     let program = load_file_to_string(&args[1]).unwrap();
     if kscript_debug {
+        printer("Script");
         println!("{}", program);
+        printer("End Script");
     }
     let mut iter = program.chars().peekable();
     let mut ast = load_ast(&mut iter).unwrap();
     if kscript_debug {
+        printer("AST");
         println!("{:#?}", ast);
+        printer("End AST");
     }
     let mut commands = Vec::new();
     let mut root_symbols = SymbolTable::new();
@@ -39,8 +47,12 @@ fn main() {
         &mut command_state,
     ).unwrap();
     if kscript_debug {
+        printer("Symbols");
         println!("{:?}", root_symbols);
+        printer("End Symbols");
+        printer("VM Commands");
         println!("{:#?}", commands);
+        printer("End VM");
     }
     let entry = root_symbols.get_main().unwrap();
     if kscript_debug {

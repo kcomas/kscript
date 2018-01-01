@@ -160,6 +160,14 @@ impl<'a> Vm {
                     ));
                 }
             }
+            Command::MakeArray(num_elements) => {
+                let mut array_items = Vec::new();
+                for _ in 0..num_elements {
+                    array_items.push(self.pop_stack()?);
+                }
+                array_items.reverse();
+                self.stack.push(wrap_type(DataType::Array(array_items)));
+            }
             Command::Equals => {
                 let right = self.pop_stack()?;
                 let right = right.borrow();

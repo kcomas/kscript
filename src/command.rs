@@ -17,6 +17,8 @@ pub enum Command {
     Load(usize),
     // save value to locals stack
     Save(usize),
+    // create an array with values from stack
+    MakeArray(usize),
     Equals,
     Add,
     Sub,
@@ -221,6 +223,21 @@ fn build_function_call<'a>(
     Ok(())
 }
 
+fn build_array<'a>(
+    ast: &mut Vec<Ast>,
+    index: usize,
+    commands: &mut Vec<Command>,
+    symbols: &mut SymbolTable,
+    command_state: &mut CommandState,
+) -> Result<(), Error<'a>> {
+    let items = ast[index].get_array_body_mut()?;
+    for item in items.iter_mut() {
+        load_commands(item, commands, symbols, command_state)?;
+    }
+    commands.push(Command::MakeArray(items.len()));
+    Ok(())
+}
+
 fn add_commands<'a>(
     ast: &mut Vec<Ast>,
     index: usize,
@@ -300,6 +317,8 @@ fn build_command<'a>(
                 symbols,
                 command_state,
             )?;
+        } else if ast[next_index].is_array() {
+            build_array(ast, next_index, commands, symbols, command_state)?;
         } else {
             transform_command(&ast[next_index], commands, symbols, command_state)?;
         }
@@ -318,8 +337,13 @@ fn transform_command<'a>(
         let var_index = symbols.get_var_index(ast.get_var_name()?)?;
         check_locals(var_index, commands, command_state);
         commands.push(Command::Load(var_index));
-    } else {
+    } else if ast.is_data() {
         commands.push(Command::Push(Rc::new(RefCell::new(ast.to_data_type()?))));
+    } else {
+        return Err(Error::UnknownAstType(
+            ast.clone(),
+            "Not known what to do with this ast",
+        ));
     }
     Ok(())
 }

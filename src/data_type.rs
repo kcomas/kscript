@@ -11,6 +11,7 @@ pub enum DataType {
     Integer(i64),
     Float(f64),
     String(String),
+    Array(Vec<SharedDataType>),
 }
 
 impl DataType {
@@ -100,6 +101,15 @@ impl fmt::Display for DataType {
             DataType::Integer(int) => write!(f, "{}", int),
             DataType::Float(float) => write!(f, "{}", float),
             DataType::String(ref string) => write!(f, "{}", string),
+            DataType::Array(ref items) => write!(
+                f,
+                "{}",
+                items
+                    .into_iter()
+                    .map(|x| format!("{}", x.borrow()))
+                    .collect::<Vec<String>>()
+                    .join("")
+            ),
         }
     }
 }
@@ -111,6 +121,12 @@ impl Clone for DataType {
             DataType::Integer(int) => DataType::Integer(int),
             DataType::Float(float) => DataType::Float(float),
             DataType::String(ref string) => DataType::String(string.clone()),
+            DataType::Array(ref items) => DataType::Array(
+                items
+                    .into_iter()
+                    .map(|x| Rc::new(RefCell::new(x.borrow().clone())))
+                    .collect(),
+            ),
         }
     }
 }

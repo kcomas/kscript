@@ -32,4 +32,6 @@ pub enum Error<'a> {
     InvalidGroup(&'a str),
     InvalidString(&'a str),
     CannotGetLastLocals(&'a str),
+    InvalidArray(&'a str),
+    UnknownAstType(Ast, &'a str),
 }

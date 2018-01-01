@@ -5,6 +5,25 @@ use std::iter::Peekable;
 use super::error::Error;
 pub use self::ast::Ast;
 
+struct StopChars {
+    chars: Vec<char>,
+}
+
+impl StopChars {
+    pub fn new(chars: Vec<char>) -> StopChars {
+        StopChars { chars: chars }
+    }
+
+    pub fn is_stop(&self, c: char) -> bool {
+        for stop_char in self.chars.iter() {
+            if c == *stop_char {
+                return true;
+            }
+        }
+        false
+    }
+}
+
 pub fn load_ast<'a>(iter: &mut Peekable<Chars>) -> Result<Vec<Ast>, Error<'a>> {
     let mut ast = Vec::new();
     while iter.peek().is_some() {
@@ -18,6 +37,8 @@ pub fn load_ast<'a>(iter: &mut Peekable<Chars>) -> Result<Vec<Ast>, Error<'a>> {
 }
 
 fn load_statement<'a>(iter: &mut Peekable<Chars>) -> Result<Option<Ast>, Error<'a>> {
+    let fn_stop: StopChars = StopChars::new(vec!['{', '\n', ';']);
+    let array_stop: StopChars = StopChars::new(vec![']']);
     loop {
         let c = match iter.peek() {
             Some(c) => *c,
@@ -51,9 +72,20 @@ fn load_statement<'a>(iter: &mut Peekable<Chars>) -> Result<Option<Ast>, Error<'
                         break;
                     }
                 }
-                let fn_args = load_args(iter)?;
+                let fn_args = load_args(iter, &fn_stop)?;
                 let body = load_block(iter, '{', '}')?;
                 return Ok(Some(Ast::Function(Box::new(fn_name), fn_args, body)));
+            }
+            '@' => {
+                iter.next();
+                let c = match iter.next() {
+                    Some(c) => c,
+                    None => return Err(Error::InvalidArray("No more charaters")),
+                };
+                match c {
+                    '[' => return Ok(Some(Ast::Array(load_args(iter, &array_stop)?))),
+                    _ => return Err(Error::InvalidArray("Invalid array charater")),
+                };
             }
             '#' => return Ok(Some(load_comment(iter)?)),
             '_' | 'a'...'z' | 'A'...'Z' => return Ok(Some(load_var(iter)?)),
@@ -150,7 +182,10 @@ fn load_string<'a>(iter: &mut Peekable<Chars>) -> Result<Ast, Error<'a>> {
     Err(Error::InvalidString("No more chraters"))
 }
 
-fn load_args<'a>(iter: &mut Peekable<Chars>) -> Result<Vec<Vec<Ast>>, Error<'a>> {
+fn load_args<'a>(
+    iter: &mut Peekable<Chars>,
+    stop_chars: &StopChars,
+) -> Result<Vec<Vec<Ast>>, Error<'a>> {
     let mut args = Vec::new();
     let mut current_arg = Vec::new();
     loop {
@@ -162,7 +197,7 @@ fn load_args<'a>(iter: &mut Peekable<Chars>) -> Result<Vec<Vec<Ast>>, Error<'a>>
             iter.next();
             args.push(current_arg);
             current_arg = Vec::new();
-        } else if c == '{' || c == '\n' || c == ';' {
+        } else if stop_chars.is_stop(c) {
             if current_arg.len() > 0 {
                 args.push(current_arg);
             }
