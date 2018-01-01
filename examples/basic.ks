@@ -15,4 +15,5 @@
     9 / (2 + 1) * 3.3 >> 1
     boolean = t
     boolean == t ? { "true is true" >> 1 }
+    "Hello" + " " + "World" >> 1
 }

@@ -71,6 +71,20 @@ impl DataType {
             _ => false,
         }
     }
+
+    pub fn is_string(&self) -> bool {
+        if let DataType::String(_) = *self {
+            return true;
+        }
+        false
+    }
+
+    pub fn get_string_ref(&self) -> &str {
+        match *self {
+            DataType::String(ref string) => string,
+            _ => "",
+        }
+    }
 }
 
 impl fmt::Display for DataType {
@@ -105,7 +119,12 @@ impl Add for DataType {
     type Output = DataType;
 
     fn add(self, right: DataType) -> DataType {
-        if self.is_float() || right.is_float() {
+        if self.is_string() && right.is_string() {
+            let mut rst = String::new();
+            rst.push_str(self.get_string_ref());
+            rst.push_str(right.get_string_ref());
+            return DataType::String(rst);
+        } else if self.is_float() || right.is_float() {
             return DataType::Float(self.get_float() + right.get_float());
         }
         DataType::Integer(self.get_int() + right.get_int())
