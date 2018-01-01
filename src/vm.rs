@@ -38,7 +38,6 @@ impl<'a> Vm {
                     return Ok(exit_code);
                 }
                 current_command_index = new_command_index;
-            // println!("{:?} {:?}", command, self);
             } else {
                 return Err(Error::InvalidCommandIndex(
                     current_command_index,
