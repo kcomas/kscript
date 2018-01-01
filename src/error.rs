@@ -31,4 +31,5 @@ pub enum Error<'a> {
     CannotExp(DataType, DataType, &'a str),
     InvalidGroup(&'a str),
     InvalidString(&'a str),
+    CannotGetLastLocals(&'a str),
 }

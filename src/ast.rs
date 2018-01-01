@@ -12,6 +12,7 @@ pub enum Ast {
     Comment(String),
     End,
     Var(String),
+    Bool(bool),
     Integer(i64),
     Float(f64),
     String(String),
@@ -64,6 +65,13 @@ impl<'a> Ast {
         false
     }
 
+    pub fn is_bool(&self) -> bool {
+        if let Ast::Bool(_) = *self {
+            return true;
+        }
+        false
+    }
+
     pub fn is_number(&self) -> bool {
         match *self {
             Ast::Integer(_) | Ast::Float(_) => true,
@@ -79,7 +87,7 @@ impl<'a> Ast {
     }
 
     pub fn is_data(&self) -> bool {
-        self.is_var() || self.is_number() || self.is_string()
+        self.is_var() || self.is_number() || self.is_string() || self.is_bool()
     }
 
     pub fn is_var(&self) -> bool {
@@ -187,6 +195,7 @@ impl<'a> Ast {
 
     pub fn to_data_type(&self) -> Result<DataType, Error<'a>> {
         match *self {
+            Ast::Bool(b) => Ok(DataType::Bool(b)),
             Ast::Integer(int) => Ok(DataType::Integer(int)),
             Ast::Float(float) => Ok(DataType::Float(float)),
             Ast::String(ref string) => Ok(DataType::String(Rc::new(RefCell::new(string.clone())))),
@@ -456,7 +465,14 @@ fn load_var<'a>(iter: &mut Peekable<Chars>) -> Result<Ast, Error<'a>> {
                 var.push(c);
                 iter.next();
             }
-            _ => return Ok(Ast::Var(var)),
+            _ => {
+                if var == "t" {
+                    return Ok(Ast::Bool(true));
+                } else if var == "f" {
+                    return Ok(Ast::Bool(false));
+                }
+                return Ok(Ast::Var(var));
+            }
         };
     }
     Err(Error::InvalidVar("No more charaters"))

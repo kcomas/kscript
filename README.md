@@ -27,8 +27,11 @@ KSCRIPT_DEBUG=1 ./target/release/kscript file.ks
 
 ### Types
 * Bools
+    * true: t
+    * false: f
 * Integers
 * Floats
+* Strings
 
 ### Comments
 Comments start with a # and go to the end of the line

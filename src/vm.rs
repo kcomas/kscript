@@ -13,7 +13,7 @@ pub struct FunctionInfo {
 pub struct Vm {
     stack: Vec<DataType>,
     // vars
-    locals: Vec<DataType>,
+    locals: Vec<Vec<DataType>>,
     // the position to go to after a return
     function_return: Vec<FunctionInfo>,
 }
@@ -22,7 +22,7 @@ impl<'a> Vm {
     pub fn new() -> Vm {
         Vm {
             stack: Vec::new(),
-            locals: Vec::new(),
+            locals: vec![Vec::new()],
             function_return: Vec::new(),
         }
     }
@@ -62,6 +62,20 @@ impl<'a> Vm {
         Err(Error::CannotReturn("No return position specified"))
     }
 
+    fn last_local(&self) -> Result<&Vec<DataType>, Error<'a>> {
+        if let Some(current_locals) = self.locals.last() {
+            return Ok(current_locals);
+        }
+        Err(Error::CannotGetLastLocals("No locals on the local stack"))
+    }
+
+    fn last_local_mut(&mut self) -> Result<&mut Vec<DataType>, Error<'a>> {
+        if let Some(current_locals) = self.locals.last_mut() {
+            return Ok(current_locals);
+        }
+        Err(Error::CannotGetLastLocals("No locals on the local stack"))
+    }
+
     fn match_command(
         &mut self,
         command: &Command,
@@ -92,13 +106,13 @@ impl<'a> Vm {
                     } else {
                         // load from locals
                         // index - num_args is local position
-                        if let Some(data) = self.locals.get(index - function_data.num_args) {
+                        if let Some(data) = self.last_local()?.get(index - function_data.num_args) {
                             new_data = Some(data.clone());
                         }
                     }
                 } else {
                     // load from the locals
-                    if let Some(data) = self.locals.get(index) {
+                    if let Some(data) = self.last_local()?.get(index) {
                         new_data = Some(data.clone());
                     }
                 }
@@ -127,10 +141,11 @@ impl<'a> Vm {
                         local_index = index - function_data.num_args;
                     }
                 }
-                if local_index < self.locals.len() {
-                    self.locals[local_index] = to_save;
-                } else if local_index == self.locals.len() {
-                    self.locals.push(to_save);
+                let current_local = self.last_local_mut()?;
+                if local_index < current_local.len() {
+                    current_local[local_index] = to_save;
+                } else if local_index == current_local.len() {
+                    current_local.push(to_save);
                 } else {
                     return Err(Error::CannotSave(
                         local_index,
@@ -146,6 +161,10 @@ impl<'a> Vm {
 
                 if left.is_int() && right.is_int() {
                     b = left.get_int() == right.get_int();
+                } else if left.is_float() && right.is_float() {
+                    b = left.get_float() == right.get_float();
+                } else if left.is_bool() && right.is_bool() {
+                    b = left.get_bool() == right.get_bool()
                 } else {
                     return Err(Error::CannotCompare(
                         left.clone(),
@@ -237,11 +256,12 @@ impl<'a> Vm {
                     stack_position: self.stack.len(),
                     num_args: args,
                 };
+                self.locals.push(Vec::new());
                 self.function_return.push(function_data);
                 return Ok((index, None));
             }
             Command::Return => {
-                self.locals.clear();
+                self.locals.pop();
                 let function_data = self.pop_function_return()?;
                 let mut restore = None;
                 if self.stack.len() > function_data.stack_position {

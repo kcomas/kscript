@@ -54,6 +54,13 @@ impl DataType {
         self.is_int() || self.is_float()
     }
 
+    pub fn is_bool(&self) -> bool {
+        if let DataType::Bool(_) = *self {
+            return true;
+        }
+        false
+    }
+
     pub fn get_bool(&self) -> bool {
         match *self {
             DataType::Bool(b) => b,
@@ -67,7 +74,13 @@ impl DataType {
 impl fmt::Display for DataType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            DataType::Bool(b) => write!(f, "{}", b),
+            DataType::Bool(b) => {
+                let mut value = "f";
+                if b {
+                    value = "t";
+                }
+                write!(f, "{}", value)
+            }
             DataType::Integer(int) => write!(f, "{}", int),
             DataType::Float(float) => write!(f, "{}", float),
             DataType::String(ref string) => write!(f, "{}", string.borrow()),

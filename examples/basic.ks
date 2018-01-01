@@ -13,4 +13,6 @@
     test > 1
     .add,1,2,3,5,1; >> 1
     9 / (2 + 1) * 3.3 >> 1
+    boolean = t
+    boolean == t ? { "true is true" >> 1 }
 }
