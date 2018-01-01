@@ -9,7 +9,7 @@ mod vm;
 use std::{env, process};
 use self::util::load_file_to_string;
 use self::ast::load_ast;
-use self::command::load_commands;
+use self::command::{load_commands, CommandState};
 use self::symbol::SymbolTable;
 use self::vm::Vm;
 
@@ -31,7 +31,13 @@ fn main() {
     }
     let mut commands = Vec::new();
     let mut root_symbols = SymbolTable::new();
-    load_commands(&mut ast, &mut commands, &mut root_symbols).unwrap();
+    let mut command_state = CommandState::new(0);
+    load_commands(
+        &mut ast,
+        &mut commands,
+        &mut root_symbols,
+        &mut command_state,
+    ).unwrap();
     if kscript_debug {
         println!("{:?}", root_symbols);
         println!("{:#?}", commands);

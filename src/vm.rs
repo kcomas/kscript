@@ -22,7 +22,7 @@ impl<'a> Vm {
     pub fn new() -> Vm {
         Vm {
             stack: Vec::new(),
-            locals: vec![Vec::new()],
+            locals: Vec::new(),
             function_return: Vec::new(),
         }
     }
@@ -82,6 +82,12 @@ impl<'a> Vm {
         current_command_index: usize,
     ) -> Result<(usize, Option<i32>), Error<'a>> {
         match *command {
+            Command::AddLocals => {
+                self.locals.push(Vec::new());
+            }
+            Command::RemoveLocals => {
+                self.locals.pop();
+            }
             Command::Push(ref data_type) => self.stack.push(data_type.clone()),
             Command::Load(index) => {
                 let mut new_data = None;
@@ -256,12 +262,10 @@ impl<'a> Vm {
                     stack_position: self.stack.len(),
                     num_args: args,
                 };
-                self.locals.push(Vec::new());
                 self.function_return.push(function_data);
                 return Ok((index, None));
             }
             Command::Return => {
-                self.locals.pop();
                 let function_data = self.pop_function_return()?;
                 let mut restore = None;
                 if self.stack.len() > function_data.stack_position {

@@ -5,6 +5,8 @@ use super::symbol::SymbolTable;
 
 #[derive(Debug)]
 pub enum Command {
+    AddLocals,
+    RemoveLocals,
     // add to stack
     Push(DataType),
     // remove from stack
@@ -47,10 +49,38 @@ impl Command {
     }
 }
 
+#[derive(Debug)]
+pub struct CommandState {
+    num_args: usize,
+    added_locals: bool,
+}
+
+impl CommandState {
+    pub fn new(num_args: usize) -> CommandState {
+        CommandState {
+            num_args: num_args,
+            added_locals: false,
+        }
+    }
+
+    pub fn get_num_args(&self) -> usize {
+        self.num_args
+    }
+
+    pub fn get_added_locals(&self) -> bool {
+        self.added_locals
+    }
+
+    pub fn added_locals(&mut self) {
+        self.added_locals = true;
+    }
+}
+
 pub fn load_commands<'a>(
     ast: &mut Vec<Ast>,
     commands: &mut Vec<Command>,
     symbols: &mut SymbolTable,
+    command_state: &mut CommandState,
 ) -> Result<(), Error<'a>> {
     let mut start_index = 0;
     let mut end_index = 0;
@@ -84,6 +114,7 @@ pub fn load_commands<'a>(
                         add_main_halt = symbols.register_function(fn_name, commands.len())?;
                     }
                     let mut function_symbol_table = symbols.get_sub_table();
+                    let mut sub_command_state;
                     {
                         let args = ast[highest_presedence_index].get_function_args()?;
                         // convert the args to indexes
@@ -93,9 +124,18 @@ pub fn load_commands<'a>(
                                 function_symbol_table.register_var(var_name)?;
                             }
                         }
+                        sub_command_state = CommandState::new(args.len());
                     }
                     let fn_body = ast[highest_presedence_index].get_function_body_mut()?;
-                    load_commands(fn_body, commands, &mut function_symbol_table)?;
+                    load_commands(
+                        fn_body,
+                        commands,
+                        &mut function_symbol_table,
+                        &mut sub_command_state,
+                    )?;
+                    if sub_command_state.get_added_locals() {
+                        commands.push(Command::RemoveLocals);
+                    }
                     // add a halt or return if needed
                     if add_main_halt {
                         let mut add_halt = false;
@@ -116,7 +156,13 @@ pub fn load_commands<'a>(
                     }
                 } else {
                     // function call
-                    build_function_call(ast, highest_presedence_index, commands, symbols)?;
+                    build_function_call(
+                        ast,
+                        highest_presedence_index,
+                        commands,
+                        symbols,
+                        command_state,
+                    )?;
                 }
             } else if ast[highest_presedence_index].is_if() {
                 let mut if_commands = Vec::new();
@@ -124,6 +170,7 @@ pub fn load_commands<'a>(
                     ast[highest_presedence_index].get_if_body_mut()?,
                     &mut if_commands,
                     symbols,
+                    command_state,
                 )?;
                 let jmpf = Command::Jmpf(commands.len() + if_commands.len() + 1);
                 commands.push(jmpf);
@@ -133,9 +180,16 @@ pub fn load_commands<'a>(
                     ast[highest_presedence_index].get_group_body_mut()?,
                     commands,
                     symbols,
+                    command_state,
                 )?;
             } else {
-                add_commands(ast, highest_presedence_index, commands, symbols)?;
+                add_commands(
+                    ast,
+                    highest_presedence_index,
+                    commands,
+                    symbols,
+                    command_state,
+                )?;
             }
             ast[highest_presedence_index] = Ast::Used;
             // reset
@@ -154,11 +208,12 @@ fn build_function_call<'a>(
     index: usize,
     commands: &mut Vec<Command>,
     symbols: &mut SymbolTable,
+    command_state: &mut CommandState,
 ) -> Result<(), Error<'a>> {
     let fn_index = symbols.get_function_index(ast[index].get_function_name()?)?;
     let args = ast[index].get_function_args_mut()?;
     for arg in args.iter_mut() {
-        load_commands(arg, commands, symbols)?;
+        load_commands(arg, commands, symbols, command_state)?;
     }
     commands.push(Command::Call(args.len(), fn_index));
     Ok(())
@@ -169,9 +224,10 @@ fn add_commands<'a>(
     index: usize,
     commands: &mut Vec<Command>,
     symbols: &mut SymbolTable,
+    command_state: &mut CommandState,
 ) -> Result<(), Error<'a>> {
     if ast[index].is_data() {
-        commands.push(transform_command(&ast[index], symbols)?);
+        transform_command(&ast[index], commands, symbols, command_state)?;
         return Ok(());
     }
     if ast[index].is_dyadic() {
@@ -180,26 +236,27 @@ fn add_commands<'a>(
             if index + 1 >= ast.len() {
                 return Err(Error::CannotAssign("Right side does not exist"));
             }
-            build_command(ast, index + 1, commands, symbols)?;
+            build_command(ast, index + 1, commands, symbols, command_state)?;
             if index == 0 {
                 return Err(Error::CannotAssign("Left side does not exist"));
             }
-            commands.push(Command::Save(symbols
-                .get_var_index(ast[index - 1].get_var_name()?)?));
+            let var_index = symbols.get_var_index(ast[index - 1].get_var_name()?)?;
+            check_locals(var_index, commands, command_state);
+            commands.push(Command::Save(var_index));
             ast[index - 1] = Ast::Used;
             return Ok(());
         } else {
             if index > 0 {
-                build_command(ast, index - 1, commands, symbols)?;
+                build_command(ast, index - 1, commands, symbols, command_state)?;
             }
             if index < ast.len() {
-                build_command(ast, index + 1, commands, symbols)?;
+                build_command(ast, index + 1, commands, symbols, command_state)?;
             }
         }
     }
     if ast[index].is_monadic_left() {
         if index > 0 {
-            build_command(ast, index - 1, commands, symbols)?;
+            build_command(ast, index - 1, commands, symbols, command_state)?;
         }
     }
     let command = match ast[index] {
@@ -229,23 +286,45 @@ fn build_command<'a>(
     next_index: usize,
     commands: &mut Vec<Command>,
     symbols: &mut SymbolTable,
+    command_state: &mut CommandState,
 ) -> Result<(), Error<'a>> {
     if !ast[next_index].is_used() {
         if ast[next_index].is_function() {
-            build_function_call(ast, next_index, commands, symbols)?;
+            build_function_call(ast, next_index, commands, symbols, command_state)?;
         } else if ast[next_index].is_group() {
-            load_commands(ast[next_index].get_group_body_mut()?, commands, symbols)?;
+            load_commands(
+                ast[next_index].get_group_body_mut()?,
+                commands,
+                symbols,
+                command_state,
+            )?;
         } else {
-            commands.push(transform_command(&ast[next_index], symbols)?);
+            transform_command(&ast[next_index], commands, symbols, command_state)?;
         }
         ast[next_index] = Ast::Used;
     }
     Ok(())
 }
 
-fn transform_command<'a>(ast: &Ast, symbols: &mut SymbolTable) -> Result<Command, Error<'a>> {
+fn transform_command<'a>(
+    ast: &Ast,
+    commands: &mut Vec<Command>,
+    symbols: &mut SymbolTable,
+    command_state: &mut CommandState,
+) -> Result<(), Error<'a>> {
     if ast.is_var() {
-        return Ok(Command::Load(symbols.get_var_index(ast.get_var_name()?)?));
+        let var_index = symbols.get_var_index(ast.get_var_name()?)?;
+        check_locals(var_index, commands, command_state);
+        commands.push(Command::Load(var_index));
+    } else {
+        commands.push(Command::Push(ast.to_data_type()?));
     }
-    Ok(Command::Push(ast.to_data_type()?))
+    Ok(())
+}
+
+fn check_locals(index: usize, commands: &mut Vec<Command>, command_state: &mut CommandState) {
+    if index >= command_state.get_num_args() && !command_state.get_added_locals() {
+        commands.push(Command::AddLocals);
+        command_state.added_locals();
+    }
 }

@@ -386,7 +386,9 @@ fn load_args<'a>(iter: &mut Peekable<Chars>) -> Result<Vec<Vec<Ast>>, Error<'a>>
             args.push(current_arg);
             current_arg = Vec::new();
         } else if c == '{' || c == '\n' || c == ';' {
-            args.push(current_arg);
+            if current_arg.len() > 0 {
+                args.push(current_arg);
+            }
             return Ok(args);
         } else {
             if let Some(statement) = load_statement(iter)? {
