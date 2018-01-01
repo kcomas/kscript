@@ -186,6 +186,14 @@ pub fn load_commands<'a>(
                     symbols,
                     command_state,
                 )?;
+            } else if ast[highest_presedence_index].is_array() {
+                build_array(
+                    ast,
+                    highest_presedence_index,
+                    commands,
+                    symbols,
+                    command_state,
+                )?;
             } else {
                 add_commands(
                     ast,

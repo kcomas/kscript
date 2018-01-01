@@ -31,7 +31,7 @@ pub enum Ast {
 
 impl<'a> Ast {
     pub fn presedence(&self) -> usize {
-        if self.is_data() {
+        if self.is_data() || self.is_array() {
             return 1;
         }
         match *self {
