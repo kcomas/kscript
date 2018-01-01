@@ -55,7 +55,7 @@ There must be a comma after the function name
 }
 
 .main, {
-    # add 1 + 2 and wirte to standard out with a newline
+    # add 1 + 2 and write to standard out with a newline
     .add,1,2; >> 1
 }
 ```
@@ -68,6 +68,7 @@ Variables are assigned with = by shallow copy
 .main, {
     a = 1
     b = 2
+    # Prints 3 to stdout
     a + b >> 1
 }
 ```
