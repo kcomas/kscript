@@ -1,7 +1,5 @@
 use std::str::Chars;
 use std::iter::Peekable;
-use std::rc::Rc;
-use std::cell::RefCell;
 
 use super::data_type::DataType;
 use super::error::Error;
@@ -198,7 +196,7 @@ impl<'a> Ast {
             Ast::Bool(b) => Ok(DataType::Bool(b)),
             Ast::Integer(int) => Ok(DataType::Integer(int)),
             Ast::Float(float) => Ok(DataType::Float(float)),
-            Ast::String(ref string) => Ok(DataType::String(Rc::new(RefCell::new(string.clone())))),
+            Ast::String(ref string) => Ok(DataType::String(string.clone())),
             _ => Err(Error::CannotConvertToDataType(
                 self.clone(),
                 "Cannot convert to data type",
