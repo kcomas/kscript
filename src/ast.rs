@@ -1,5 +1,7 @@
 use std::str::Chars;
 use std::iter::Peekable;
+use std::rc::Rc;
+use std::cell::RefCell;
 
 use super::data_type::DataType;
 use super::error::Error;
@@ -12,6 +14,7 @@ pub enum Ast {
     Var(String),
     Integer(i64),
     Float(f64),
+    String(String),
     Group(Vec<Ast>), // (...)
     // var, args, body
     Function(Box<Ast>, Vec<Vec<Ast>>, Vec<Ast>),
@@ -31,8 +34,10 @@ pub enum Ast {
 
 impl<'a> Ast {
     pub fn presedence(&self) -> usize {
+        if self.is_data() {
+            return 1;
+        }
         match *self {
-            Ast::Var(_) | Ast::Integer(_) => 1,
             Ast::Return => 2,
             Ast::IoWrite | Ast::IoAppend | Ast::Assign => 3,
             Ast::If(_) => 4,
@@ -66,8 +71,15 @@ impl<'a> Ast {
         }
     }
 
+    pub fn is_string(&self) -> bool {
+        if let Ast::String(_) = *self {
+            return true;
+        }
+        false
+    }
+
     pub fn is_data(&self) -> bool {
-        self.is_var() || self.is_number()
+        self.is_var() || self.is_number() || self.is_string()
     }
 
     pub fn is_var(&self) -> bool {
@@ -75,6 +87,13 @@ impl<'a> Ast {
             return true;
         }
         false
+    }
+
+    pub fn get_var_name(&self) -> Result<&str, Error<'a>> {
+        match *self {
+            Ast::Var(ref name) => Ok(name),
+            _ => Err(Error::AstNotVar("Token not a var")),
+        }
     }
 
     pub fn is_group(&self) -> bool {
@@ -102,13 +121,6 @@ impl<'a> Ast {
         match *self {
             Ast::Function(_, _, ref body) => body.len() > 0,
             _ => false,
-        }
-    }
-
-    pub fn get_var_name(&self) -> Result<&str, Error<'a>> {
-        match *self {
-            Ast::Var(ref name) => Ok(name),
-            _ => Err(Error::AstNotVar("Token not a var")),
         }
     }
 
@@ -177,6 +189,7 @@ impl<'a> Ast {
         match *self {
             Ast::Integer(int) => Ok(DataType::Integer(int)),
             Ast::Float(float) => Ok(DataType::Float(float)),
+            Ast::String(ref string) => Ok(DataType::String(Rc::new(RefCell::new(string.clone())))),
             _ => Err(Error::CannotConvertToDataType(
                 self.clone(),
                 "Cannot convert to data type",
@@ -290,10 +303,42 @@ fn load_statement<'a>(iter: &mut Peekable<Chars>) -> Result<Option<Ast>, Error<'
             '=' => return Ok(Some(load_eqauls(iter)?)),
             '?' => return Ok(Some(Ast::If(load_block(iter, '{', '}')?))),
             '>' => return Ok(Some(load_io_out(iter)?)),
+            '"' => return Ok(Some(load_string(iter)?)),
             _ => return Ok(None),
         };
     }
     Ok(None)
+}
+
+fn load_string<'a>(iter: &mut Peekable<Chars>) -> Result<Ast, Error<'a>> {
+    // find first "
+    loop {
+        let c = match iter.next() {
+            Some(c) => c,
+            None => return Err(Error::InvalidString("No more charaters")),
+        };
+        if c == '"' {
+            break;
+        }
+    }
+    let mut string = String::new();
+    loop {
+        let c = match iter.peek() {
+            Some(c) => *c,
+            None => break,
+        };
+        match c {
+            '"' => {
+                iter.next();
+                return Ok(Ast::String(string));
+            }
+            _ => {
+                string.push(c);
+                iter.next();
+            }
+        }
+    }
+    Err(Error::InvalidString("No more chraters"))
 }
 
 fn load_args<'a>(iter: &mut Peekable<Chars>) -> Result<Vec<Vec<Ast>>, Error<'a>> {

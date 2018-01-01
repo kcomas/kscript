@@ -1,4 +1,6 @@
 use std::ops::{Add, Div, Mul, Rem, Sub};
+use std::rc::Rc;
+use std::cell::RefCell;
 use std::fmt;
 
 #[derive(Debug)]
@@ -6,6 +8,7 @@ pub enum DataType {
     Bool(bool),
     Integer(i64),
     Float(f64),
+    String(Rc<RefCell<String>>),
 }
 
 impl DataType {
@@ -24,6 +27,7 @@ impl DataType {
             },
             DataType::Integer(int) => int,
             DataType::Float(float) => float as i64,
+            _ => 0,
         }
     }
 
@@ -42,6 +46,7 @@ impl DataType {
             },
             DataType::Integer(int) => int as f64,
             DataType::Float(float) => float,
+            _ => 0.0,
         }
     }
 
@@ -54,6 +59,7 @@ impl DataType {
             DataType::Bool(b) => b,
             DataType::Integer(int) => int != 0,
             DataType::Float(float) => float != 0.0,
+            _ => false,
         }
     }
 }
@@ -64,6 +70,7 @@ impl fmt::Display for DataType {
             DataType::Bool(b) => write!(f, "{}", b),
             DataType::Integer(int) => write!(f, "{}", int),
             DataType::Float(float) => write!(f, "{}", float),
+            DataType::String(ref string) => write!(f, "{}", string.borrow()),
         }
     }
 }
@@ -74,6 +81,7 @@ impl Clone for DataType {
             DataType::Bool(b) => DataType::Bool(b),
             DataType::Integer(int) => DataType::Integer(int),
             DataType::Float(float) => DataType::Float(float),
+            DataType::String(ref string) => DataType::String(Rc::clone(string)),
         }
     }
 }

@@ -30,4 +30,5 @@ pub enum Error<'a> {
     CannotSave(usize, &'a str),
     CannotExp(DataType, DataType, &'a str),
     InvalidGroup(&'a str),
+    InvalidString(&'a str),
 }
