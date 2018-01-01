@@ -1,4 +1,10 @@
 
+.update_x,x {
+    x = 12
+    "up 2: " > 1
+    x >> 1
+}
+
 .update_refs,x,z {
     d = z
     d = 10
@@ -7,6 +13,7 @@
     x = 5
     "up x: " > 1
     x >> 1
+    .update_x,x
 }
 
 .main, {
