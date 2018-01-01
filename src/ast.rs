@@ -343,7 +343,7 @@ fn load_string<'a>(iter: &mut Peekable<Chars>) -> Result<Ast, Error<'a>> {
                     'n' => string.push('\n'),
                     '"' => string.push('"'),
                     _ => return Err(Error::InvalidString("Invalid escape")),
-                }
+                };
             }
             _ => {
                 string.push(c);
