@@ -48,6 +48,8 @@ All programs must have a main function
 
 Functions are labeled by a period followed by a name and args separated by commas
 
+All args are passed by reference
+
 There must be a comma after the function name
 ```
 .add,x,y {
