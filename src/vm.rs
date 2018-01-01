@@ -1,4 +1,5 @@
-use super::data_type::DataType;
+use std::rc::Rc;
+use super::data_type::{wrap_type, DataType, SharedDataType};
 use super::command::Command;
 use super::error::Error;
 
@@ -11,9 +12,9 @@ pub struct FunctionInfo {
 
 #[derive(Debug)]
 pub struct Vm {
-    stack: Vec<DataType>,
+    stack: Vec<SharedDataType>,
     // vars
-    locals: Vec<Vec<DataType>>,
+    locals: Vec<Vec<SharedDataType>>,
     // the position to go to after a return
     function_return: Vec<FunctionInfo>,
 }
@@ -47,9 +48,9 @@ impl<'a> Vm {
         }
     }
 
-    fn pop_stack(&mut self) -> Result<DataType, Error<'a>> {
-        if let Some(data_type) = self.stack.pop() {
-            return Ok(data_type);
+    fn pop_stack(&mut self) -> Result<SharedDataType, Error<'a>> {
+        if let Some(ref data_type) = self.stack.pop() {
+            return Ok(Rc::clone(data_type));
         }
         Err(Error::StackEmpty("No more values on stack"))
     }
@@ -61,14 +62,14 @@ impl<'a> Vm {
         Err(Error::CannotReturn("No return position specified"))
     }
 
-    fn last_local(&self) -> Result<&Vec<DataType>, Error<'a>> {
+    fn last_local(&self) -> Result<&Vec<SharedDataType>, Error<'a>> {
         if let Some(current_locals) = self.locals.last() {
             return Ok(current_locals);
         }
         Err(Error::CannotGetLastLocals("No locals on the local stack"))
     }
 
-    fn last_local_mut(&mut self) -> Result<&mut Vec<DataType>, Error<'a>> {
+    fn last_local_mut(&mut self) -> Result<&mut Vec<SharedDataType>, Error<'a>> {
         if let Some(current_locals) = self.locals.last_mut() {
             return Ok(current_locals);
         }
@@ -98,10 +99,10 @@ impl<'a> Vm {
                                 "Cannot load non existant data from stack",
                             ));
                         }
-                        if let Some(data_type) = self.stack
+                        if let Some(ref data_type) = self.stack
                             .get(function_data.stack_position - function_data.num_args + index)
                         {
-                            new_data = Some(data_type.clone());
+                            new_data = Some(Rc::clone(data_type));
                         } else {
                             return Err(Error::InvalidFunctionArgument(
                                 index,
@@ -112,13 +113,13 @@ impl<'a> Vm {
                         // load from locals
                         // index - num_args is local position
                         if let Some(data) = self.last_local()?.get(index - function_data.num_args) {
-                            new_data = Some(data.clone());
+                            new_data = Some(Rc::clone(data));
                         }
                     }
                 } else {
                     // load from the locals
                     if let Some(data) = self.last_local()?.get(index) {
-                        new_data = Some(data.clone());
+                        new_data = Some(Rc::clone(data));
                     }
                 }
                 if let Some(data) = new_data {
@@ -127,6 +128,7 @@ impl<'a> Vm {
             }
             Command::Save(index) => {
                 let to_save = self.pop_stack()?;
+                let to_save = to_save.borrow().clone();
                 let mut local_index = index;
                 if let Some(function_data) = self.function_return.last() {
                     if index < function_data.num_args {
@@ -134,7 +136,7 @@ impl<'a> Vm {
                         if let Some(data_type) = self.stack
                             .get_mut(function_data.stack_position - function_data.num_args + index)
                         {
-                            *data_type = to_save;
+                            *data_type.borrow_mut() = to_save;
                             return Ok((current_command_index + 1, None));
                         } else {
                             return Err(Error::CannotSave(
@@ -148,9 +150,9 @@ impl<'a> Vm {
                 }
                 let current_local = self.last_local_mut()?;
                 if local_index < current_local.len() {
-                    current_local[local_index] = to_save;
+                    *current_local[local_index].borrow_mut() = to_save;
                 } else if local_index == current_local.len() {
-                    current_local.push(to_save);
+                    current_local.push(wrap_type(to_save));
                 } else {
                     return Err(Error::CannotSave(
                         local_index,
@@ -160,7 +162,9 @@ impl<'a> Vm {
             }
             Command::Equals => {
                 let right = self.pop_stack()?;
+                let right = right.borrow();
                 let left = self.pop_stack()?;
+                let left = left.borrow();
 
                 let b;
 
@@ -177,26 +181,34 @@ impl<'a> Vm {
                         "Cannot compare types",
                     ));
                 }
-                self.stack.push(DataType::Bool(b));
+                self.stack.push(wrap_type(DataType::Bool(b)));
             }
             Command::Add => {
                 let right = self.pop_stack()?;
+                let right = right.borrow();
                 let left = self.pop_stack()?;
-                self.stack.push(left + right);
+                let left = left.borrow();
+                self.stack.push(wrap_type(left.clone() + right.clone()));
             }
             Command::Sub => {
                 let right = self.pop_stack()?;
+                let right = right.borrow();
                 let left = self.pop_stack()?;
-                self.stack.push(left - right);
+                let left = left.borrow();
+                self.stack.push(wrap_type(left.clone() - right.clone()));
             }
             Command::Mul => {
                 let right = self.pop_stack()?;
+                let right = right.borrow();
                 let left = self.pop_stack()?;
-                self.stack.push(left * right);
+                let left = left.borrow();
+                self.stack.push(wrap_type(left.clone() * right.clone()));
             }
             Command::Exp => {
                 let right = self.pop_stack()?;
+                let right = right.borrow();
                 let left = self.pop_stack()?;
+                let left = left.borrow();
                 if !left.is_number() || !right.is_number() {
                     return Err(Error::CannotExp(
                         left.clone(),
@@ -205,52 +217,72 @@ impl<'a> Vm {
                     ));
                 }
                 if left.is_int() && right.is_int() {
-                    self.stack.push(DataType::Integer(
+                    self.stack.push(wrap_type(DataType::Integer(
                         left.get_int().pow(right.get_int() as u32),
-                    ));
+                    )));
                 } else if left.is_float() && right.is_int() {
-                    self.stack.push(DataType::Float(
+                    self.stack.push(wrap_type(DataType::Float(
                         left.get_float().powi(right.get_int() as i32),
-                    ));
+                    )));
                 } else {
-                    self.stack
-                        .push(DataType::Float(left.get_float().powf(right.get_float())));
+                    self.stack.push(wrap_type(DataType::Float(
+                        left.get_float().powf(right.get_float()),
+                    )));
                 }
             }
             Command::Div => {
                 let right = self.pop_stack()?;
+                let right = right.borrow();
                 let left = self.pop_stack()?;
-                self.stack.push(left / right);
+                let left = left.borrow();
+                self.stack.push(wrap_type(left.clone() / right.clone()));
             }
             Command::Rem => {
                 let right = self.pop_stack()?;
+                let right = right.borrow();
                 let left = self.pop_stack()?;
-                self.stack.push(left % right);
+                let left = left.borrow();
+                self.stack.push(wrap_type(left.clone() % right.clone()));
             }
             Command::IoWrite => {
                 let target = self.pop_stack()?;
+                let target = target.borrow();
                 let source = self.pop_stack()?;
+                let source = source.borrow();
                 if target.is_int() {
                     match target.get_int() {
                         1 => print!("{}", source),
                         2 => eprint!("{}", source),
-                        _ => return Err(Error::InvalidWriteTarget(target, "Cannot write to fd")),
+                        _ => {
+                            return Err(Error::InvalidWriteTarget(
+                                target.clone(),
+                                "Cannot write to fd",
+                            ))
+                        }
                     }
                 }
             }
             Command::IoAppend => {
                 let target = self.pop_stack()?;
+                let target = target.borrow();
                 let source = self.pop_stack()?;
+                let source = source.borrow();
                 if target.is_int() {
                     match target.get_int() {
                         1 => println!("{}", source),
                         2 => eprintln!("{}", source),
-                        _ => return Err(Error::InvalidWriteTarget(target, "Cannot append to fd")),
+                        _ => {
+                            return Err(Error::InvalidWriteTarget(
+                                target.clone(),
+                                "Cannot append to fd",
+                            ))
+                        }
                     }
                 }
             }
             Command::Jmpf(index) => {
                 let cmp = self.pop_stack()?;
+                let cmp = cmp.borrow();
                 if !cmp.get_bool() {
                     return Ok((index, None));
                 }

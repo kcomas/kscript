@@ -63,7 +63,7 @@ There must be a comma after the function name
 Function calls must end with a newline or have a ; after the call
 
 ### Assignment =
-Variables are assigned with = by shallow copy
+Variables are assigned with = by deep copy
 ```
 .main, {
     a = 1

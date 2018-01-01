@@ -1,4 +1,6 @@
-use super::data_type::DataType;
+use std::rc::Rc;
+use std::cell::RefCell;
+use super::data_type::SharedDataType;
 use super::ast::Ast;
 use super::error::Error;
 use super::symbol::SymbolTable;
@@ -8,7 +10,7 @@ pub enum Command {
     AddLocals,
     RemoveLocals,
     // add to stack
-    Push(DataType),
+    Push(SharedDataType),
     // remove from stack
     // Pop,
     // load argument from the locals stack
@@ -317,7 +319,7 @@ fn transform_command<'a>(
         check_locals(var_index, commands, command_state);
         commands.push(Command::Load(var_index));
     } else {
-        commands.push(Command::Push(ast.to_data_type()?));
+        commands.push(Command::Push(Rc::new(RefCell::new(ast.to_data_type()?))));
     }
     Ok(())
 }

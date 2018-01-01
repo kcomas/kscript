@@ -3,12 +3,14 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use std::fmt;
 
+pub type SharedDataType = Rc<RefCell<DataType>>;
+
 #[derive(Debug)]
 pub enum DataType {
     Bool(bool),
     Integer(i64),
     Float(f64),
-    String(Rc<RefCell<String>>),
+    String(String),
 }
 
 impl DataType {
@@ -83,7 +85,7 @@ impl fmt::Display for DataType {
             }
             DataType::Integer(int) => write!(f, "{}", int),
             DataType::Float(float) => write!(f, "{}", float),
-            DataType::String(ref string) => write!(f, "{}", string.borrow()),
+            DataType::String(ref string) => write!(f, "{}", string),
         }
     }
 }
@@ -94,7 +96,7 @@ impl Clone for DataType {
             DataType::Bool(b) => DataType::Bool(b),
             DataType::Integer(int) => DataType::Integer(int),
             DataType::Float(float) => DataType::Float(float),
-            DataType::String(ref string) => DataType::String(Rc::clone(string)),
+            DataType::String(ref string) => DataType::String(string.clone()),
         }
     }
 }
@@ -152,4 +154,8 @@ impl Rem for DataType {
         }
         DataType::Integer(self.get_int() % right.get_int())
     }
+}
+
+pub fn wrap_type(data_tye: DataType) -> SharedDataType {
+    Rc::new(RefCell::new(data_tye))
 }
