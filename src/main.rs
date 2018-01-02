@@ -12,9 +12,16 @@ use self::ast::load_ast;
 use self::command::{load_commands, CommandState};
 use self::symbol::SymbolTable;
 use self::vm::Vm;
+use self::error::Error;
 
 fn printer(title: &str) {
     println!("{:-<10} {} {:-<10}", "", title, "");
+}
+
+fn handle_error(err: Error) {
+    eprintln!("{:?}", err);
+    eprintln!("Add KSCRIPT_DEBUG=1 for backtrace");
+    process::exit(1);
 }
 
 fn main() {
@@ -24,14 +31,20 @@ fn main() {
         eprintln!("Usage {} file.ks", args[0]);
         process::exit(1);
     }
-    let program = load_file_to_string(&args[1]).unwrap();
+    let program = match load_file_to_string(&args[1]) {
+        Ok(program) => program,
+        Err(err) => return handle_error(Error::FileLoadFail(err)),
+    };
     if kscript_debug {
         printer("Script");
         println!("{}", program);
         printer("End Script");
     }
     let mut iter = program.chars().peekable();
-    let mut ast = load_ast(&mut iter).unwrap();
+    let mut ast = match load_ast(&mut iter) {
+        Ok(ast) => ast,
+        Err(err) => return handle_error(err),
+    };
     if kscript_debug {
         printer("AST");
         println!("{:#?}", ast);
@@ -40,12 +53,14 @@ fn main() {
     let mut commands = Vec::new();
     let mut root_symbols = SymbolTable::new();
     let mut command_state = CommandState::new(0);
-    load_commands(
+    if let Err(err) = load_commands(
         &mut ast,
         &mut commands,
         &mut root_symbols,
         &mut command_state,
-    ).unwrap();
+    ) {
+        return handle_error(err);
+    }
     if kscript_debug {
         printer("Symbols");
         println!("{:?}", root_symbols);
@@ -54,7 +69,10 @@ fn main() {
         println!("{:#?}", commands);
         printer("End VM");
     }
-    let entry = root_symbols.get_main().unwrap();
+    let entry = match root_symbols.get_main() {
+        Ok(entry) => entry,
+        Err(err) => return handle_error(err),
+    };
     if kscript_debug {
         println!("Entry: {}, {:?}", entry, commands[entry]);
     }
@@ -66,10 +84,6 @@ fn main() {
             }
             process::exit(exit_code);
         }
-        Err(err) => {
-            println!("{:?}", vm);
-            println!("{:?}", err);
-            println!("Add KSCRIPT_DEBUG=1 for backtrace");
-        }
-    }
+        Err(err) => return handle_error(err),
+    };
 }

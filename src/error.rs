@@ -1,8 +1,10 @@
+use std::io;
 use super::ast::Ast;
 use super::data_type::DataType;
 
 #[derive(Debug)]
 pub enum Error<'a> {
+    FileLoadFail(io::Error),
     InvalidComment(&'a str),
     InvalidVar(&'a str),
     InvalidNumber(&'a str),
