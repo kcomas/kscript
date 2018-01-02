@@ -33,7 +33,7 @@ fn main() {
     }
     let program = match load_file_to_string(&args[1]) {
         Ok(program) => program,
-        Err(err) => return handle_error(Error::FileLoadFail(err)),
+        Err(err) => return handle_error(Error::FileLoadFail(err, "Could not load the program")),
     };
     if kscript_debug {
         printer("Script");

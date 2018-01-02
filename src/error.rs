@@ -4,7 +4,7 @@ use super::data_type::DataType;
 
 #[derive(Debug)]
 pub enum Error<'a> {
-    FileLoadFail(io::Error),
+    FileLoadFail(io::Error, &'a str),
     InvalidComment(&'a str),
     InvalidVar(&'a str),
     InvalidNumber(&'a str),
