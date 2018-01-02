@@ -32,6 +32,7 @@ KSCRIPT_DEBUG=1 ./target/release/kscript file.ks
 * Integers
 * Floats
 * Strings
+* Arrays
 
 ### Comments
 Comments start with a # and go to the end of the line
