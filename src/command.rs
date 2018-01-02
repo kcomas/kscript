@@ -13,10 +13,10 @@ pub enum Command {
     Push(SharedDataType),
     // remove from stack
     // Pop,
-    // load argument from the locals stack
-    Load(usize),
-    // save value to locals stack
-    Save(usize),
+    LoadStack(usize),
+    LoadLocal(usize),
+    SaveStack(usize),
+    SaveLocal(usize),
     // create an array with values from stack
     MakeArray(usize),
     Equals,
@@ -268,8 +268,12 @@ fn add_commands<'a>(
                 return Err(Error::CannotAssign("Left side does not exist"));
             }
             let var_index = symbols.get_var_index(ast[index - 1].get_var_name()?)?;
-            check_locals(var_index, commands, command_state);
-            commands.push(Command::Save(var_index));
+            let (is_local, save_index) = check_locals(var_index, commands, command_state);
+            if is_local {
+                commands.push(Command::SaveLocal(save_index));
+            } else {
+                commands.push(Command::SaveStack(save_index));
+            }
             ast[index - 1] = Ast::Used;
             return Ok(());
         } else {
@@ -343,8 +347,12 @@ fn transform_command<'a>(
 ) -> Result<(), Error<'a>> {
     if ast.is_var() {
         let var_index = symbols.get_var_index(ast.get_var_name()?)?;
-        check_locals(var_index, commands, command_state);
-        commands.push(Command::Load(var_index));
+        let (is_local, load_index) = check_locals(var_index, commands, command_state);
+        if is_local {
+            commands.push(Command::LoadLocal(load_index));
+        } else {
+            commands.push(Command::LoadStack(load_index));
+        }
     } else if ast.is_data() {
         commands.push(Command::Push(Rc::new(RefCell::new(ast.to_data_type()?))));
     } else {
@@ -356,9 +364,19 @@ fn transform_command<'a>(
     Ok(())
 }
 
-fn check_locals(index: usize, commands: &mut Vec<Command>, command_state: &mut CommandState) {
+fn check_locals(
+    index: usize,
+    commands: &mut Vec<Command>,
+    command_state: &mut CommandState,
+) -> (bool, usize) {
+    // return the new index and if it is a local
     if index >= command_state.get_num_args() && !command_state.get_added_locals() {
         commands.push(Command::AddLocals);
         command_state.added_locals();
     }
+    // check if it is a local
+    if index < command_state.get_num_args() {
+        return (false, index);
+    }
+    (true, index - command_state.get_num_args())
 }

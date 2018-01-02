@@ -89,73 +89,65 @@ impl<'a> Vm {
                 self.locals.pop();
             }
             Command::Push(ref data_type) => self.stack.push(Rc::clone(data_type)),
-            Command::Load(index) => {
-                let mut new_data = None;
+            Command::LoadStack(index) => {
+                let mut load_data = None;
                 if let Some(function_data) = self.function_return.last() {
-                    if index < function_data.num_args {
-                        if function_data.num_args > function_data.stack_position {
-                            // no more on stack
-                            return Err(Error::StackEmpty(
-                                "Cannot load non existant data from stack",
-                            ));
-                        }
-                        if let Some(ref data_type) = self.stack
-                            .get(function_data.stack_position - function_data.num_args + index)
-                        {
-                            new_data = Some(Rc::clone(data_type));
-                        } else {
-                            return Err(Error::InvalidFunctionArgument(
-                                index,
-                                "Invalid function argument",
-                            ));
-                        }
-                    } else {
-                        // load from locals
-                        // index - num_args is local position
-                        if let Some(data) = self.last_local()?.get(index - function_data.num_args) {
-                            new_data = Some(Rc::clone(data));
-                        }
+                    if let Some(ref data_type) = self.stack
+                        .get(function_data.stack_position - function_data.num_args + index)
+                    {
+                        load_data = Some(Rc::clone(data_type));
                     }
-                } else {
-                    // load from the locals
-                    if let Some(data) = self.last_local()?.get(index) {
-                        new_data = Some(Rc::clone(data));
+                    if let Some(data) = load_data {
+                        self.stack.push(data);
+                        return Ok((current_command_index + 1, None));
                     }
+                    return Err(Error::InvalidFunctionArgument(
+                        index,
+                        "Invalid function argument",
+                    ));
                 }
-                if let Some(data) = new_data {
-                    self.stack.push(data);
-                }
+                return Err(Error::InvalidFunctionArgument(index, "Not in function"));
             }
-            Command::Save(index) => {
+            Command::LoadLocal(index) => {
+                let mut load_data = None;
+                if let Some(data) = self.last_local()?.get(index) {
+                    load_data = Some(Rc::clone(data));
+                }
+                if let Some(data) = load_data {
+                    self.stack.push(data);
+                    return Ok((current_command_index + 1, None));
+                }
+                return Err(Error::CannotGetLastLocals("No local data found"));
+            }
+            Command::SaveStack(index) => {
                 let to_save = self.pop_stack()?;
                 let to_save = to_save.borrow().clone();
-                let mut local_index = index;
                 if let Some(function_data) = self.function_return.last() {
-                    if index < function_data.num_args {
-                        // update the current stack
-                        if let Some(data_type) = self.stack
-                            .get_mut(function_data.stack_position - function_data.num_args + index)
-                        {
-                            *data_type.borrow_mut() = to_save;
-                            return Ok((current_command_index + 1, None));
-                        } else {
-                            return Err(Error::CannotSave(
-                                function_data.stack_position - function_data.num_args + index,
-                                "No data in stack",
-                            ));
-                        }
-                    } else {
-                        local_index = index - function_data.num_args;
+                    // update the current stack
+                    if let Some(data_type) = self.stack
+                        .get_mut(function_data.stack_position - function_data.num_args + index)
+                    {
+                        *data_type.borrow_mut() = to_save;
+                        return Ok((current_command_index + 1, None));
                     }
+                    return Err(Error::CannotSave(
+                        function_data.stack_position - function_data.num_args + index,
+                        "No data in stack",
+                    ));
                 }
+                return Err(Error::CannotSave(index, "Not in function"));
+            }
+            Command::SaveLocal(index) => {
+                let to_save = self.pop_stack()?;
+                let to_save = to_save.borrow().clone();
                 let current_local = self.last_local_mut()?;
-                if local_index < current_local.len() {
-                    *current_local[local_index].borrow_mut() = to_save;
-                } else if local_index == current_local.len() {
+                if index < current_local.len() {
+                    *current_local[index].borrow_mut() = to_save;
+                } else if index == current_local.len() {
                     current_local.push(wrap_type(to_save));
                 } else {
                     return Err(Error::CannotSave(
-                        local_index,
+                        index,
                         "Local index is greater then the local size",
                     ));
                 }
