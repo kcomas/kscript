@@ -88,7 +88,7 @@ impl<'a> Vm {
             Command::RemoveLocals => {
                 self.locals.pop();
             }
-            Command::Push(ref data_type) => self.stack.push(data_type.clone()),
+            Command::Push(ref data_type) => self.stack.push(Rc::clone(data_type)),
             Command::Load(index) => {
                 let mut new_data = None;
                 if let Some(function_data) = self.function_return.last() {
