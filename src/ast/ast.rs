@@ -4,6 +4,7 @@ use super::super::error::Error;
 #[derive(Debug, Clone)]
 pub enum Ast {
     Used,
+    UsedVar(String),
     Comment(String),
     End,
     Var(String),
@@ -57,10 +58,10 @@ impl<'a> Ast {
     }
 
     pub fn is_used(&self) -> bool {
-        if let Ast::Used = *self {
-            return true;
+        match *self {
+            Ast::Used | Ast::UsedVar(_) => true,
+            _ => false,
         }
-        false
     }
 
     pub fn is_bool(&self) -> bool {
@@ -89,15 +90,22 @@ impl<'a> Ast {
     }
 
     pub fn is_var(&self) -> bool {
-        if let Ast::Var(_) = *self {
-            return true;
+        match *self {
+            Ast::Var(_) => true,
+            _ => false,
         }
-        false
+    }
+
+    pub fn is_used_var(&self) -> bool {
+        match *self {
+            Ast::UsedVar(_) => true,
+            _ => false,
+        }
     }
 
     pub fn get_var_name(&self) -> Result<&str, Error<'a>> {
         match *self {
-            Ast::Var(ref name) => Ok(name),
+            Ast::Var(ref name) | Ast::UsedVar(ref name) => Ok(name),
             _ => Err(Error::AstNotVar("Token not a var")),
         }
     }

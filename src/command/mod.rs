@@ -157,7 +157,7 @@ pub fn load_commands<'a>(
                     command_state,
                 )?;
             }
-            ast[highest_presedence_index] = Ast::Used;
+            set_used(&mut ast[highest_presedence_index])?;
             // reset
             current_index = start_index;
             highest_presedence = 0;
@@ -228,14 +228,33 @@ fn add_commands<'a>(
             if index == 0 {
                 return Err(Error::CannotAssign("Left side does not exist"));
             }
-            let var_index = symbols.get_var_index(ast[index - 1].get_var_name()?)?;
-            let (is_local, save_index) = check_locals(var_index, commands, command_state);
-            if is_local {
-                commands.push(Command::SaveLocal(save_index));
-            } else {
-                commands.push(Command::SaveStack(save_index));
+            let mut find_index = index - 1;
+            let mut is_access = false;
+            loop {
+                if ast[find_index].is_var() {
+                    break;
+                }
+                if ast[find_index].is_used_var() {
+                    is_access = true;
+                    break;
+                }
+                if find_index == 0 {
+                    return Err(Error::CannotAssign("Left side does not exist after search"));
+                }
+                find_index -= 1;
             }
-            ast[index - 1] = Ast::Used;
+            if !is_access {
+                let var_index = symbols.get_var_index(ast[find_index].get_var_name()?)?;
+                let (is_local, save_index) = check_locals(var_index, commands, command_state);
+                if is_local {
+                    commands.push(Command::SaveLocal(save_index));
+                } else {
+                    commands.push(Command::SaveStack(save_index));
+                }
+            } else {
+                commands.push(Command::SaveAccess);
+            }
+            set_used(&mut ast[find_index])?;
             return Ok(());
         } else {
             if index > 0 {
@@ -375,7 +394,7 @@ fn build_command<'a>(
         } else {
             transform_command(&ast[next_index], commands, symbols, command_state)?;
         }
-        ast[next_index] = Ast::Used;
+        set_used(&mut ast[next_index])?;
     }
     Ok(())
 }
@@ -420,4 +439,13 @@ fn check_locals(
         return (false, index);
     }
     (true, index - command_state.get_num_args())
+}
+
+fn set_used<'a>(ast: &mut Ast) -> Result<(), Error<'a>> {
+    if ast.is_var() {
+        *ast = Ast::UsedVar(ast.get_var_name()?.to_string());
+    } else {
+        *ast = Ast::Used;
+    }
+    Ok(())
 }

@@ -191,6 +191,13 @@ impl<'a> Vm {
                     ));
                 }
             }
+            Command::SaveAccess => {
+                let value = self.pop_stack()?;
+                let value = value.borrow();
+                let access = self.pop_stack()?;
+                let mut access = access.borrow_mut();
+                *access = value.clone();
+            }
             Command::Equals => {
                 let right = self.pop_stack()?;
                 let right = right.borrow();

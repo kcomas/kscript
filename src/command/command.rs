@@ -16,6 +16,7 @@ pub enum Command {
     MakeArray(usize),
     // pop 1 get accessor pop 2 get target
     Access,
+    SaveAccess,
     Equals,
     Add,
     Sub,
