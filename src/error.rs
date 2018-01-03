@@ -39,4 +39,5 @@ pub enum Error<'a> {
     UnknownAstType(Ast, &'a str),
     // accessor target
     CannotAccess(DataType, DataType, &'a str),
+    CannotMoveToBuildType(usize, &'a str),
 }

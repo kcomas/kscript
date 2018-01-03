@@ -84,7 +84,11 @@ fn load_statement<'a>(iter: &mut Peekable<Chars>) -> Result<Option<Ast>, Error<'
                     None => return Err(Error::InvalidArray("No more charaters")),
                 };
                 match c {
-                    '[' => return Ok(Some(Ast::Array(load_args(iter, &array_stop)?))),
+                    '[' => {
+                        let rst = Ok(Some(Ast::Array(load_args(iter, &array_stop)?)));
+                        iter.next();
+                        return rst;
+                    }
                     _ => return Err(Error::InvalidArray("Invalid array charater")),
                 };
             }
@@ -223,7 +227,7 @@ fn load_block<'a>(
     loop {
         let c = match iter.next() {
             Some(c) => c,
-            None => return Err(Error::InvalidBlock("No more charaters before {")),
+            None => return Err(Error::InvalidBlock("No more charaters before start")),
         };
         if c == ';' || c == '\n' {
             return Ok(ast);
@@ -235,7 +239,7 @@ fn load_block<'a>(
     loop {
         let c = match iter.peek() {
             Some(c) => *c,
-            None => return Err(Error::InvalidBlock("No more charaters brefore }")),
+            None => return Err(Error::InvalidBlock("No more charaters brefore end")),
         };
         if c != end {
             if let Some(statement) = load_statement(iter)? {

@@ -217,7 +217,14 @@ fn add_commands<'a>(
             if index + 1 >= ast.len() {
                 return Err(Error::CannotAssign("Right side does not exist"));
             }
-            build_command(ast, index + 1, commands, symbols, command_state)?;
+            build_command(
+                ast,
+                index + 1,
+                commands,
+                symbols,
+                command_state,
+                MoveEndDirection::Right,
+            )?;
             if index == 0 {
                 return Err(Error::CannotAssign("Left side does not exist"));
             }
@@ -232,16 +239,37 @@ fn add_commands<'a>(
             return Ok(());
         } else {
             if index > 0 {
-                build_command(ast, index - 1, commands, symbols, command_state)?;
+                build_command(
+                    ast,
+                    index - 1,
+                    commands,
+                    symbols,
+                    command_state,
+                    MoveEndDirection::Left,
+                )?;
             }
             if index < ast.len() {
-                build_command(ast, index + 1, commands, symbols, command_state)?;
+                build_command(
+                    ast,
+                    index + 1,
+                    commands,
+                    symbols,
+                    command_state,
+                    MoveEndDirection::Right,
+                )?;
             }
         }
     }
     if ast[index].is_monadic_left() {
         if index > 0 {
-            build_command(ast, index - 1, commands, symbols, command_state)?;
+            build_command(
+                ast,
+                index - 1,
+                commands,
+                symbols,
+                command_state,
+                MoveEndDirection::Left,
+            )?;
         }
     }
     let command;
@@ -277,13 +305,61 @@ fn add_commands<'a>(
     Ok(())
 }
 
+enum MoveEndDirection {
+    Left,
+    Right,
+}
+
+impl MoveEndDirection {
+    pub fn is_left(&self) -> bool {
+        if let MoveEndDirection::Left = *self {
+            return true;
+        }
+        false
+    }
+
+    pub fn is_right(&self) -> bool {
+        if let MoveEndDirection::Right = *self {
+            return true;
+        }
+        false
+    }
+}
+
 fn build_command<'a>(
     ast: &mut Vec<Ast>,
     next_index: usize,
     commands: &mut Vec<Command>,
     symbols: &mut SymbolTable,
     command_state: &mut CommandState,
+    move_direction: MoveEndDirection,
 ) -> Result<(), Error<'a>> {
+    if ast[next_index].is_end() {
+        // move to next node
+        if move_direction.is_left() && next_index > 0 {
+            return build_command(
+                ast,
+                next_index - 1,
+                commands,
+                symbols,
+                command_state,
+                move_direction,
+            );
+        } else if move_direction.is_right() && next_index < ast.len() {
+            return build_command(
+                ast,
+                next_index + 1,
+                commands,
+                symbols,
+                command_state,
+                move_direction,
+            );
+        }
+        return Err(Error::CannotMoveToBuildType(
+            next_index,
+            "Cannot move to find next ast",
+        ));
+    }
     if !ast[next_index].is_used() {
         if ast[next_index].is_function() {
             build_function_call(ast, next_index, commands, symbols, command_state)?;
