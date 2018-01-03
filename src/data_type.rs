@@ -86,6 +86,23 @@ impl DataType {
             _ => "",
         }
     }
+
+    pub fn is_array(&self) -> bool {
+        if let DataType::Array(_) = *self {
+            return true;
+        }
+        false
+    }
+
+    pub fn get_at_array_index(&self, index: usize) -> Option<SharedDataType> {
+        if let DataType::Array(ref body) = *self {
+            if let Some(ref item) = body.get(index) {
+                return Some(Rc::clone(item));
+            }
+            return None;
+        }
+        None
+    }
 }
 
 impl fmt::Display for DataType {

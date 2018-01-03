@@ -37,8 +37,8 @@ pub fn load_ast<'a>(iter: &mut Peekable<Chars>) -> Result<Vec<Ast>, Error<'a>> {
 }
 
 fn load_statement<'a>(iter: &mut Peekable<Chars>) -> Result<Option<Ast>, Error<'a>> {
-    let fn_stop: StopChars = StopChars::new(vec!['{', '\n', ';']);
-    let array_stop: StopChars = StopChars::new(vec![']']);
+    let fn_stop = StopChars::new(vec!['{', '\n', ';']);
+    let array_stop = StopChars::new(vec![']']);
     loop {
         let c = match iter.peek() {
             Some(c) => *c,
@@ -59,6 +59,7 @@ fn load_statement<'a>(iter: &mut Peekable<Chars>) -> Result<Option<Ast>, Error<'
                 return Ok(Some(Ast::End));
             }
             '(' => return Ok(Some(Ast::Group(load_block(iter, '(', ')')?))),
+            '[' => return Ok(Some(Ast::Access(load_block(iter, '[', ']')?))),
             '.' => {
                 iter.next();
                 let fn_name = load_var(iter)?;

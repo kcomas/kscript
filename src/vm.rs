@@ -160,6 +160,37 @@ impl<'a> Vm {
                 array_items.reverse();
                 self.stack.push(wrap_type(DataType::Array(array_items)));
             }
+            Command::Access => {
+                let accessor = self.pop_stack()?;
+                let accessor = accessor.borrow();
+                let target = self.pop_stack()?;
+                let target = target.borrow();
+                if accessor.is_int() && target.is_array() {
+                    let int = accessor.get_int();
+                    if int < 0 {
+                        return Err(Error::CannotAccess(
+                            accessor.clone(),
+                            target.clone(),
+                            "Cannot access with negative index",
+                        ));
+                    }
+                    if let Some(item) = target.get_at_array_index(int as usize) {
+                        self.stack.push(item);
+                        return Ok((current_command_index + 1, None));
+                    }
+                    return Err(Error::CannotAccess(
+                        accessor.clone(),
+                        target.clone(),
+                        "Index is out of bounds",
+                    ));
+                } else {
+                    return Err(Error::CannotAccess(
+                        accessor.clone(),
+                        target.clone(),
+                        "Cannot access object with accessor",
+                    ));
+                }
+            }
             Command::Equals => {
                 let right = self.pop_stack()?;
                 let right = right.borrow();

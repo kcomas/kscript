@@ -12,6 +12,7 @@ pub enum Ast {
     Float(f64),
     String(String),
     Array(Vec<Vec<Ast>>),
+    Access(Vec<Ast>),
     Group(Vec<Ast>), // (...)
     // var, args, body
     Function(Box<Ast>, Vec<Vec<Ast>>, Vec<Ast>),
@@ -31,7 +32,7 @@ pub enum Ast {
 
 impl<'a> Ast {
     pub fn presedence(&self) -> usize {
-        if self.is_data() || self.is_array() {
+        if self.is_data() || self.is_array() || self.is_group() {
             return 1;
         }
         match *self {
@@ -43,6 +44,7 @@ impl<'a> Ast {
             Ast::Mul | Ast::Div | Ast::Rem => 7,
             Ast::Exp => 8,
             Ast::Function(_, _, _) => 9,
+            Ast::Access(_) => 10,
             _ => 0,
         }
     }
@@ -128,6 +130,20 @@ impl<'a> Ast {
         }
     }
 
+    pub fn is_access(&self) -> bool {
+        if let Ast::Access(_) = *self {
+            return true;
+        }
+        false
+    }
+
+    pub fn get_access_body_mut(&mut self) -> Result<&mut Vec<Ast>, Error<'a>> {
+        match *self {
+            Ast::Access(ref mut body) => Ok(body),
+            _ => Err(Error::InvalidAccess("Ast is not an access")),
+        }
+    }
+
     pub fn is_function(&self) -> bool {
         match *self {
             Ast::Function(_, _, _) => true,
@@ -199,6 +215,7 @@ impl<'a> Ast {
     pub fn is_monadic_left(&self) -> bool {
         match *self {
             Ast::Return => true,
+            Ast::Access(_) => true,
             _ => false,
         }
     }

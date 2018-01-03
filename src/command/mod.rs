@@ -1,57 +1,11 @@
+mod command;
+
 use std::rc::Rc;
 use std::cell::RefCell;
-use super::data_type::SharedDataType;
 use super::ast::Ast;
 use super::error::Error;
 use super::symbol::SymbolTable;
-
-#[derive(Debug)]
-pub enum Command {
-    AddLocals,
-    RemoveLocals,
-    // add to stack
-    Push(SharedDataType),
-    // remove from stack
-    // Pop,
-    LoadStack(usize),
-    LoadLocal(usize),
-    SaveStack(usize),
-    SaveLocal(usize),
-    // create an array with values from stack
-    MakeArray(usize),
-    Equals,
-    Add,
-    Sub,
-    Mul,
-    Exp,
-    Div,
-    Rem,
-    IoWrite,
-    IoAppend,
-    // jump to position if false
-    Jmpf(usize),
-    // number of args, function position
-    Call(usize, usize),
-    Return,
-    // exit code
-    Halt(i32),
-}
-
-impl Command {
-    pub fn is_return(&self) -> bool {
-        if let Command::Return = *self {
-            return true;
-        }
-        false
-    }
-
-    pub fn is_halt(&self) -> bool {
-        if let Command::Halt(_) = *self {
-            return true;
-        }
-        false
-    }
-}
+pub use self::command::Command;
 
 #[derive(Debug)]
 pub struct CommandState {
@@ -290,24 +244,35 @@ fn add_commands<'a>(
             build_command(ast, index - 1, commands, symbols, command_state)?;
         }
     }
-    let command = match ast[index] {
-        Ast::Equals => Command::Equals,
-        Ast::Add => Command::Add,
-        Ast::Sub => Command::Sub,
-        Ast::Mul => Command::Mul,
-        Ast::Exp => Command::Exp,
-        Ast::Div => Command::Div,
-        Ast::Rem => Command::Rem,
-        Ast::IoWrite => Command::IoWrite,
-        Ast::IoAppend => Command::IoAppend,
-        Ast::Return => Command::Return,
-        _ => {
-            return Err(Error::InvalidAstForCommand(
-                ast[index].clone(),
-                "Cannot convert to command",
-            ))
-        }
-    };
+    let command;
+    if ast[index].is_access() {
+        load_commands(
+            ast[index].get_access_body_mut()?,
+            commands,
+            symbols,
+            command_state,
+        )?;
+        command = Command::Access;
+    } else {
+        command = match ast[index] {
+            Ast::Equals => Command::Equals,
+            Ast::Add => Command::Add,
+            Ast::Sub => Command::Sub,
+            Ast::Mul => Command::Mul,
+            Ast::Exp => Command::Exp,
+            Ast::Div => Command::Div,
+            Ast::Rem => Command::Rem,
+            Ast::IoWrite => Command::IoWrite,
+            Ast::IoAppend => Command::IoAppend,
+            Ast::Return => Command::Return,
+            _ => {
+                return Err(Error::InvalidAstForCommand(
+                    ast[index].clone(),
+                    "Cannot convert to command",
+                ))
+            }
+        };
+    }
     commands.push(command);
     Ok(())
 }

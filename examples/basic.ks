@@ -16,4 +16,5 @@
     boolean = t
     boolean == t ? { "true is true" >> 1 }
     "Hello" + " " + "World" >> 1
+    ("Grouped" >> 1)
 }

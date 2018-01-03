@@ -35,5 +35,8 @@ pub enum Error<'a> {
     InvalidString(&'a str),
     CannotGetLastLocals(&'a str),
     InvalidArray(&'a str),
+    InvalidAccess(&'a str),
     UnknownAstType(Ast, &'a str),
+    // accessor target
+    CannotAccess(DataType, DataType, &'a str),
 }
