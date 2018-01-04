@@ -19,6 +19,7 @@ pub enum Command {
     Access,
     SaveAccess,
     ArrayPush,
+    ArrayPop,
     // conditionals
     Equals,
     // math

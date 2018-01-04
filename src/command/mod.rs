@@ -303,6 +303,7 @@ fn add_commands<'a>(
     } else {
         command = match ast[index] {
             Ast::ArrayPush => Command::ArrayPush,
+            Ast::ArrayPop => Command::ArrayPop,
             Ast::Equals => Command::Equals,
             Ast::Add => Command::Add,
             Ast::Sub => Command::Sub,

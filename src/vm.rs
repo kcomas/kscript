@@ -214,6 +214,29 @@ impl<'a> Vm {
                 let target_array = target.get_array_mut().unwrap();
                 target_array.push(wrap_type(value.clone()));
             }
+            Command::ArrayPop => {
+                let value = self.pop_stack()?;
+                let mut value = value.borrow_mut();
+                let target = self.pop_stack()?;
+                let mut target = target.borrow_mut();
+
+                if !target.is_array() {
+                    return Err(Error::CannotPop(
+                        target.clone(),
+                        "Cannot pop from non array",
+                    ));
+                }
+
+                if target.get_array_len().unwrap() == 0 {
+                    return Err(Error::CannotPop(
+                        target.clone(),
+                        "Cannot pop from emptry array",
+                    ));
+                }
+
+                let array_value = target.get_array_mut().unwrap().pop().unwrap();
+                *value = array_value.borrow_mut().clone();
+            }
             Command::Equals => {
                 let right = self.pop_stack()?;
                 let right = right.borrow();

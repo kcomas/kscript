@@ -94,6 +94,13 @@ impl DataType {
         false
     }
 
+    pub fn get_array_len(&self) -> Option<usize> {
+        if let DataType::Array(ref array) = *self {
+            return Some(array.len());
+        }
+        None
+    }
+
     pub fn get_array_mut(&mut self) -> Option<&mut Vec<SharedDataType>> {
         if let DataType::Array(ref mut array) = *self {
             return Some(array);

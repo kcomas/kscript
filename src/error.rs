@@ -41,4 +41,5 @@ pub enum Error<'a> {
     CannotAccess(DataType, DataType, &'a str),
     CannotMoveToBuildType(usize, &'a str),
     CannotPush(DataType, &'a str),
+    CannotPop(DataType, &'a str),
 }

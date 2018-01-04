@@ -25,8 +25,15 @@
     p >> 1
     "Push to sub array: " > 1
     p[0] @< 3
+    p[0] @< 4
     p >> 1
-    "Pop sub array": > 1
+    "Pop sub array: ": > 1
+    # vars must be declared before poped to
+    p[0] @> 1 # throw array pop
+    p[0] @> p[0][0]
+    p >> 1
+    "To Var d: " > 1
+    d = 1
     p[0] @> d
-    p >> 1
+    d >> 1
 }
