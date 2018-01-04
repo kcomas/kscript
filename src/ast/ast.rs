@@ -14,6 +14,7 @@ pub enum Ast {
     String(String),
     Array(Vec<Vec<Ast>>),
     Access(Vec<Ast>),
+    ArrayPush,
     Group(Vec<Ast>), // (...)
     // var, args, body
     Function(Box<Ast>, Vec<Vec<Ast>>, Vec<Ast>),
@@ -38,7 +39,7 @@ impl<'a> Ast {
         }
         match *self {
             Ast::Return => 2,
-            Ast::IoWrite | Ast::IoAppend | Ast::Assign => 3,
+            Ast::IoWrite | Ast::IoAppend | Ast::Assign | Ast::ArrayPush => 3,
             Ast::If(_) => 4,
             Ast::Equals => 5,
             Ast::Add | Ast::Sub => 6,
@@ -206,7 +207,8 @@ impl<'a> Ast {
     // have to specify
     pub fn is_dyadic(&self) -> bool {
         match *self {
-            Ast::Assign
+            Ast::ArrayPush
+            | Ast::Assign
             | Ast::Equals
             | Ast::Add
             | Ast::Sub

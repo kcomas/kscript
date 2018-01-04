@@ -40,4 +40,5 @@ pub enum Error<'a> {
     // accessor target
     CannotAccess(DataType, DataType, &'a str),
     CannotMoveToBuildType(usize, &'a str),
+    CannotPush(DataType, &'a str),
 }

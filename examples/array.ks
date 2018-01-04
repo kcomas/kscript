@@ -17,4 +17,13 @@
     .update_index,x[7]
     x[7][2] = 2
     x[7] >> 1
+
+    p = @[]
+    "Empty: " > 1; p >> 1
+    "Push Array: " > 1
+    p @< @[1, 2]
+    p >> 1
+    "Push to sub array: " > 1
+    p[0] @< 3
+    p >> 1
 }

@@ -83,14 +83,18 @@ fn load_statement<'a>(iter: &mut Peekable<Chars>) -> Result<Option<Ast>, Error<'
                     Some(c) => c,
                     None => return Err(Error::InvalidArray("No more charaters")),
                 };
+                let rst;
                 match c {
                     '[' => {
-                        let rst = Ok(Some(Ast::Array(load_args(iter, &array_stop)?)));
-                        iter.next();
-                        return rst;
+                        rst = Some(Ast::Array(load_args(iter, &array_stop)?));
+                    }
+                    '<' => {
+                        rst = Some(Ast::ArrayPush);
                     }
                     _ => return Err(Error::InvalidArray("Invalid array charater")),
                 };
+                iter.next();
+                return Ok(rst);
             }
             '#' => return Ok(Some(load_comment(iter)?)),
             '_' | 'a'...'z' | 'A'...'Z' => return Ok(Some(load_var(iter)?)),

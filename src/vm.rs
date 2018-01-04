@@ -198,6 +198,22 @@ impl<'a> Vm {
                 let mut access = access.borrow_mut();
                 *access = value.clone();
             }
+            Command::ArrayPush => {
+                let value = self.pop_stack()?;
+                let value = value.borrow();
+                let target = self.pop_stack()?;
+                let mut target = target.borrow_mut();
+
+                if !target.is_array() {
+                    return Err(Error::CannotPush(
+                        target.clone(),
+                        "Cannot push to non array",
+                    ));
+                }
+
+                let target_array = target.get_array_mut().unwrap();
+                target_array.push(wrap_type(value.clone()));
+            }
             Command::Equals => {
                 let right = self.pop_stack()?;
                 let right = right.borrow();

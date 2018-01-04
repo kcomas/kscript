@@ -12,12 +12,16 @@ pub enum Command {
     LoadLocal(usize),
     SaveStack(usize),
     SaveLocal(usize),
+    // array
     // create an array with values from stack
     MakeArray(usize),
     // pop 1 get accessor pop 2 get target
     Access,
     SaveAccess,
+    ArrayPush,
+    // conditionals
     Equals,
+    // math
     Add,
     Sub,
     Mul,

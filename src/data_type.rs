@@ -94,6 +94,13 @@ impl DataType {
         false
     }
 
+    pub fn get_array_mut(&mut self) -> Option<&mut Vec<SharedDataType>> {
+        if let DataType::Array(ref mut array) = *self {
+            return Some(array);
+        }
+        None
+    }
+
     pub fn get_at_array_index(&self, index: usize) -> Option<SharedDataType> {
         if let DataType::Array(ref body) = *self {
             if let Some(ref item) = body.get(index) {

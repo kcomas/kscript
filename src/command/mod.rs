@@ -302,6 +302,7 @@ fn add_commands<'a>(
         command = Command::Access;
     } else {
         command = match ast[index] {
+            Ast::ArrayPush => Command::ArrayPush,
             Ast::Equals => Command::Equals,
             Ast::Add => Command::Add,
             Ast::Sub => Command::Sub,
