@@ -26,4 +26,7 @@
     "Push to sub array: " > 1
     p[0] @< 3
     p >> 1
+    "Pop sub array": > 1
+    p[0] @> d
+    p >> 1
 }

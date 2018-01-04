@@ -15,6 +15,7 @@ pub enum Ast {
     Array(Vec<Vec<Ast>>),
     Access(Vec<Ast>),
     ArrayPush,
+    ArrayPop,
     Group(Vec<Ast>), // (...)
     // var, args, body
     Function(Box<Ast>, Vec<Vec<Ast>>, Vec<Ast>),
@@ -39,7 +40,7 @@ impl<'a> Ast {
         }
         match *self {
             Ast::Return => 2,
-            Ast::IoWrite | Ast::IoAppend | Ast::Assign | Ast::ArrayPush => 3,
+            Ast::IoWrite | Ast::IoAppend | Ast::Assign | Ast::ArrayPush | Ast::ArrayPop => 3,
             Ast::If(_) => 4,
             Ast::Equals => 5,
             Ast::Add | Ast::Sub => 6,
@@ -162,7 +163,14 @@ impl<'a> Ast {
 
     pub fn is_function_def(&self) -> bool {
         match *self {
-            Ast::Function(_, _, ref body) => body.len() > 0,
+            Ast::Function(_, _, ref body) => {
+                for item in body.iter() {
+                    if !item.is_end() {
+                        return true;
+                    }
+                }
+                false
+            }
             _ => false,
         }
     }
@@ -208,6 +216,7 @@ impl<'a> Ast {
     pub fn is_dyadic(&self) -> bool {
         match *self {
             Ast::ArrayPush
+            | Ast::ArrayPop
             | Ast::Assign
             | Ast::Equals
             | Ast::Add

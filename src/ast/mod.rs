@@ -91,6 +91,9 @@ fn load_statement<'a>(iter: &mut Peekable<Chars>) -> Result<Option<Ast>, Error<'
                     '<' => {
                         rst = Some(Ast::ArrayPush);
                     }
+                    '>' => {
+                        rst = Some(Ast::ArrayPop);
+                    }
                     _ => return Err(Error::InvalidArray("Invalid array charater")),
                 };
                 iter.next();
