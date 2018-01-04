@@ -1,10 +1,10 @@
+use super::data_type::DataType;
+
 #[derive(Debug)]
-pub enum Error<'a> {
-    InvalidComment(&'a str),
-    InvalidVar(&'a str),
-    InvalidNumber(&'a str),
-    InvalidEquals(&'a str),
-    InvalidBlock(&'a str),
-    InvalidIoWrite(&'a str),
-    InvalidArgs(&'a str),
+pub enum RuntimeError {
+    StackEmpty,
+    CallsEmpty,
+    CannotReturn,
+    NoMoreCommands,
+    NotAFunction(DataType),
 }
