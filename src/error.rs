@@ -8,6 +8,8 @@ pub enum RuntimeError {
     CannotReturn,
     NoMoreCommands,
     InvalidNumberOfArguments,
+    ArgumentsNotOnStack(usize),
+    CannotLoadArgToStack(usize),
     // type errors
     NotAFunction(DataType),
     NotABool(DataType),

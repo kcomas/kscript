@@ -10,6 +10,8 @@ pub enum Command {
     // Comparisons
     // Run function
     Call,
+    // load an argument from the stack at an offset from the current function stack index
+    LoadStackArg(usize),
     // Exit from function
     Return,
     // stop program with exit code

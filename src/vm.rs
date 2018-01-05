@@ -7,7 +7,7 @@ use super::error::RuntimeError;
 #[derive(Debug)]
 struct CallInfo {
     pub commands: SharedCommands,
-    pub args: usize,
+    pub num_args: usize,
     pub stack_index: usize,
     pub command_index: usize,
 }
@@ -26,7 +26,7 @@ impl Vm {
         let mut calls: Vec<CallInfo> = vec![
             CallInfo {
                 commands: Rc::clone(commands),
-                args: 0,
+                num_args: 0,
                 stack_index: 0,
                 command_index: 0,
             },
@@ -82,14 +82,44 @@ impl Vm {
 
                 let new_calls = CallInfo {
                     commands: body,
-                    args: num_args,
+                    num_args: num_args,
                     stack_index: self.stack.len() - num_args,
                     command_index: 0,
                 };
 
                 return Ok((Some(new_calls), false, None));
             }
-            Command::Return => return Ok((None, true, None)),
+            Command::LoadStackArg(index) => {
+                let stack_index = current_calls.stack_index + index;
+                let value = match self.stack.get(stack_index) {
+                    Some(val) => val.clone(),
+                    None => return Err(RuntimeError::CannotLoadArgToStack(stack_index)),
+                };
+                self.stack.push(value);
+            }
+            Command::Return => {
+                let mut save = None;
+                if self.stack.len() < current_calls.num_args {
+                    return Err(RuntimeError::ArgumentsNotOnStack(self.stack.len()));
+                }
+
+                if self.stack.len() - current_calls.num_args == current_calls.stack_index + 1 {
+                    // save
+                    save = Some(self.pop_stack()?);
+                } else if self.stack.len() - current_calls.num_args != current_calls.stack_index {
+                    return Err(RuntimeError::ArgumentsNotOnStack(self.stack.len()));
+                }
+
+                for _ in 0..current_calls.num_args {
+                    self.pop_stack()?;
+                }
+
+                if let Some(value) = save {
+                    self.stack.push(value);
+                }
+
+                return Ok((None, true, None));
+            }
         };
         current_calls.command_index += 1;
         Ok((None, false, None))
