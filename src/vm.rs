@@ -1,5 +1,4 @@
 use std::rc::Rc;
-use std::cell::RefCell;
 use super::command::{Command, SharedCommands};
 use super::data_type::DataType;
 use super::error::RuntimeError;
@@ -14,12 +13,16 @@ struct CallInfo {
 
 #[derive(Debug)]
 pub struct Vm {
+    locals: Vec<DataType>,
     stack: Vec<DataType>,
 }
 
 impl Vm {
     pub fn new() -> Vm {
-        Vm { stack: Vec::new() }
+        Vm {
+            locals: Vec::new(),
+            stack: Vec::new(),
+        }
     }
 
     pub fn run(&mut self, commands: &SharedCommands) -> Result<i32, RuntimeError> {
@@ -69,7 +72,23 @@ impl Vm {
         };
         match command {
             Command::PushStack(data) => self.stack.push(data),
-            Command::Halt(code) => return Ok((None, false, Some(code))),
+            Command::SaveLocal(index) => {
+                let value = self.pop_stack()?;
+                if index < self.locals.len() {
+                    self.locals[index] = value;
+                } else if index == self.locals.len() {
+                    self.locals.push(value);
+                } else {
+                    return Err(RuntimeError::InvalidLocalSaveIndex(index));
+                }
+            }
+            Command::LoadLocal(index) => {
+                let value = match self.locals.get(index) {
+                    Some(value) => value.clone(),
+                    None => return Err(RuntimeError::InvalidLocalGetIndex(index)),
+                };
+                self.stack.push(value);
+            }
             Command::Call => {
                 let function = self.pop_stack()?;
                 let (body, num_args) = function.get_function()?;
@@ -120,6 +139,7 @@ impl Vm {
 
                 return Ok((None, true, None));
             }
+            Command::Halt(code) => return Ok((None, false, Some(code))),
         };
         current_calls.command_index += 1;
         Ok((None, false, None))

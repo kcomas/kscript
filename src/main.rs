@@ -10,11 +10,13 @@ use self::vm::Vm;
 
 fn main() {
     let commands = Rc::new(vec![
-        Command::PushStack(DataType::Integer(0)),
         Command::PushStack(DataType::Function(
             Rc::new(vec![Command::LoadStackArg(0), Command::Return]),
             1,
         )),
+        Command::SaveLocal(0),
+        Command::PushStack(DataType::Integer(0)),
+        Command::LoadLocal(0),
         Command::Call,
         Command::Halt(0),
     ]);

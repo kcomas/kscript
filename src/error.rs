@@ -10,6 +10,8 @@ pub enum RuntimeError {
     InvalidNumberOfArguments,
     ArgumentsNotOnStack(usize),
     CannotLoadArgToStack(usize),
+    InvalidLocalSaveIndex(usize),
+    InvalidLocalGetIndex(usize),
     // type errors
     NotAFunction(DataType),
     NotABool(DataType),
