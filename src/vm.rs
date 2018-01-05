@@ -76,10 +76,14 @@ impl Vm {
 
                 current_calls.command_index += 1;
 
+                if self.stack.len() < num_args {
+                    return Err(RuntimeError::InvalidNumberOfArguments);
+                }
+
                 let new_calls = CallInfo {
                     commands: body,
                     args: num_args,
-                    stack_index: self.stack.len(),
+                    stack_index: self.stack.len() - num_args,
                     command_index: 0,
                 };
 

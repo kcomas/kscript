@@ -7,6 +7,7 @@ pub type SharedCommands = Rc<Vec<Command>>;
 pub enum Command {
     // Add values to the stack
     PushStack(DataType),
+    // Comparisons
     // Run function
     Call,
     // Exit from function
