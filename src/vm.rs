@@ -9,6 +9,7 @@ struct CallInfo {
     pub num_args: usize,
     pub stack_index: usize,
     pub command_index: usize,
+    pub locals: Vec<DataType>,
 }
 
 #[derive(Debug)]
@@ -32,6 +33,7 @@ impl Vm {
                 num_args: 0,
                 stack_index: 0,
                 command_index: 0,
+                locals: Vec::new(),
             },
         ];
         loop {
@@ -74,16 +76,16 @@ impl Vm {
             Command::PushStack(data) => self.stack.push(data),
             Command::SaveLocal(index) => {
                 let value = self.pop_stack()?;
-                if index < self.locals.len() {
-                    self.locals[index] = value;
+                if index < current_calls.locals.len() {
+                    current_calls.locals[index] = value;
                 } else if index == self.locals.len() {
-                    self.locals.push(value);
+                    current_calls.locals.push(value);
                 } else {
                     return Err(RuntimeError::InvalidLocalSaveIndex(index));
                 }
             }
             Command::LoadLocal(index) => {
-                let value = match self.locals.get(index) {
+                let value = match current_calls.locals.get(index) {
                     Some(value) => value.clone(),
                     None => return Err(RuntimeError::InvalidLocalGetIndex(index)),
                 };
@@ -137,6 +139,7 @@ impl Vm {
                     num_args: num_args,
                     stack_index: self.stack.len() - num_args,
                     command_index: 0,
+                    locals: Vec::new(),
                 };
 
                 return Ok((Some(new_calls), false, None));
@@ -155,6 +158,7 @@ impl Vm {
                     num_args: num_args,
                     stack_index: self.stack.len() - num_args,
                     command_index: 0,
+                    locals: Vec::new(),
                 };
 
                 return Ok((Some(new_calls), false, None));
