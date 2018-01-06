@@ -89,6 +89,39 @@ impl Vm {
                 };
                 self.stack.push(value);
             }
+            Command::Equals => {
+                let right = self.pop_stack()?;
+                let left = self.pop_stack()?;
+
+                let b = if left.is_int() && right.is_int() {
+                    left.as_int() == right.as_int()
+                } else {
+                    return Err(RuntimeError::CannotCompareTypes(
+                        left.clone(),
+                        right.clone(),
+                    ));
+                };
+
+                self.stack.push(DataType::Bool(b));
+            }
+            Command::Add => {
+                let right = self.pop_stack()?;
+                let left = self.pop_stack()?;
+                self.stack.push(left + right);
+            }
+            Command::Sub => {
+                let right = self.pop_stack()?;
+                let left = self.pop_stack()?;
+                self.stack.push(left - right);
+            }
+            Command::JumpIfFalse(to) => {
+                let cmp = self.pop_stack()?;
+
+                if !cmp.get_bool()? {
+                    current_calls.command_index += to;
+                    return Ok((None, false, None));
+                }
+            }
             Command::Call => {
                 let function = self.pop_stack()?;
                 let (body, num_args) = function.get_function()?;
@@ -108,6 +141,24 @@ impl Vm {
 
                 return Ok((Some(new_calls), false, None));
             }
+            Command::CallSelf => {
+                let num_args = current_calls.num_args;
+
+                current_calls.command_index += 1;
+
+                if self.stack.len() < num_args {
+                    return Err(RuntimeError::InvalidNumberOfArguments);
+                }
+
+                let new_calls = CallInfo {
+                    commands: Rc::clone(&current_calls.commands),
+                    num_args: num_args,
+                    stack_index: self.stack.len() - num_args,
+                    command_index: 0,
+                };
+
+                return Ok((Some(new_calls), false, None));
+            }
             Command::LoadStackArg(index) => {
                 let stack_index = current_calls.stack_index + index;
                 let value = match self.stack.get(stack_index) {
@@ -119,14 +170,20 @@ impl Vm {
             Command::Return => {
                 let mut save = None;
                 if self.stack.len() < current_calls.num_args {
-                    return Err(RuntimeError::ArgumentsNotOnStack(self.stack.len()));
+                    return Err(RuntimeError::ArgumentsNotOnStack(
+                        self.stack.len(),
+                        current_calls.num_args,
+                    ));
                 }
 
                 if self.stack.len() - current_calls.num_args == current_calls.stack_index + 1 {
                     // save
                     save = Some(self.pop_stack()?);
                 } else if self.stack.len() - current_calls.num_args != current_calls.stack_index {
-                    return Err(RuntimeError::ArgumentsNotOnStack(self.stack.len()));
+                    return Err(RuntimeError::ArgumentsNotOnStack(
+                        self.stack.len(),
+                        self.stack.len() - current_calls.num_args,
+                    ));
                 }
 
                 for _ in 0..current_calls.num_args {
@@ -138,6 +195,10 @@ impl Vm {
                 }
 
                 return Ok((None, true, None));
+            }
+            Command::Println => {
+                let value = self.pop_stack()?;
+                println!("{}", value);
             }
             Command::Halt(code) => return Ok((None, false, Some(code))),
         };

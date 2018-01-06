@@ -8,11 +8,12 @@ pub enum RuntimeError {
     CannotReturn,
     NoMoreCommands,
     InvalidNumberOfArguments,
-    ArgumentsNotOnStack(usize),
+    ArgumentsNotOnStack(usize, usize),
     CannotLoadArgToStack(usize),
     InvalidLocalSaveIndex(usize),
     InvalidLocalGetIndex(usize),
     // type errors
     NotAFunction(DataType),
     NotABool(DataType),
+    CannotCompareTypes(DataType, DataType),
 }

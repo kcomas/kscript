@@ -11,12 +11,22 @@ pub enum Command {
     SaveLocal(usize),
     LoadLocal(usize),
     // Comparisons
+    Equals,
+    // Math
+    Add,
+    Sub,
+    // Jumps all relative
+    // if the top boolean in the stack is false
+    JumpIfFalse(usize),
     // Run function
     Call,
+    CallSelf,
     // load an argument from the stack at an offset from the current function stack index
     LoadStackArg(usize),
     // Exit from function
     Return,
+    // IO
+    Println,
     // stop program with exit code
     Halt(i32),
 }

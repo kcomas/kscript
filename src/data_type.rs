@@ -1,5 +1,7 @@
 use std::rc::Rc;
 use std::cell::RefCell;
+use std::ops::{Add, Sub};
+use std::fmt;
 use super::command::SharedCommands;
 use super::error::RuntimeError;
 
@@ -112,5 +114,36 @@ impl Clone for DataType {
                 DataType::Function(Rc::clone(commands), index)
             }
         }
+    }
+}
+
+impl fmt::Display for DataType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            DataType::Integer(num) => write!(f, "{}", num),
+            _ => write!(f, "NYI"),
+        }
+    }
+}
+
+impl Add for DataType {
+    type Output = DataType;
+
+    fn add(self, right: DataType) -> DataType {
+        if self.is_float() || right.is_float() {
+            return DataType::Float(self.as_float() + right.as_float());
+        }
+        DataType::Integer(self.as_int() + right.as_int())
+    }
+}
+
+impl Sub for DataType {
+    type Output = DataType;
+
+    fn sub(self, right: DataType) -> DataType {
+        if self.is_float() || right.is_float() {
+            return DataType::Float(self.as_float() - right.as_float());
+        }
+        DataType::Integer(self.as_int() - right.as_int())
     }
 }
