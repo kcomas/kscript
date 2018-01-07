@@ -14,6 +14,7 @@ use self::builder::build_commands;
 
 fn main() {
     let program = load_file_to_string("./examples/fib.ks").unwrap();
+    println!("{}", program);
     let mut iter = program.chars().peekable();
     let c = build_commands(&mut iter).unwrap();
     println!("{:?}", c);

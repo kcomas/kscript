@@ -20,3 +20,12 @@ pub enum Ast {
     IoWrite,
     IoAppend,
 }
+
+impl Ast {
+    pub fn add_end(&self) -> bool {
+        match *self {
+            Ast::Function(_, _) | Ast::If(_) => true,
+            _ => false,
+        }
+    }
+}
