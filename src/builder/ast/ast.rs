@@ -6,7 +6,7 @@ pub enum Ast {
     Integer(i64),
     Float(f64),
     // args, body
-    Function(Vec<Ast>, Vec<Ast>),
+    Function(Vec<Vec<Ast>>, Vec<Ast>),
     // args
     FunctionCall(Vec<Vec<Ast>>),
     Return,

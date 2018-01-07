@@ -40,11 +40,18 @@ fn match_ast(iter: &mut Peekable<Chars>) -> Result<Option<Ast>, ParserError> {
             'a'...'z' | 'A'...'Z' => return Ok(Some(load_var(iter)?)),
             '0'...'9' => return Ok(Some(load_number(iter)?)),
             '=' => return Ok(Some(load_equals(iter)?)),
+            '+' => return Ok(Some(next_and_return(iter, Ast::Add))),
+            '-' => return Ok(Some(next_and_return(iter, Ast::Sub))),
             '>' => return Ok(Some(load_io_out(iter)?)),
             _ => iter.next(),
         };
     }
     Ok(None)
+}
+
+fn next_and_return(iter: &mut Peekable<Chars>, ast: Ast) -> Ast {
+    iter.next();
+    ast
 }
 
 fn peek_next_char(iter: &mut Peekable<Chars>, error: &ParserError) -> Result<char, ParserError> {
