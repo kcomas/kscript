@@ -4,6 +4,7 @@ pub enum Ast {
     Var(String),
     Bool(bool),
     Integer(i64),
+    Float(f64),
     // args, body
     Function(Vec<Ast>, Vec<Ast>),
     // args

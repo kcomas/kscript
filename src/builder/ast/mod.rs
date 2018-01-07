@@ -38,6 +38,8 @@ fn match_ast(iter: &mut Peekable<Chars>) -> Result<Option<Ast>, ParserError> {
                 return Ok(None);
             }
             'a'...'z' | 'A'...'Z' => return Ok(Some(load_var(iter)?)),
+            '0'...'9' => return Ok(Some(load_number(iter)?)),
+            '=' => return Ok(Some(load_equals(iter)?)),
             _ => iter.next(),
         };
     }
@@ -49,6 +51,22 @@ fn peek_next_char(iter: &mut Peekable<Chars>, error: &ParserError) -> Result<cha
         Some(c) => Ok(*c),
         None => Err(error.clone()),
     }
+}
+
+fn load_comment(iter: &mut Peekable<Chars>) -> Result<Ast, ParserError> {
+    let mut comment = String::new();
+    let error = ParserError::InvalidComment;
+    loop {
+        let c = peek_next_char(iter, &error)?;
+        match c {
+            '\n' => break,
+            _ => {
+                comment.push(c);
+                iter.next();
+            }
+        };
+    }
+    Ok(Ast::Comment(comment))
 }
 
 fn load_var(iter: &mut Peekable<Chars>) -> Result<Ast, ParserError> {
@@ -72,18 +90,47 @@ fn load_var(iter: &mut Peekable<Chars>) -> Result<Ast, ParserError> {
     Ok(Ast::Var(var))
 }
 
-fn load_comment(iter: &mut Peekable<Chars>) -> Result<Ast, ParserError> {
-    let mut comment = String::new();
-    let error = ParserError::InvalidComment;
+fn load_number(iter: &mut Peekable<Chars>) -> Result<Ast, ParserError> {
+    let mut number = String::new();
+    let mut is_float = false;
+    let error = ParserError::InvalidNumber;
     loop {
         let c = peek_next_char(iter, &error)?;
         match c {
-            '\n' => break,
-            _ => {
-                comment.push(c);
+            '0'...'9' => {
+                number.push(c);
                 iter.next();
             }
-        };
+            '.' => {
+                if is_float {
+                    return Err(ParserError::InvalidFloat);
+                }
+                number.push(c);
+                iter.next();
+                is_float = true;
+            }
+            _ => break,
+        }
     }
-    Ok(Ast::Comment(comment))
+    match is_float {
+        true => Ok(Ast::Float(number.parse().unwrap())),
+        false => Ok(Ast::Integer(number.parse().unwrap())),
+    }
+}
+
+fn load_equals(iter: &mut Peekable<Chars>) -> Result<Ast, ParserError> {
+    let error = ParserError::InvalidAssign;
+    let c = peek_next_char(iter, &error)?;
+    if c == '=' {
+        iter.next();
+    } else {
+        return Err(error);
+    }
+    let error = ParserError::InvalidEquals;
+    let c2 = peek_next_char(iter, &error)?;
+    if c2 == '=' {
+        iter.next();
+        return Ok(Ast::Equals);
+    }
+    Ok(Ast::Assign)
 }

@@ -22,4 +22,8 @@ pub enum RuntimeError {
 pub enum ParserError {
     InvalidComment,
     InvalidVar,
+    InvalidAssign,
+    InvalidEquals,
+    InvalidNumber,
+    InvalidFloat,
 }
