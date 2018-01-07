@@ -14,8 +14,6 @@ pub enum DataType {
     Float(f64),
     String(Rc<RefCell<String>>),
     Array(SharedArray),
-    // array ref, index
-    ArrayAccess(SharedArray, usize),
     // commands ref, num args
     Function(SharedCommands, usize),
 }
@@ -107,9 +105,6 @@ impl Clone for DataType {
             DataType::Float(float) => DataType::Float(float),
             DataType::String(ref string) => DataType::String(Rc::clone(string)),
             DataType::Array(ref array) => DataType::Array(Rc::clone(array)),
-            DataType::ArrayAccess(ref array, index) => {
-                DataType::ArrayAccess(Rc::clone(array), index)
-            }
             DataType::Function(ref commands, index) => {
                 DataType::Function(Rc::clone(commands), index)
             }

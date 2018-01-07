@@ -17,3 +17,8 @@ pub enum RuntimeError {
     NotABool(DataType),
     CannotCompareTypes(DataType, DataType),
 }
+
+#[derive(Debug)]
+pub enum ParserError {
+
+}
