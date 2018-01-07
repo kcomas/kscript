@@ -26,4 +26,6 @@ pub enum ParserError {
     InvalidEquals,
     InvalidNumber,
     InvalidFloat,
+    InvalidIoWrite,
+    InvalidIoAppend,
 }

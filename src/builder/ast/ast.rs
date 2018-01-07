@@ -8,7 +8,6 @@ pub enum Ast {
     // args, body
     Function(Vec<Ast>, Vec<Ast>),
     // args
-    SelfFunctionCall(Vec<Vec<Ast>>),
     FunctionCall(Vec<Vec<Ast>>),
     Return,
     Assign,

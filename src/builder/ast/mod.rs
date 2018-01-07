@@ -40,6 +40,7 @@ fn match_ast(iter: &mut Peekable<Chars>) -> Result<Option<Ast>, ParserError> {
             'a'...'z' | 'A'...'Z' => return Ok(Some(load_var(iter)?)),
             '0'...'9' => return Ok(Some(load_number(iter)?)),
             '=' => return Ok(Some(load_equals(iter)?)),
+            '>' => return Ok(Some(load_io_out(iter)?)),
             _ => iter.next(),
         };
     }
@@ -133,4 +134,21 @@ fn load_equals(iter: &mut Peekable<Chars>) -> Result<Ast, ParserError> {
         return Ok(Ast::Equals);
     }
     Ok(Ast::Assign)
+}
+
+fn load_io_out(iter: &mut Peekable<Chars>) -> Result<Ast, ParserError> {
+    let error = ParserError::InvalidIoWrite;
+    let c = peek_next_char(iter, &error)?;
+    if c == '>' {
+        iter.next();
+    } else {
+        return Err(error);
+    }
+    let error = ParserError::InvalidIoAppend;
+    let c2 = peek_next_char(iter, &error)?;
+    if c2 == '>' {
+        iter.next();
+        return Ok(Ast::IoAppend);
+    }
+    Ok(Ast::IoWrite)
 }
