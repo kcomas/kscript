@@ -30,4 +30,5 @@ pub enum ParserError {
     InvalidIoAppend,
     InvalidBlockStart,
     InvalidBlock,
+    InvalidItem,
 }

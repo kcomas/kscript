@@ -7,45 +7,59 @@ use super::super::error::ParserError;
 
 pub fn load_ast_til_end(iter: &mut Peekable<Chars>) -> Result<Vec<Ast>, ParserError> {
     let mut ast = Vec::new();
-    while let Some(item) = match_ast(iter)? {
-        ast.push(item);
+    loop {
+        while let Some(item) = match_ast(iter)? {
+            if let Ast::End = item {
+                return Ok(ast);
+            }
+            ast.push(item);
+        }
+        iter.next();
     }
-    Ok(ast)
 }
 
 fn match_ast(iter: &mut Peekable<Chars>) -> Result<Option<Ast>, ParserError> {
-    loop {
-        let c = match iter.peek() {
-            Some(c) => *c,
-            None => break,
-        };
-        match c {
-            '\n' => {
-                iter.next();
-                return Ok(None);
+    let c = match iter.peek() {
+        Some(c) => *c,
+        None => return Ok(None),
+    };
+    match c {
+        '\n' => {
+            iter.next();
+            return Ok(Some(Ast::End));
+        }
+        '#' => return Ok(Some(load_comment(iter)?)),
+        ';' => {
+            iter.next();
+            let c = match iter.peek() {
+                Some(c) => *c,
+                None => return Ok(Some(Ast::End)),
+            };
+            if c == ';' {
+                return Ok(Some(Ast::Return));
             }
-            '#' => return Ok(Some(load_comment(iter)?)),
-            ';' => {
-                iter.next();
-                let c = match iter.peek() {
-                    Some(c) => *c,
-                    None => return Ok(None),
-                };
-                if c == ';' {
-                    return Ok(Some(Ast::Return));
-                }
-                return Ok(None);
+            return Ok(Some(Ast::End));
+        }
+        'a'...'z' | 'A'...'Z' => return Ok(Some(load_var(iter)?)),
+        '0'...'9' => return Ok(Some(load_number(iter)?)),
+        '.' => {
+            iter.next();
+            let (args, end_c) = load_items(iter, "\n;{")?;
+            if end_c == '{' {
+                return Ok(Some(Ast::Function(args, load_block(iter, '{', '}')?)));
             }
-            'a'...'z' | 'A'...'Z' => return Ok(Some(load_var(iter)?)),
-            '0'...'9' => return Ok(Some(load_number(iter)?)),
-            '?' => return Ok(Some(Ast::If(load_block(iter, '{', '}')?))),
-            '=' => return Ok(Some(load_equals(iter)?)),
-            '+' => return Ok(Some(next_and_return(iter, Ast::Add))),
-            '-' => return Ok(Some(next_and_return(iter, Ast::Sub))),
-            '>' => return Ok(Some(load_io_out(iter)?)),
-            _ => iter.next(),
-        };
-    }
+            if end_c == ';' {
+                iter.next();
+            }
+            return Ok(Some(Ast::FunctionCall(args)));
+        }
+        '?' => return Ok(Some(Ast::If(load_block(iter, '{', '}')?))),
+        '=' => return Ok(Some(load_equals(iter)?)),
+        '+' => return Ok(Some(next_and_return(iter, Ast::Add))),
+        '-' => return Ok(Some(next_and_return(iter, Ast::Sub))),
+        '>' => return Ok(Some(load_io_out(iter)?)),
+        _ => return Ok(None),
+    };
     Ok(None)
 }
 
@@ -61,8 +75,13 @@ fn peek_next_char(iter: &mut Peekable<Chars>, error: &ParserError) -> Result<cha
     }
 }
 
-fn load_block(iter: &mut Peekable<Chars>, start: char, end: char) -> Result<Vec<Ast>, ParserError> {
+fn load_block(
+    iter: &mut Peekable<Chars>,
+    start: char,
+    end: char,
+) -> Result<Vec<Vec<Ast>>, ParserError> {
     let mut ast = Vec::new();
+    let mut current_ast = Vec::new();
     let error = ParserError::InvalidBlockStart;
     loop {
         let c = peek_next_char(iter, &error)?;
@@ -79,12 +98,65 @@ fn load_block(iter: &mut Peekable<Chars>, start: char, end: char) -> Result<Vec<
             break;
         }
         if let Some(statement) = match_ast(iter)? {
-            ast.push(statement);
+            if let Ast::End = statement {
+                if current_ast.len() > 0 {
+                    ast.push(current_ast);
+                    current_ast = Vec::new();
+                }
+            } else {
+                current_ast.push(statement);
+            }
         } else {
             iter.next();
         }
     }
     Ok(ast)
+}
+
+fn load_items(
+    iter: &mut Peekable<Chars>,
+    stop_chars: &str,
+) -> Result<(Vec<Vec<Vec<Ast>>>, char), ParserError> {
+    let mut args = Vec::new();
+    let mut current_arg = Vec::new();
+    let mut current_statements = Vec::new();
+    let error = ParserError::InvalidItem;
+    let mut c;
+    'out: loop {
+        c = peek_next_char(iter, &error)?;
+        for stop_char in stop_chars.chars() {
+            if c == stop_char {
+                if current_statements.len() > 0 {
+                    current_arg.push(current_statements);
+                }
+                if current_arg.len() > 0 {
+                    args.push(current_arg);
+                }
+                break 'out;
+            }
+        }
+        if c == ',' {
+            iter.next();
+            if current_statements.len() > 0 {
+                current_arg.push(current_statements);
+                current_statements = Vec::new();
+            }
+            args.push(current_arg);
+            current_arg = Vec::new();
+        } else {
+            if let Some(statement) = match_ast(iter)? {
+                if let Ast::End = statement {
+                    current_arg.push(current_statements);
+                    current_statements = Vec::new();
+                } else {
+                    current_statements.push(statement);
+                }
+            } else {
+                iter.next();
+            }
+        }
+    }
+    Ok((args, c))
 }
 
 fn load_comment(iter: &mut Peekable<Chars>) -> Result<Ast, ParserError> {
