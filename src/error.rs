@@ -18,7 +18,8 @@ pub enum RuntimeError {
     CannotCompareTypes(DataType, DataType),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ParserError {
-
+    InvalidComment,
+    InvalidVar,
 }

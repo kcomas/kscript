@@ -1,8 +1,8 @@
 #[derive(Debug)]
 pub enum Ast {
-    End,
     Comment(String),
     Var(String),
+    Bool(bool),
     Integer(i64),
     // args, body
     Function(Vec<Ast>, Vec<Ast>),
