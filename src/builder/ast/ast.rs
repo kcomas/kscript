@@ -9,11 +9,11 @@ pub enum Ast {
     Function(Vec<Vec<Ast>>, Vec<Ast>),
     // args
     FunctionCall(Vec<Vec<Ast>>),
+    // body
+    If(Vec<Ast>),
     Return,
     Assign,
     Equals,
-    // body
-    If(Vec<Ast>),
     Add,
     Sub,
     IoWrite,

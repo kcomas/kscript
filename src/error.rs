@@ -28,4 +28,6 @@ pub enum ParserError {
     InvalidFloat,
     InvalidIoWrite,
     InvalidIoAppend,
+    InvalidBlockStart,
+    InvalidBlock,
 }
