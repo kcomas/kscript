@@ -45,10 +45,10 @@ impl Ast {
             | Ast::Integer(_)
             | Ast::Float(_)
             | Ast::Function(_, _) => 1,
-            Ast::Assign | Ast::Return | Ast::IoWrite | Ast::IoAppend => 2,
+            Ast::If(_) | Ast::Assign | Ast::Return | Ast::IoWrite | Ast::IoAppend => 2,
             Ast::Equals => 3,
             Ast::Add | Ast::Sub => 4,
-            Ast::If(_) | Ast::FunctionCall(_) => 5,
+            Ast::FunctionCall(_) => 5,
         }
     }
 
