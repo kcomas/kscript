@@ -5,7 +5,7 @@ use std::str::Chars;
 use std::iter::Peekable;
 use self::ast::Ast;
 use super::super::error::ParserError;
-pub use self::jump::shunt_yard;
+pub use self::jump::{shunt_yard, SymbolTable};
 
 pub fn load_ast_til_end(iter: &mut Peekable<Chars>) -> Result<Vec<Ast>, ParserError> {
     let mut ast = Vec::new();
@@ -66,7 +66,6 @@ fn match_ast(iter: &mut Peekable<Chars>) -> Result<Option<Ast>, ParserError> {
         '>' => return Ok(Some(load_io_out(iter)?)),
         _ => return Ok(None),
     };
-    Ok(None)
 }
 
 fn next_and_return(iter: &mut Peekable<Chars>, ast: Ast) -> Ast {
