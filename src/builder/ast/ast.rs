@@ -28,4 +28,22 @@ impl Ast {
             _ => false,
         }
     }
+
+    pub fn presedence(&self) -> usize {
+        match *self {
+            Ast::End | Ast::Comment(_) => 0,
+            Ast::Var(_) | Ast::Bool(_) | Ast::Integer(_) | Ast::Float(_) | Ast::Function(_, _) => 1,
+            Ast::Assign | Ast::Return | Ast::IoWrite | Ast::IoAppend => 2,
+            Ast::If(_) | Ast::FunctionCall(_) => 3,
+            Ast::Equals => 4,
+            Ast::Add | Ast::Sub => 5,
+        }
+    }
+
+    pub fn has_body(&self) -> bool {
+        match *self {
+            Ast::If(_) | Ast::Function(_, _) | Ast::FunctionCall(_) => true,
+            _ => false,
+        }
+    }
 }

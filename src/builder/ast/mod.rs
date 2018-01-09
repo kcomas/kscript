@@ -1,9 +1,11 @@
 mod ast;
+mod jump;
 
 use std::str::Chars;
 use std::iter::Peekable;
 use self::ast::Ast;
 use super::super::error::ParserError;
+pub use self::jump::shunt_yard;
 
 pub fn load_ast_til_end(iter: &mut Peekable<Chars>) -> Result<Vec<Ast>, ParserError> {
     let mut ast = Vec::new();
