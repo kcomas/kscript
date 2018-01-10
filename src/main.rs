@@ -10,13 +10,14 @@ use self::data_type::DataType;
 use self::command::Command;
 use self::vm::Vm;
 use self::util::load_file_to_string;
-use self::builder::build_commands;
+use self::builder::{build_commands, SymbolTable};
 
 fn main() {
     let program = load_file_to_string("./examples/fib.ks").unwrap();
     println!("{}", program);
     let mut iter = program.chars().peekable();
-    let c = build_commands(&mut iter).unwrap();
+    let mut root_symbols = SymbolTable::new();
+    let c = build_commands(&mut iter, &mut root_symbols).unwrap();
     println!("{:?}", c);
 
     let commands = Rc::new(vec![

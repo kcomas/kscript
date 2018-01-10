@@ -5,23 +5,26 @@ use std::str::Chars;
 use std::iter::Peekable;
 use self::ast::Ast;
 use super::super::error::ParserError;
-pub use self::jump::{shunt_yard, SymbolTable};
+pub use self::jump::shunt_yard;
 
 pub fn load_ast_til_end(iter: &mut Peekable<Chars>) -> Result<Vec<Ast>, ParserError> {
     let mut ast = Vec::new();
-    loop {
+    'out: loop {
         while let Some(item) = match_ast(iter)? {
             if let Ast::End = item {
-                return Ok(ast);
+                break 'out;
             }
             let add_end = item.add_end();
             ast.push(item);
             if add_end {
-                return Ok(ast);
+                break 'out;
             }
         }
-        iter.next();
+        if iter.next().is_none() {
+            break;
+        }
     }
+    Ok(ast)
 }
 
 fn match_ast(iter: &mut Peekable<Chars>) -> Result<Option<Ast>, ParserError> {
