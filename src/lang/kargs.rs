@@ -1,4 +1,4 @@
-use std::env;
+use std::{env, process};
 
 #[derive(Debug)]
 pub struct ArgContainer {
@@ -60,4 +60,12 @@ pub fn parse_args() -> Result<Kargs, String> {
         file: file,
         flags: flags,
     })
+}
+
+pub fn help_message(zero: &str) {
+    println!("Usage {} <flags> file", zero);
+    println!("-h | --help : Show this help message");
+    println!("-d | --debug : Print debug info to stdout");
+    println!("-df <file> | --debug-file <file> : Write debug info to specified file");
+    process::exit(1);
 }

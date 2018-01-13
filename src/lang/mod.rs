@@ -11,7 +11,7 @@ use self::util::{load_file_to_string, write_debug, KscriptDebug};
 use self::command::SharedCommands;
 use self::builder::{build_commands, SymbolTable};
 use self::error::{KscriptError, ParserError};
-use self::kargs::{parse_args, ArgFlags};
+use self::kargs::{help_message, parse_args, ArgFlags};
 
 #[derive(Debug)]
 pub struct Kscript {
@@ -47,7 +47,7 @@ impl Kscript {
 
         for arg in kargs.flags.iter() {
             match *arg {
-                ArgFlags::Help => {}
+                ArgFlags::Help => help_message(&kargs.zero),
                 ArgFlags::Debug => self.set_debug(),
                 ArgFlags::DebugFile(ref filename) => self.set_debug_file(filename),
             };
