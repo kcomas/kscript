@@ -17,6 +17,7 @@ pub enum RuntimeError {
     NotAFunction(DataType),
     NotABool(DataType),
     CannotCompareTypes(DataType, DataType),
+    InvalidIoAppendTarget(DataType),
 }
 
 #[derive(Debug, Clone)]

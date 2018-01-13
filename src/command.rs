@@ -26,7 +26,16 @@ pub enum Command {
     // Exit from function
     Return,
     // IO
-    Println,
+    IoAppend,
     // stop program with exit code
     Halt(i32),
+}
+
+impl Command {
+    pub fn is_return(&self) -> bool {
+        if let Command::Return = *self {
+            return true;
+        }
+        false
+    }
 }

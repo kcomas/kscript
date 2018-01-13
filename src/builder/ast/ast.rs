@@ -67,11 +67,18 @@ impl Ast {
         }
     }
 
-    pub fn is_if(&self) -> Option<&AstBody> {
-        match *self {
-            Ast::If(ref body) => Some(body),
-            _ => None,
+    pub fn is_function_call(&self) -> Option<&AstArgs> {
+        if let Ast::FunctionCall(ref body) = *self {
+            return Some(body);
         }
+        None
+    }
+
+    pub fn is_if(&self) -> Option<&AstBody> {
+        if let Ast::If(ref body) = *self {
+            return Some(body);
+        }
+        None
     }
 
     pub fn is_assign(&self) -> bool {
@@ -84,6 +91,13 @@ impl Ast {
     pub fn is_data(&self) -> bool {
         match *self {
             Ast::Bool(_) | Ast::Integer(_) | Ast::Float(_) | Ast::Function(_, _) => true,
+            _ => false,
+        }
+    }
+
+    pub fn can_call(&self) -> bool {
+        match *self {
+            Ast::VarArg(_, _) | Ast::VarLocal(_, _) | Ast::Function(_, _) => true,
             _ => false,
         }
     }

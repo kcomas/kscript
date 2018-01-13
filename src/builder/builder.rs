@@ -7,6 +7,9 @@ use super::ast::{Ast, AstArgs, AstBody};
 pub fn load_commands_from_ast(ast: &Vec<Ast>) -> Result<Vec<Command>, ParserError> {
     let mut new_commands = Vec::new();
     let mut current_index = 0;
+    if ast.len() == 1 {
+        return Ok(vec![ast_to_command(&ast[0])?]);
+    }
     while current_index < ast.len() {
         let mut total_look_back = ast[current_index].num_look_back();
         if total_look_back > 0 {
@@ -27,7 +30,25 @@ pub fn load_commands_from_ast(ast: &Vec<Ast>) -> Result<Vec<Command>, ParserErro
             } else {
                 while total_look_back > 0 {
                     let current_look_back_index = current_index - total_look_back;
-                    new_commands.push(ast_to_command(&ast[current_look_back_index])?);
+                    if let Some(args) = ast[current_look_back_index].is_function_call() {
+                        for arg in args.iter() {
+                            for arg_group in arg.iter() {
+                                let mut arg_commands = load_commands_from_ast(arg_group)?;
+                                new_commands.append(&mut arg_commands);
+                            }
+                        }
+                        // take a look at n - 1
+                        if current_look_back_index > 0
+                            && ast[current_look_back_index - 1].can_call()
+                        {
+                            new_commands.push(ast_to_command(&ast[current_look_back_index - 1])?);
+                            new_commands.push(Command::Call);
+                        } else {
+                            new_commands.push(Command::CallSelf);
+                        }
+                    } else {
+                        new_commands.push(ast_to_command(&ast[current_look_back_index])?);
+                    }
                     total_look_back -= 1;
                 }
                 new_commands.push(ast_to_command(&ast[current_index])?);
@@ -36,13 +57,12 @@ pub fn load_commands_from_ast(ast: &Vec<Ast>) -> Result<Vec<Command>, ParserErro
             for if_ast in if_body.iter() {
                 let mut if_commands = load_commands_from_ast(if_ast)?;
                 // add jump command
-                new_commands.push(Command::JumpIfFalse(if_commands.len()));
+                new_commands.push(Command::JumpIfFalse(if_commands.len() + 1));
                 new_commands.append(&mut if_commands);
             }
         }
         current_index += 1;
     }
-    new_commands.push(Command::Halt(0));
     Ok(new_commands)
 }
 
@@ -71,7 +91,7 @@ fn ast_to_command(ast: &Ast) -> Result<Command, ParserError> {
         Ast::Equals => Command::Equals,
         Ast::Add => Command::Add,
         Ast::Sub => Command::Sub,
-        Ast::IoAppend => Command::Println,
+        Ast::IoAppend => Command::IoAppend,
         _ => return Err(ParserError::CannotConvertAstToCommand(ast.clone())),
     };
     Ok(cmd)
@@ -88,6 +108,15 @@ fn ast_to_data_type(ast: &Ast) -> Result<DataType, ParserError> {
             for body_part in body.iter() {
                 let mut sub_commands = load_commands_from_ast(body_part)?;
                 function_commands.append(&mut sub_commands);
+            }
+            let mut add_return = false;
+            if let Some(cmd) = function_commands.last() {
+                if !cmd.is_return() {
+                    add_return = true;
+                }
+            }
+            if add_return {
+                function_commands.push(Command::Return);
             }
             DataType::Function(Rc::new(function_commands), num_args)
         }

@@ -200,9 +200,16 @@ impl Vm {
 
                 return Ok((None, true, None));
             }
-            Command::Println => {
+            Command::IoAppend => {
+                let target = self.pop_stack()?;
                 let value = self.pop_stack()?;
-                println!("{}", value);
+                if target.is_int() {
+                    match target.as_int() {
+                        1 => println!("{}", value),
+                        2 => eprintln!("{}", value),
+                        _ => return Err(RuntimeError::InvalidIoAppendTarget(target.clone())),
+                    }
+                }
             }
             Command::Halt(code) => return Ok((None, false, Some(code))),
         };
