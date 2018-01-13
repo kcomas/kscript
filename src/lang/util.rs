@@ -1,4 +1,4 @@
-use std::fs::File;
+use std::fs::{File, OpenOptions};
 use std::io::{self, BufReader};
 use std::io::prelude::*;
 
@@ -8,6 +8,16 @@ pub fn load_file_to_string(name: &str) -> io::Result<String> {
     let mut contents = String::new();
     reader.read_to_string(&mut contents)?;
     Ok(contents)
+}
+
+pub fn append_string_to_file(name: &str, data: &str) -> io::Result<()> {
+    let mut file = OpenOptions::new()
+        .write(true)
+        .append(true)
+        .create(true)
+        .open(name)?;
+    writeln!(file, "{}", data)?;
+    Ok(())
 }
 
 #[derive(Debug)]
@@ -24,7 +34,14 @@ pub fn write_debug(title: &str, data: &str, location: &Option<KscriptDebug>) -> 
     let output_string = debug_string(title, data);
     match *out {
         KscriptDebug::Stdout => println!("{}", output_string),
-        _ => {}
+        KscriptDebug::File(ref name) => {
+            if let Err(error) = append_string_to_file(name, &output_string) {
+                return Err(format!(
+                    "Cannot appned debug info to file {} error: {:?}",
+                    name, error
+                ));
+            }
+        }
     };
     Ok(())
 }
