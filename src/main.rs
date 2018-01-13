@@ -6,6 +6,8 @@ use kscript::lang::Kscript;
 fn main() {
     let mut kscript = Kscript::new();
 
+    kscript.set_debug();
+
     let code = kscript.run_file("./examples/fib.ks").unwrap();
 
     process::exit(code);

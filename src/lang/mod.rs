@@ -9,7 +9,7 @@ use self::vm::Vm;
 use self::util::{load_file_to_string, write_debug, KscriptDebug};
 use self::command::SharedCommands;
 use self::builder::{build_commands, SymbolTable};
-use self::error::{KscriptError, ParserError, RuntimeError};
+use self::error::{KscriptError, ParserError};
 
 #[derive(Debug)]
 pub struct Kscript {
@@ -29,8 +29,8 @@ impl Kscript {
         }
     }
 
-    pub fn set_debug_stderr(&mut self) {
-        self.debug = Some(KscriptDebug::Stderr);
+    pub fn set_debug(&mut self) {
+        self.debug = Some(KscriptDebug::Stdout);
     }
 
     pub fn set_debug_file(&mut self, filename: &str) {
@@ -66,18 +66,18 @@ impl Kscript {
             None => return Err(KscriptError::VmCommandsEmpty),
         };
 
-        if self.debug.is_some() {
-            write_debug("Commands", &format!("{:#?}", commands), &self.debug).unwrap();
-        }
-
         let exit_code = match self.vm.run(commands) {
             Ok(exit_code) => exit_code,
             Err(error) => return Err(KscriptError::RuntimeError(error)),
         };
 
         if self.debug.is_some() {
-            println!("Exit Code: {}", exit_code);
-            println!("{:?}", self.vm);
+            write_debug(
+                "Exit Code",
+                &format!("Exit Code: {}", exit_code),
+                &self.debug,
+            ).unwrap();
+            write_debug("VM", &format!("{:#?}", self.vm), &self.debug).unwrap();
         }
 
         Ok(exit_code)

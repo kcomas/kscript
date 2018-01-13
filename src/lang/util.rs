@@ -12,7 +12,7 @@ pub fn load_file_to_string(name: &str) -> io::Result<String> {
 
 #[derive(Debug)]
 pub enum KscriptDebug {
-    Stderr,
+    Stdout,
     File(String),
 }
 
@@ -23,7 +23,7 @@ pub fn write_debug(title: &str, data: &str, location: &Option<KscriptDebug>) -> 
     };
     let output_string = debug_string(title, data);
     match *out {
-        KscriptDebug::Stderr => eprintln!("{}", output_string),
+        KscriptDebug::Stdout => println!("{}", output_string),
         _ => {}
     };
     Ok(())
@@ -31,7 +31,7 @@ pub fn write_debug(title: &str, data: &str, location: &Option<KscriptDebug>) -> 
 
 fn debug_string(title: &str, data: &str) -> String {
     format!(
-        "{:-<10} {} {:-<10}\n {}\n {:-<10} End {} {:-<10}",
+        "{:-<10} {} {:-<10}\n{}\n{:-<10} End {} {:-<10}",
         "", title, "", data, "", title, ""
     )
 }
