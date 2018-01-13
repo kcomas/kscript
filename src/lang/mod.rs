@@ -4,12 +4,14 @@ mod vm;
 mod util;
 mod builder;
 mod error;
+mod kargs;
 
 use self::vm::Vm;
 use self::util::{load_file_to_string, write_debug, KscriptDebug};
 use self::command::SharedCommands;
 use self::builder::{build_commands, SymbolTable};
 use self::error::{KscriptError, ParserError};
+use self::kargs::{parse_args, ArgFlags};
 
 #[derive(Debug)]
 pub struct Kscript {
@@ -37,6 +39,27 @@ impl Kscript {
         self.debug = Some(KscriptDebug::File(filename.to_string()));
     }
 
+    pub fn run_from_args(&mut self) -> Result<i32, KscriptError> {
+        let kargs = match parse_args() {
+            Ok(kargs) => kargs,
+            Err(err) => return Err(KscriptError::CannotParseArgs(err)),
+        };
+
+        for arg in kargs.flags.iter() {
+            match *arg {
+                ArgFlags::Help => {}
+                ArgFlags::Debug => self.set_debug(),
+                ArgFlags::DebugFile(ref filename) => self.set_debug_file(filename),
+            };
+        }
+
+        if let Some(ref filename) = kargs.file {
+            return self.run_file(filename);
+        }
+
+        Ok(0)
+    }
+
     pub fn run_file(&mut self, filename: &str) -> Result<i32, KscriptError> {
         let program = match load_file_to_string(filename) {
             Ok(program) => program,
@@ -51,6 +74,10 @@ impl Kscript {
             write_debug("File String", &program, &self.debug).unwrap();
         }
 
+        self.run_string(&program)
+    }
+
+    pub fn run_string(&mut self, program: &str) -> Result<i32, KscriptError> {
         let mut iter = program.chars().peekable();
         self.commands = match build_commands(&mut iter, &mut self.symbols, &self.debug) {
             Ok(commands) => Some(commands),

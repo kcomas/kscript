@@ -45,4 +45,5 @@ pub enum KscriptError {
     RuntimeError(RuntimeError),
     ParserError(ParserError),
     VmCommandsEmpty,
+    CannotParseArgs(String),
 }
