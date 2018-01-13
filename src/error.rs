@@ -1,4 +1,5 @@
 use super::data_type::DataType;
+use super::builder::Ast;
 
 #[derive(Debug)]
 pub enum RuntimeError {
@@ -31,4 +32,8 @@ pub enum ParserError {
     InvalidBlockStart,
     InvalidBlock,
     InvalidItem,
+    InvalidTotalArgs(usize, usize),
+    CannotConvetAstToDataType(Ast),
+    CannotConvertAstToCommand(Ast),
+    CannotSaveFromAst(Ast),
 }

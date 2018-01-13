@@ -2,7 +2,7 @@ pub type AstArgs = Vec<Vec<Vec<Ast>>>;
 
 pub type AstBody = Vec<Vec<Ast>>;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Ast {
     End,
     Comment(String),
@@ -57,5 +57,34 @@ impl Ast {
             return Some(name);
         }
         None
+    }
+
+    pub fn num_look_back(&self) -> usize {
+        match *self {
+            Ast::Assign | Ast::Equals | Ast::Add | Ast::Sub | Ast::IoWrite | Ast::IoAppend => 2,
+            Ast::Return => 1,
+            _ => 0,
+        }
+    }
+
+    pub fn is_if(&self) -> Option<&AstBody> {
+        match *self {
+            Ast::If(ref body) => Some(body),
+            _ => None,
+        }
+    }
+
+    pub fn is_assign(&self) -> bool {
+        if let Ast::Assign = *self {
+            return true;
+        }
+        false
+    }
+
+    pub fn is_data(&self) -> bool {
+        match *self {
+            Ast::Bool(_) | Ast::Integer(_) | Ast::Float(_) | Ast::Function(_, _) => true,
+            _ => false,
+        }
     }
 }

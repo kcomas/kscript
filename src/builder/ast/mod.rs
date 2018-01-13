@@ -3,7 +3,7 @@ mod jump;
 
 use std::str::Chars;
 use std::iter::Peekable;
-use self::ast::Ast;
+pub use self::ast::{Ast, AstArgs, AstBody};
 use super::super::error::ParserError;
 pub use self::jump::shunt_yard;
 
