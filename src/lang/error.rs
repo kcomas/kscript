@@ -1,3 +1,4 @@
+use std::io;
 use super::data_type::DataType;
 use super::builder::Ast;
 
@@ -22,6 +23,7 @@ pub enum RuntimeError {
 
 #[derive(Debug, Clone)]
 pub enum ParserError {
+    FileLoadFile(String),
     InvalidComment,
     InvalidVar,
     InvalidAssign,
@@ -37,4 +39,11 @@ pub enum ParserError {
     CannotConvetAstToDataType(Ast),
     CannotConvertAstToCommand(Ast),
     CannotSaveFromAst(Ast),
+}
+
+#[derive(Debug)]
+pub enum KscriptError {
+    RuntimeError(RuntimeError),
+    ParserError(ParserError),
+    VmCommandsEmpty,
 }

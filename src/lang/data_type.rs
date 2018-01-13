@@ -20,7 +20,7 @@ pub enum DataType {
 
 impl DataType {
     pub fn is_bool(&self) -> bool {
-        if let DataType::Bool(b) = *self {
+        if let DataType::Bool(_) = *self {
             return true;
         }
         false

@@ -2,7 +2,7 @@ use std::rc::Rc;
 use super::super::command::Command;
 use super::super::data_type::DataType;
 use super::super::error::ParserError;
-use super::ast::{Ast, AstArgs, AstBody};
+use super::ast::Ast;
 
 pub fn load_commands_from_ast(ast: &Vec<Ast>) -> Result<Vec<Command>, ParserError> {
     let mut new_commands = Vec::new();
