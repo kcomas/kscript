@@ -14,6 +14,8 @@ use self::builder::{build_commands, SymbolTable};
 use self::error::{KscriptError, ParserError};
 use self::kargs::{help_message, parse_args, ArgFlags};
 
+const REPL_INTRO: &str = "Kscript REPL, CTRL-D to exit";
+
 #[derive(Debug)]
 pub struct Kscript {
     symbols: SymbolTable,
@@ -60,23 +62,28 @@ impl Kscript {
             return self.run_file(filename);
         }
 
-        self.run_repel()
+        self.run_repl()
     }
 
-    pub fn run_repel(&mut self) -> Result<i32, KscriptError> {
+    pub fn run_repl(&mut self) -> Result<i32, KscriptError> {
         let mut exit_code = 0;
         let mut input = String::new();
+        println!("{}", REPL_INTRO);
         let stdin = io::stdin();
         let stdout = io::stdout();
         while exit_code == 0 {
             {
                 let mut stdout_lock = stdout.lock();
                 stdout_lock
-                    .write(b"@ ")
+                    .write(b"& ")
                     .expect("Failed to write handle char");
                 stdout_lock.flush().expect("Failed to flush handle char");
             }
             stdin.read_line(&mut input).expect("Could not read STDIN");
+            if input.len() == 0 {
+                println!("Exiting");
+                break;
+            }
             exit_code = self.run_string(&input)?;
             input.clear();
         }
