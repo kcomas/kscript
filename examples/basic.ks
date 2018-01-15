@@ -1,2 +1,2 @@
 
-"Hello\nWorld" >> 1
+"Hello" + " " + "World" >> 1

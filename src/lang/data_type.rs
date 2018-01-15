@@ -5,6 +5,7 @@ use std::fmt;
 use super::command::SharedCommands;
 use super::error::RuntimeError;
 
+pub type SharedString = Rc<RefCell<String>>;
 pub type SharedArray = Rc<RefCell<Vec<DataType>>>;
 
 #[derive(Debug)]
@@ -12,7 +13,7 @@ pub enum DataType {
     Bool(bool),
     Integer(i64),
     Float(f64),
-    String(Rc<RefCell<String>>),
+    String(SharedString),
     Array(SharedArray),
     // commands ref, num args
     Function(SharedCommands, usize),
@@ -82,6 +83,20 @@ impl DataType {
         }
     }
 
+    pub fn is_string(&self) -> bool {
+        if let DataType::String(_) = *self {
+            return true;
+        }
+        false
+    }
+
+    pub fn as_string(&self) -> SharedString {
+        match *self {
+            DataType::String(ref string) => Rc::clone(string),
+            _ => Rc::new(RefCell::new(String::new())),
+        }
+    }
+
     pub fn is_fuction(&self) -> bool {
         if let DataType::Function(_, _) = *self {
             return true;
@@ -128,7 +143,13 @@ impl Add for DataType {
     type Output = DataType;
 
     fn add(self, right: DataType) -> DataType {
-        if self.is_float() || right.is_float() {
+        if self.is_string() && right.is_string() {
+            let left = self.as_string();
+            let left = left.borrow().clone();
+            let right = right.as_string();
+            let right = right.borrow().clone();
+            return DataType::String(Rc::new(RefCell::new(left + &right)));
+        } else if self.is_float() || right.is_float() {
             return DataType::Float(self.as_float() + right.as_float());
         }
         DataType::Integer(self.as_int() + right.as_int())
