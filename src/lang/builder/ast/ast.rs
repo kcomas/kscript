@@ -68,8 +68,7 @@ impl Ast {
 
     pub fn num_look_back(&self) -> usize {
         match *self {
-            Ast::Equals | Ast::Add | Ast::Sub | Ast::IoWrite | Ast::IoAppend => 2,
-            Ast::Assign(_) | Ast::Return => 1,
+            Ast::Assign(_) => 1,
             _ => 0,
         }
     }

@@ -9,8 +9,8 @@ pub fn load_commands_from_ast(ast: &Vec<Ast>) -> Result<Vec<Command>, ParserErro
     let mut current_index = 0;
 
     while current_index < ast.len() {
-        let total_look_back = ast[current_index].num_look_back();
         if let Some(assign_body) = ast[current_index].is_assign() {
+            let total_look_back = ast[current_index].num_look_back();
             can_look_back(current_index, total_look_back)?;
             new_commands.append(&mut load_body(assign_body)?);
             let save_cmd = match ast[current_index - 1] {
@@ -23,7 +23,6 @@ pub fn load_commands_from_ast(ast: &Vec<Ast>) -> Result<Vec<Command>, ParserErro
             };
             new_commands.push(save_cmd);
         } else if let Some(ref args) = ast[current_index].is_function_call() {
-            can_look_back(current_index, total_look_back)?;
             let mut call_commands = build_function_call(args)?;
             new_commands.append(&mut call_commands);
             if current_index > 0 && ast[current_index - 1].can_call() {
