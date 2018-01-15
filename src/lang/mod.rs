@@ -6,7 +6,8 @@ mod builder;
 mod error;
 mod kargs;
 
-use self::vm::Vm;
+use std::io::{self, Write};
+use self::vm::{CallInfo, Vm};
 use self::util::{load_file_to_string, write_debug, KscriptDebug};
 use self::command::SharedCommands;
 use self::builder::{build_commands, SymbolTable};
@@ -18,6 +19,7 @@ pub struct Kscript {
     symbols: SymbolTable,
     commands: Option<SharedCommands>,
     vm: Vm,
+    vm_calls: Option<Vec<CallInfo>>,
     debug: Option<KscriptDebug>,
 }
 
@@ -27,6 +29,7 @@ impl Kscript {
             symbols: SymbolTable::new(),
             commands: None,
             vm: Vm::new(),
+            vm_calls: None,
             debug: None,
         }
     }
@@ -57,7 +60,27 @@ impl Kscript {
             return self.run_file(filename);
         }
 
-        Ok(0)
+        self.run_repel()
+    }
+
+    pub fn run_repel(&mut self) -> Result<i32, KscriptError> {
+        let mut exit_code = 0;
+        let mut input = String::new();
+        let stdin = io::stdin();
+        let stdout = io::stdout();
+        while exit_code == 0 {
+            {
+                let mut stdout_lock = stdout.lock();
+                stdout_lock
+                    .write(b"@ ")
+                    .expect("Failed to write handle char");
+                stdout_lock.flush().expect("Failed to flush handle char");
+            }
+            stdin.read_line(&mut input).expect("Could not read STDIN");
+            exit_code = self.run_string(&input)?;
+            input.clear();
+        }
+        Ok(exit_code)
     }
 
     pub fn run_file(&mut self, filename: &str) -> Result<i32, KscriptError> {
@@ -93,7 +116,18 @@ impl Kscript {
             None => return Err(KscriptError::VmCommandsEmpty),
         };
 
-        let exit_code = match self.vm.run(commands) {
+        if let Some(ref mut calls) = self.vm_calls {
+            calls.last_mut().unwrap().update_commands(commands);
+        } else {
+            self.vm_calls = Some(Vm::create_calls(commands));
+        }
+
+        let vm_calls = match self.vm_calls {
+            Some(ref mut vm_calls) => vm_calls,
+            None => return Err(KscriptError::CallDataEmpty),
+        };
+
+        let exit_code = match self.vm.run(vm_calls) {
             Ok(exit_code) => exit_code,
             Err(error) => return Err(KscriptError::RuntimeError(error)),
         };
@@ -104,6 +138,7 @@ impl Kscript {
                 &format!("Exit Code: {}", exit_code),
                 &self.debug,
             ).unwrap();
+            write_debug("Calls", &format!("{:#?}", vm_calls), &self.debug).unwrap();
             write_debug("VM", &format!("{:#?}", self.vm), &self.debug).unwrap();
         }
 

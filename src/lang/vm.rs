@@ -4,7 +4,7 @@ use super::data_type::DataType;
 use super::error::RuntimeError;
 
 #[derive(Debug)]
-struct CallInfo {
+pub struct CallInfo {
     pub commands: SharedCommands,
     pub num_args: usize,
     pub stack_index: usize,
@@ -12,22 +12,25 @@ struct CallInfo {
     pub locals: Vec<DataType>,
 }
 
+impl CallInfo {
+    pub fn update_commands(&mut self, commands: &SharedCommands) {
+        self.commands = Rc::clone(commands);
+        self.command_index = 0;
+    }
+}
+
 #[derive(Debug)]
 pub struct Vm {
-    locals: Vec<DataType>,
     stack: Vec<DataType>,
 }
 
 impl Vm {
     pub fn new() -> Vm {
-        Vm {
-            locals: Vec::new(),
-            stack: Vec::new(),
-        }
+        Vm { stack: Vec::new() }
     }
 
-    pub fn run(&mut self, commands: &SharedCommands) -> Result<i32, RuntimeError> {
-        let mut calls: Vec<CallInfo> = vec![
+    pub fn create_calls(commands: &SharedCommands) -> Vec<CallInfo> {
+        vec![
             CallInfo {
                 commands: Rc::clone(commands),
                 num_args: 0,
@@ -35,7 +38,10 @@ impl Vm {
                 command_index: 0,
                 locals: Vec::new(),
             },
-        ];
+        ]
+    }
+
+    pub fn run(&mut self, calls: &mut Vec<CallInfo>) -> Result<i32, RuntimeError> {
         loop {
             let (mabe_new_calls, do_return, mabe_exit_code) = match calls.last_mut() {
                 Some(ref mut current_calls) => self.match_command(current_calls)?,
@@ -78,7 +84,7 @@ impl Vm {
                 let value = self.pop_stack()?;
                 if index < current_calls.locals.len() {
                     current_calls.locals[index] = value;
-                } else if index == self.locals.len() {
+                } else if index == current_calls.locals.len() {
                     current_calls.locals.push(value);
                 } else {
                     return Err(RuntimeError::InvalidLocalSaveIndex(index));

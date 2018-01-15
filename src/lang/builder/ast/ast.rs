@@ -19,7 +19,7 @@ pub enum Ast {
     // body
     If(AstBody),
     Return,
-    Assign,
+    Assign(AstBody),
     Equals,
     Add,
     Sub,
@@ -45,7 +45,7 @@ impl Ast {
             | Ast::Integer(_)
             | Ast::Float(_)
             | Ast::Function(_, _) => 1,
-            Ast::If(_) | Ast::Assign | Ast::Return | Ast::IoWrite | Ast::IoAppend => 2,
+            Ast::If(_) | Ast::Assign(_) | Ast::Return | Ast::IoWrite | Ast::IoAppend => 2,
             Ast::Equals => 3,
             Ast::Add | Ast::Sub => 4,
             Ast::FunctionCall(_) => 5,
@@ -59,10 +59,17 @@ impl Ast {
         None
     }
 
+    pub fn is_var(&self) -> bool {
+        match *self {
+            Ast::Var(_) | Ast::VarArg(_, _) | Ast::VarLocal(_, _) => true,
+            _ => false,
+        }
+    }
+
     pub fn num_look_back(&self) -> usize {
         match *self {
-            Ast::Assign | Ast::Equals | Ast::Add | Ast::Sub | Ast::IoWrite | Ast::IoAppend => 2,
-            Ast::Return => 1,
+            Ast::Equals | Ast::Add | Ast::Sub | Ast::IoWrite | Ast::IoAppend => 2,
+            Ast::Assign(_) | Ast::Return => 1,
             _ => 0,
         }
     }
@@ -81,11 +88,11 @@ impl Ast {
         None
     }
 
-    pub fn is_assign(&self) -> bool {
-        if let Ast::Assign = *self {
-            return true;
+    pub fn is_assign(&self) -> Option<&AstBody> {
+        if let Ast::Assign(ref body) = *self {
+            return Some(body);
         }
-        false
+        None
     }
 
     pub fn is_data(&self) -> bool {

@@ -2,73 +2,61 @@ use std::rc::Rc;
 use super::super::command::Command;
 use super::super::data_type::DataType;
 use super::super::error::ParserError;
-use super::ast::{Ast, AstArgs};
+use super::ast::{Ast, AstArgs, AstBody};
 
 pub fn load_commands_from_ast(ast: &Vec<Ast>) -> Result<Vec<Command>, ParserError> {
     let mut new_commands = Vec::new();
     let mut current_index = 0;
-    if ast.len() == 1 {
-        if let Some(ref args) = ast[0].is_function_call() {
+
+    while current_index < ast.len() {
+        let total_look_back = ast[current_index].num_look_back();
+        if let Some(assign_body) = ast[current_index].is_assign() {
+            can_look_back(current_index, total_look_back)?;
+            new_commands.append(&mut load_body(assign_body)?);
+            let save_cmd = match ast[current_index - 1] {
+                Ast::VarLocal(_, id) => Command::SaveLocal(id),
+                _ => {
+                    return Err(ParserError::CannotSaveFromAst(
+                        ast[current_index - 1].clone(),
+                    ))
+                }
+            };
+            new_commands.push(save_cmd);
+        } else if let Some(ref args) = ast[current_index].is_function_call() {
+            can_look_back(current_index, total_look_back)?;
             let mut call_commands = build_function_call(args)?;
             new_commands.append(&mut call_commands);
-            new_commands.push(Command::CallSelf);
-            return Ok(new_commands);
-        } else {
-            return Ok(vec![ast_to_command(&ast[0])?]);
-        }
-    }
-    while current_index < ast.len() {
-        let mut total_look_back = ast[current_index].num_look_back();
-        if total_look_back > 0 {
-            can_look_back(current_index, total_look_back)?;
-            if ast[current_index].is_assign() {
-                // build n - 1
+            if current_index > 0 && ast[current_index - 1].can_call() {
                 new_commands.push(ast_to_command(&ast[current_index - 1])?);
-                // save to n - 2
-                let save_cmd = match ast[current_index - 2] {
-                    Ast::VarLocal(_, id) => Command::SaveLocal(id),
-                    _ => {
-                        return Err(ParserError::CannotSaveFromAst(
-                            ast[current_index - 2].clone(),
-                        ))
-                    }
-                };
-                new_commands.push(save_cmd);
+                new_commands.push(Command::Call);
             } else {
-                while total_look_back > 0 {
-                    let current_look_back_index = current_index - total_look_back;
-                    if let Some(ref args) = ast[current_look_back_index].is_function_call() {
-                        let mut call_commands = build_function_call(args)?;
-                        new_commands.append(&mut call_commands);
-                        // take a look at n - 1
-                        if current_look_back_index > 0
-                            && ast[current_look_back_index - 1].can_call()
-                        {
-                            new_commands.push(ast_to_command(&ast[current_look_back_index - 1])?);
-                            new_commands.push(Command::Call);
-                        } else {
-                            new_commands.push(Command::CallSelf);
-                        }
-                    } else {
-                        new_commands.push(ast_to_command(&ast[current_look_back_index])?);
-                    }
-                    total_look_back -= 1;
-                }
-                new_commands.push(ast_to_command(&ast[current_index])?);
+                new_commands.push(Command::CallSelf);
             }
         } else if let Some(if_body) = ast[current_index].is_if() {
-            let mut total_if_commands = Vec::new();
-            for if_ast in if_body.iter() {
-                let mut if_commands = load_commands_from_ast(if_ast)?;
-                total_if_commands.append(&mut if_commands);
-            }
+            let mut total_if_commands = load_body(if_body)?;
             // add jump command
             new_commands.push(Command::JumpIfFalse(total_if_commands.len() + 1));
             new_commands.append(&mut total_if_commands);
+        } else {
+            if !(current_index + 1 < ast.len() && ast[current_index].is_var()
+                && (ast[current_index + 1].is_assign().is_some()
+                    || ast[current_index + 1].is_function_call().is_some()))
+            {
+                new_commands.push(ast_to_command(&ast[current_index])?);
+            }
         }
         current_index += 1;
     }
     Ok(new_commands)
+}
+
+fn load_body(body: &AstBody) -> Result<Vec<Command>, ParserError> {
+    let mut commands = Vec::new();
+    for item in body.iter() {
+        let mut sub_commands = load_commands_from_ast(item)?;
+        commands.append(&mut sub_commands);
+    }
+    Ok(commands)
 }
 
 fn can_look_back(mut current_index: usize, mut total_look_back: usize) -> Result<(), ParserError> {

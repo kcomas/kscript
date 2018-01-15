@@ -38,6 +38,7 @@ pub enum ParserError {
     CannotConvetAstToDataType(Ast),
     CannotConvertAstToCommand(Ast),
     CannotSaveFromAst(Ast),
+    InvalidPart,
 }
 
 #[derive(Debug)]
@@ -46,4 +47,5 @@ pub enum KscriptError {
     ParserError(ParserError),
     VmCommandsEmpty,
     CannotParseArgs(String),
+    CallDataEmpty,
 }

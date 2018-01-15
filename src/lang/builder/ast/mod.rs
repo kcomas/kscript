@@ -83,11 +83,7 @@ fn peek_next_char(iter: &mut Peekable<Chars>, error: &ParserError) -> Result<cha
     }
 }
 
-fn load_block(
-    iter: &mut Peekable<Chars>,
-    start: char,
-    end: char,
-) -> Result<Vec<Vec<Ast>>, ParserError> {
+fn load_block(iter: &mut Peekable<Chars>, start: char, end: char) -> Result<AstBody, ParserError> {
     let mut ast = Vec::new();
     let mut current_ast = Vec::new();
     let error = ParserError::InvalidBlockStart;
@@ -124,7 +120,7 @@ fn load_block(
 fn load_items(
     iter: &mut Peekable<Chars>,
     stop_chars: &str,
-) -> Result<(Vec<Vec<Vec<Ast>>>, char), ParserError> {
+) -> Result<(AstArgs, char), ParserError> {
     let mut args = Vec::new();
     let mut current_arg = Vec::new();
     let mut current_statements = Vec::new();
@@ -165,6 +161,35 @@ fn load_items(
         }
     }
     Ok((args, c))
+}
+
+fn load_til_end(iter: &mut Peekable<Chars>, stop_chars: &str) -> Result<AstBody, ParserError> {
+    let mut ast = Vec::new();
+    let mut current_statements = Vec::new();
+    let error = ParserError::InvalidPart;
+    let mut c;
+    'out: loop {
+        c = peek_next_char(iter, &error)?;
+        for stop_char in stop_chars.chars() {
+            if c == stop_char {
+                if current_statements.len() > 0 {
+                    ast.push(current_statements);
+                }
+                break 'out;
+            }
+        }
+        if let Some(statement) = match_ast(iter)? {
+            if let Ast::End = statement {
+                ast.push(current_statements);
+                current_statements = Vec::new();
+            } else {
+                current_statements.push(statement);
+            }
+        } else {
+            iter.next();
+        }
+    }
+    Ok(ast)
 }
 
 fn load_comment(iter: &mut Peekable<Chars>) -> Result<Ast, ParserError> {
@@ -246,7 +271,7 @@ fn load_equals(iter: &mut Peekable<Chars>) -> Result<Ast, ParserError> {
         iter.next();
         return Ok(Ast::Equals);
     }
-    Ok(Ast::Assign)
+    Ok(Ast::Assign(load_til_end(iter, "\n;")?))
 }
 
 fn load_io_out(iter: &mut Peekable<Chars>) -> Result<Ast, ParserError> {

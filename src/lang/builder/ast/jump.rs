@@ -23,6 +23,7 @@ pub fn shunt_yard(ast: &mut Vec<Ast>, symbols: &mut SymbolTable) -> Result<Vec<A
             }
             Ast::FunctionCall(ref mut args) => Ast::FunctionCall(shunt_args(args, symbols)?),
             Ast::If(ref mut body) => Ast::If(shunt_body(body, symbols)?),
+            Ast::Assign(ref mut body) => Ast::Assign(shunt_body(body, symbols)?),
             _ => op,
         };
         if presedence == 1 {
