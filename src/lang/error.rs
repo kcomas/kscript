@@ -11,6 +11,7 @@ pub enum RuntimeError {
     InvalidNumberOfArguments,
     ArgumentsNotOnStack(usize, usize),
     CannotLoadArgToStack(usize),
+    CannotSaveToStackIndex(usize),
     InvalidLocalSaveIndex(usize),
     InvalidLocalGetIndex(usize),
     // type errors
@@ -18,6 +19,8 @@ pub enum RuntimeError {
     NotABool(DataType),
     CannotCompareTypes(DataType, DataType),
     InvalidIoAppendTarget(DataType),
+    TargetNotAString(DataType),
+    CannotConcat(DataType, DataType),
 }
 
 #[derive(Debug, Clone)]
@@ -42,6 +45,8 @@ pub enum ParserError {
     InvalidStringStart,
     InvalidString,
     InvalidStringEscape,
+    InvalidAdd,
+    InvalidConcat,
 }
 
 #[derive(Debug)]

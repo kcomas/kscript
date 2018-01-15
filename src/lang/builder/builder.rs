@@ -16,6 +16,7 @@ pub fn load_commands_from_ast(ast: &Vec<Ast>) -> Result<Vec<Command>, ParserErro
             new_commands.append(&mut load_body(assign_body)?);
             let save_cmd = match ast[current_index - 1] {
                 Ast::VarLocal(_, id) => Command::SaveLocal(id),
+                Ast::VarArg(_, id) => Command::SaveStackArg(id),
                 _ => {
                     return Err(ParserError::CannotSaveFromAst(
                         ast[current_index - 1].clone(),
@@ -81,6 +82,7 @@ fn ast_to_command(ast: &Ast) -> Result<Command, ParserError> {
         Ast::Return => Command::Return,
         Ast::Equals => Command::Equals,
         Ast::Add => Command::Add,
+        Ast::Concat => Command::Concat,
         Ast::Sub => Command::Sub,
         Ast::IoAppend => Command::IoAppend,
         _ => return Err(ParserError::CannotConvertAstToCommand(ast.clone())),

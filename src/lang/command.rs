@@ -15,6 +15,8 @@ pub enum Command {
     // Math
     Add,
     Sub,
+    // Joins
+    Concat,
     // Jumps all relative
     // if the top boolean in the stack is false
     JumpIfFalse(usize),
@@ -22,6 +24,7 @@ pub enum Command {
     Call,
     CallSelf,
     // load an argument from the stack at an offset from the current function stack index
+    SaveStackArg(usize),
     LoadStackArg(usize),
     // Exit from function
     Return,

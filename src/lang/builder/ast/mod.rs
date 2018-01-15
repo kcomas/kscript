@@ -65,7 +65,7 @@ fn match_ast(iter: &mut Peekable<Chars>) -> Result<Option<Ast>, ParserError> {
         '"' => return Ok(Some(load_string(iter)?)),
         '?' => return Ok(Some(Ast::If(load_block(iter, '{', '}')?))),
         '=' => return Ok(Some(load_equals(iter)?)),
-        '+' => return Ok(Some(next_and_return(iter, Ast::Add))),
+        '+' => return Ok(Some(load_add(iter)?)),
         '-' => return Ok(Some(next_and_return(iter, Ast::Sub))),
         '>' => return Ok(Some(load_io_out(iter)?)),
         _ => return Ok(None),
@@ -293,6 +293,23 @@ fn load_string(iter: &mut Peekable<Chars>) -> Result<Ast, ParserError> {
             }
         }
     }
+}
+
+fn load_add(iter: &mut Peekable<Chars>) -> Result<Ast, ParserError> {
+    let error = ParserError::InvalidAdd;
+    let c = peek_next_char(iter, &error)?;
+    if c == '+' {
+        iter.next();
+    } else {
+        return Err(error);
+    }
+    let error = ParserError::InvalidConcat;
+    let c2 = peek_next_char(iter, &error)?;
+    if c2 == '+' {
+        iter.next();
+        return Ok(Ast::Concat);
+    }
+    Ok(Ast::Add)
 }
 
 fn load_equals(iter: &mut Peekable<Chars>) -> Result<Ast, ParserError> {

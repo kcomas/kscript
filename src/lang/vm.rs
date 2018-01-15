@@ -122,6 +122,17 @@ impl Vm {
                 let left = self.pop_stack()?;
                 self.stack.push(left - right);
             }
+            Command::Concat => {
+                let right = self.pop_stack()?;
+                let left = self.pop_stack()?;
+                if left.is_string() && right.is_string() {
+                    let left = left.as_string();
+                    let right = right.as_string();
+                    left.borrow_mut().push_str(right.borrow().as_str());
+                } else {
+                    return Err(RuntimeError::CannotConcat(left.clone(), right.clone()));
+                }
+            }
             Command::JumpIfFalse(to) => {
                 let cmp = self.pop_stack()?;
 
@@ -176,6 +187,15 @@ impl Vm {
                     None => return Err(RuntimeError::CannotLoadArgToStack(stack_index)),
                 };
                 self.stack.push(value);
+            }
+            Command::SaveStackArg(index) => {
+                let value = self.pop_stack()?;
+                let stack_index = current_calls.stack_index + index;
+                let stack_item = match self.stack.get_mut(stack_index) {
+                    Some(stack_item) => stack_item,
+                    None => return Err(RuntimeError::CannotSaveToStackIndex(stack_index)),
+                };
+                *stack_item = value;
             }
             Command::Return => {
                 let mut save = None;

@@ -23,6 +23,7 @@ pub enum Ast {
     Assign(AstBody),
     Equals,
     Add,
+    Concat,
     Sub,
     IoWrite,
     IoAppend,
@@ -48,7 +49,7 @@ impl Ast {
             | Ast::String(_)
             | Ast::Function(_, _) => 1,
             Ast::If(_) | Ast::Assign(_) | Ast::Return | Ast::IoWrite | Ast::IoAppend => 2,
-            Ast::Equals => 3,
+            Ast::Equals | Ast::Concat => 3,
             Ast::Add | Ast::Sub => 4,
             Ast::FunctionCall(_) => 5,
         }
