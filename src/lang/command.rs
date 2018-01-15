@@ -15,6 +15,7 @@ pub enum Command {
     // Math
     Add,
     Sub,
+    Mul,
     // Joins
     Concat,
     // Jumps all relative

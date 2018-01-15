@@ -47,6 +47,8 @@ pub enum ParserError {
     InvalidStringEscape,
     InvalidAdd,
     InvalidConcat,
+    InvalidMul,
+    InvalidExp,
 }
 
 #[derive(Debug)]

@@ -13,6 +13,7 @@ pub enum Ast {
     Integer(i64),
     Float(f64),
     String(String),
+    Group(AstBody),
     // args, body
     Function(AstArgs, AstBody),
     // args
@@ -25,6 +26,10 @@ pub enum Ast {
     Add,
     Concat,
     Sub,
+    Mul,
+    Div,
+    Rem,
+    Exp,
     IoWrite,
     IoAppend,
 }
@@ -51,7 +56,10 @@ impl Ast {
             Ast::If(_) | Ast::Assign(_) | Ast::Return | Ast::IoWrite | Ast::IoAppend => 2,
             Ast::Equals | Ast::Concat => 3,
             Ast::Add | Ast::Sub => 4,
-            Ast::FunctionCall(_) => 5,
+            Ast::Mul | Ast::Div | Ast::Rem => 5,
+            Ast::Exp => 6,
+            Ast::FunctionCall(_) => 7,
+            Ast::Group(_) => 8,
         }
     }
 
