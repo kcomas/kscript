@@ -49,11 +49,15 @@ Use -df <file\> or --debug-file <file\> to print the debugging info to a file
 Copies by value or reference depending on the type
 
 ### String operations
-* \+ join concat two strings to make a new string
+* \+ concat two strings to make a new string
 ```
     new_stirng = "a" + "b"
 ```
-* \+\+ join in place modifies a string by adding a new string on to the end of it
+* \+\+ modifies a string in place by adding a new string on to the end of it
 ```
     my_string ++ "a"
+```
+* \* repeat a string a number of times into a new string
+```
+    new_string = "a" * 5
 ```
