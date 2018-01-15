@@ -66,10 +66,31 @@ fn match_ast(iter: &mut Peekable<Chars>) -> Result<Option<Ast>, ParserError> {
         '"' => return Ok(Some(load_string(iter)?)),
         '?' => return Ok(Some(Ast::If(load_block(iter, '{', '}')?))),
         '=' => return Ok(Some(load_equals(iter)?)),
-        '+' => return Ok(Some(load_add(iter)?)),
+        '+' => {
+            return Ok(Some(double_char(
+                iter,
+                '+',
+                (ParserError::InvalidAdd, ParserError::InvalidConcat),
+                (Ast::Add, Ast::Concat),
+            )?))
+        }
         '-' => return Ok(Some(next_and_return(iter, Ast::Sub))),
-        '*' => return Ok(Some(load_mul(iter)?)),
-        '>' => return Ok(Some(load_io_out(iter)?)),
+        '*' => {
+            return Ok(Some(double_char(
+                iter,
+                '*',
+                (ParserError::InvalidMul, ParserError::InvalidExp),
+                (Ast::Mul, Ast::Exp),
+            )?))
+        }
+        '>' => {
+            return Ok(Some(double_char(
+                iter,
+                '>',
+                (ParserError::InvalidIoWrite, ParserError::InvalidIoAppend),
+                (Ast::IoWrite, Ast::IoAppend),
+            )?))
+        }
         _ => return Ok(None),
     };
 }
@@ -301,6 +322,26 @@ fn load_string(iter: &mut Peekable<Chars>) -> Result<Ast, ParserError> {
     }
 }
 
+fn double_char(
+    iter: &mut Peekable<Chars>,
+    to_match: char,
+    error_types: (ParserError, ParserError),
+    return_types: (Ast, Ast),
+) -> Result<Ast, ParserError> {
+    let c = peek_next_char(iter, &error_types.0)?;
+    if c == to_match {
+        iter.next();
+    } else {
+        return Err(error_types.0);
+    }
+    let c2 = peek_next_char(iter, &error_types.1)?;
+    if c2 == to_match {
+        iter.next();
+        return Ok(return_types.1);
+    }
+    Ok(return_types.0)
+}
+
 fn load_add(iter: &mut Peekable<Chars>) -> Result<Ast, ParserError> {
     let error = ParserError::InvalidAdd;
     let c = peek_next_char(iter, &error)?;
@@ -318,23 +359,6 @@ fn load_add(iter: &mut Peekable<Chars>) -> Result<Ast, ParserError> {
     Ok(Ast::Add)
 }
 
-fn load_mul(iter: &mut Peekable<Chars>) -> Result<Ast, ParserError> {
-    let error = ParserError::InvalidMul;
-    let c = peek_next_char(iter, &error)?;
-    if c == '*' {
-        iter.next();
-    } else {
-        return Err(error);
-    }
-    let error = ParserError::InvalidExp;
-    let c2 = peek_next_char(iter, &error)?;
-    if c2 == '*' {
-        iter.next();
-        return Ok(Ast::Exp);
-    }
-    Ok(Ast::Mul)
-}
-
 fn load_equals(iter: &mut Peekable<Chars>) -> Result<Ast, ParserError> {
     let error = ParserError::InvalidAssign;
     let c = peek_next_char(iter, &error)?;
@@ -350,21 +374,4 @@ fn load_equals(iter: &mut Peekable<Chars>) -> Result<Ast, ParserError> {
         return Ok(Ast::Equals);
     }
     Ok(Ast::Assign(load_til_end(iter, "\n;")?))
-}
-
-fn load_io_out(iter: &mut Peekable<Chars>) -> Result<Ast, ParserError> {
-    let error = ParserError::InvalidIoWrite;
-    let c = peek_next_char(iter, &error)?;
-    if c == '>' {
-        iter.next();
-    } else {
-        return Err(error);
-    }
-    let error = ParserError::InvalidIoAppend;
-    let c2 = peek_next_char(iter, &error)?;
-    if c2 == '>' {
-        iter.next();
-        return Ok(Ast::IoAppend);
-    }
-    Ok(Ast::IoWrite)
 }
