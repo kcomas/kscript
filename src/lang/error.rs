@@ -39,6 +39,9 @@ pub enum ParserError {
     CannotConvertAstToCommand(Ast),
     CannotSaveFromAst(Ast),
     InvalidPart,
+    InvalidStringStart,
+    InvalidString,
+    InvalidStringEscape,
 }
 
 #[derive(Debug)]

@@ -12,6 +12,7 @@ pub enum Ast {
     Bool(bool),
     Integer(i64),
     Float(f64),
+    String(String),
     // args, body
     Function(AstArgs, AstBody),
     // args
@@ -44,6 +45,7 @@ impl Ast {
             | Ast::Bool(_)
             | Ast::Integer(_)
             | Ast::Float(_)
+            | Ast::String(_)
             | Ast::Function(_, _) => 1,
             Ast::If(_) | Ast::Assign(_) | Ast::Return | Ast::IoWrite | Ast::IoAppend => 2,
             Ast::Equals => 3,
@@ -96,7 +98,11 @@ impl Ast {
 
     pub fn is_data(&self) -> bool {
         match *self {
-            Ast::Bool(_) | Ast::Integer(_) | Ast::Float(_) | Ast::Function(_, _) => true,
+            Ast::Bool(_)
+            | Ast::Integer(_)
+            | Ast::Float(_)
+            | Ast::String(_)
+            | Ast::Function(_, _) => true,
             _ => false,
         }
     }

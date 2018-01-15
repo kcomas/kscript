@@ -1,4 +1,5 @@
 use std::rc::Rc;
+use std::cell::RefCell;
 use super::super::command::Command;
 use super::super::data_type::DataType;
 use super::super::error::ParserError;
@@ -92,6 +93,7 @@ fn ast_to_data_type(ast: &Ast) -> Result<DataType, ParserError> {
         Ast::Bool(b) => DataType::Bool(b),
         Ast::Integer(int) => DataType::Integer(int),
         Ast::Float(float) => DataType::Float(float),
+        Ast::String(ref string) => DataType::String(Rc::new(RefCell::new(string.clone()))),
         Ast::Function(ref args, ref body) => {
             let num_args = args.len();
             let mut function_commands = Vec::new();

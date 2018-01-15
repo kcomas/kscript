@@ -62,6 +62,7 @@ fn match_ast(iter: &mut Peekable<Chars>) -> Result<Option<Ast>, ParserError> {
             }
             return Ok(Some(Ast::FunctionCall(args)));
         }
+        '"' => return Ok(Some(load_string(iter)?)),
         '?' => return Ok(Some(Ast::If(load_block(iter, '{', '}')?))),
         '=' => return Ok(Some(load_equals(iter)?)),
         '+' => return Ok(Some(next_and_return(iter, Ast::Add))),
@@ -254,6 +255,43 @@ fn load_number(iter: &mut Peekable<Chars>) -> Result<Ast, ParserError> {
     match is_float {
         true => Ok(Ast::Float(number.parse().unwrap())),
         false => Ok(Ast::Integer(number.parse().unwrap())),
+    }
+}
+
+fn load_string(iter: &mut Peekable<Chars>) -> Result<Ast, ParserError> {
+    let error = ParserError::InvalidStringStart;
+    let c = peek_next_char(iter, &error)?;
+    if c == '"' {
+        iter.next();
+    } else {
+        return Err(error);
+    }
+    let mut string = String::new();
+    let error = ParserError::InvalidString;
+    loop {
+        let c = peek_next_char(iter, &error)?;
+        match c {
+            '"' => {
+                iter.next();
+                return Ok(Ast::String(string));
+            }
+            '\\' => {
+                iter.next();
+                let error = ParserError::InvalidStringEscape;
+                let c2 = peek_next_char(iter, &error)?;
+                match c2 {
+                    '\\' => string.push('\\'),
+                    't' => string.push('\t'),
+                    'n' => string.push('\n'),
+                    _ => return Err(error),
+                };
+                iter.next();
+            }
+            _ => {
+                string.push(c);
+                iter.next();
+            }
+        }
     }
 }
 

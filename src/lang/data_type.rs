@@ -115,7 +115,10 @@ impl Clone for DataType {
 impl fmt::Display for DataType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
+            DataType::Bool(b) => write!(f, "{}", if b { "t" } else { "f" }),
             DataType::Integer(num) => write!(f, "{}", num),
+            DataType::Float(float) => write!(f, "{}", float),
+            DataType::String(ref string) => write!(f, "{}", string.borrow()),
             _ => write!(f, "NYI"),
         }
     }
