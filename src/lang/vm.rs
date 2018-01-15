@@ -127,6 +127,11 @@ impl Vm {
                 let left = self.pop_stack()?;
                 self.stack.push(left * right);
             }
+            Command::Div => {
+                let right = self.pop_stack()?;
+                let left = self.pop_stack()?;
+                self.stack.push(left / right);
+            }
             Command::Concat => {
                 let right = self.pop_stack()?;
                 let left = self.pop_stack()?;

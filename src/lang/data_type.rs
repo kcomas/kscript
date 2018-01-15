@@ -1,6 +1,6 @@
 use std::rc::Rc;
 use std::cell::RefCell;
-use std::ops::{Add, Mul, Sub};
+use std::ops::{Add, Div, Mul, Sub};
 use std::fmt;
 use super::command::SharedCommands;
 use super::error::RuntimeError;
@@ -180,5 +180,16 @@ impl Mul for DataType {
             return DataType::Float(self.as_float() * right.as_float());
         }
         DataType::Integer(self.as_int() * right.as_int())
+    }
+}
+
+impl Div for DataType {
+    type Output = DataType;
+
+    fn div(self, right: DataType) -> DataType {
+        if self.is_float() || right.is_float() {
+            return DataType::Float(self.as_float() / right.as_float());
+        }
+        DataType::Integer(self.as_int() / right.as_int())
     }
 }

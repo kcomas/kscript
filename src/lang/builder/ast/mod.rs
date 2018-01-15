@@ -83,6 +83,14 @@ fn match_ast(iter: &mut Peekable<Chars>) -> Result<Option<Ast>, ParserError> {
                 (Ast::Mul, Ast::Exp),
             )?))
         }
+        '/' => {
+            return Ok(Some(double_char(
+                iter,
+                '/',
+                (ParserError::InvalidDiv, ParserError::InvalidRem),
+                (Ast::Div, Ast::Rem),
+            )?))
+        }
         '>' => {
             return Ok(Some(double_char(
                 iter,
@@ -340,23 +348,6 @@ fn double_char(
         return Ok(return_types.1);
     }
     Ok(return_types.0)
-}
-
-fn load_add(iter: &mut Peekable<Chars>) -> Result<Ast, ParserError> {
-    let error = ParserError::InvalidAdd;
-    let c = peek_next_char(iter, &error)?;
-    if c == '+' {
-        iter.next();
-    } else {
-        return Err(error);
-    }
-    let error = ParserError::InvalidConcat;
-    let c2 = peek_next_char(iter, &error)?;
-    if c2 == '+' {
-        iter.next();
-        return Ok(Ast::Concat);
-    }
-    Ok(Ast::Add)
 }
 
 fn load_equals(iter: &mut Peekable<Chars>) -> Result<Ast, ParserError> {

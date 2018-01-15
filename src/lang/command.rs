@@ -16,6 +16,7 @@ pub enum Command {
     Add,
     Sub,
     Mul,
+    Div,
     // Joins
     Concat,
     // Jumps all relative
