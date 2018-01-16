@@ -98,7 +98,15 @@ Have the signature
 They can take any number of args and implicitly return the last value
 ```
     add = .x,y { x + y }
-    add.1,2 >> 1
+    add.1,2; >> 1
 ```
 
 If nothing is on the stack when called it will try to call itself
+
+### Return
+To leave a function use ;;
+```
+    e = .{ 1 == 1 ? { 2 ;; } 4 }
+    e.; >> 1
+```
+This will also return the last value on the stack if any

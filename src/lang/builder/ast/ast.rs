@@ -35,6 +35,13 @@ pub enum Ast {
 }
 
 impl Ast {
+    pub fn add_end(&self) -> bool {
+        match *self {
+            Ast::If(_) => true,
+            _ => false,
+        }
+    }
+
     pub fn presedence(&self) -> usize {
         match *self {
             Ast::End | Ast::Comment(_) => 0,

@@ -14,7 +14,11 @@ pub fn load_ast_til_end(iter: &mut Peekable<Chars>) -> Result<Vec<Ast>, ParserEr
             if let Ast::End = item {
                 break 'out;
             }
+            let add_end = item.add_end();
             ast.push(item);
+            if add_end {
+                break 'out;
+            }
         }
         if iter.next().is_none() {
             break 'out;
@@ -139,6 +143,10 @@ fn load_block(iter: &mut Peekable<Chars>, start: char, end: char) -> Result<AstB
                     ast.push(current_ast);
                     current_ast = Vec::new();
                 }
+            } else if statement.add_end() {
+                current_ast.push(statement);
+                ast.push(current_ast);
+                current_ast = Vec::new();
             } else {
                 current_ast.push(statement);
             }
@@ -184,6 +192,10 @@ fn load_items(
                 if let Ast::End = statement {
                     current_arg.push(current_statements);
                     current_statements = Vec::new();
+                } else if statement.add_end() {
+                    current_statements.push(statement);
+                    current_arg.push(current_statements);
+                    current_statements = Vec::new();
                 } else {
                     current_statements.push(statement);
                 }
@@ -212,6 +224,10 @@ fn load_til_end(iter: &mut Peekable<Chars>, stop_chars: &str) -> Result<AstBody,
         }
         if let Some(statement) = match_ast(iter)? {
             if let Ast::End = statement {
+                ast.push(current_statements);
+                current_statements = Vec::new();
+            } else if statement.add_end() {
+                current_statements.push(statement);
                 ast.push(current_statements);
                 current_statements = Vec::new();
             } else {
