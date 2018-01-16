@@ -14,11 +14,7 @@ pub fn load_ast_til_end(iter: &mut Peekable<Chars>) -> Result<Vec<Ast>, ParserEr
             if let Ast::End = item {
                 break 'out;
             }
-            let add_end = item.add_end();
             ast.push(item);
-            if add_end {
-                break 'out;
-            }
         }
         if iter.next().is_none() {
             break;

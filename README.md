@@ -44,7 +44,6 @@ Use -df <file\> or --debug-file <file\> to print the debugging info to a file
 
 #### Collections passed by reference
 * String
-* Array
 * Function
 
 ### Assignment =
@@ -88,3 +87,18 @@ All commands can be grouped with ()
 ```
     new_string = "a" * 5
 ```
+
+### Functions
+Functions are data that can be passed
+
+Have the signature
+```
+.x,y,z... { <body> }
+```
+They can take any number of args and implicitly return the last value
+```
+    add = .x,y { x + y }
+    add.1,2 >> 1
+```
+
+If nothing is on the stack when called it will try to call itself
