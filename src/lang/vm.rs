@@ -137,6 +137,19 @@ impl Vm {
                 let left = self.pop_stack()?;
                 self.stack.push(left % right);
             }
+            Command::Exp => {
+                let right = self.pop_stack()?;
+                let left = self.pop_stack()?;
+
+                let value = if left.is_int() && right.is_int() {
+                    DataType::Integer(left.as_int().pow(right.as_int() as u32))
+                } else if left.is_float() && right.is_int() {
+                    DataType::Float(left.as_float().powi(right.as_int() as i32))
+                } else {
+                    DataType::Float(left.as_float().powf(right.as_float()))
+                };
+                self.stack.push(value);
+            }
             Command::Concat => {
                 let right = self.pop_stack()?;
                 let left = self.pop_stack()?;

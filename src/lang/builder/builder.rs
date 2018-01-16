@@ -90,6 +90,7 @@ fn ast_to_command(ast: &Ast) -> Result<Command, ParserError> {
         Ast::Mul => Command::Mul,
         Ast::Div => Command::Div,
         Ast::Rem => Command::Rem,
+        Ast::Exp => Command::Exp,
         Ast::IoWrite => Command::IoWrite,
         Ast::IoAppend => Command::IoAppend,
         _ => return Err(ParserError::CannotConvertAstToCommand(ast.clone())),
