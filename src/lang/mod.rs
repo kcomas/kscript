@@ -94,7 +94,7 @@ impl Kscript {
                             self.symbols.set_counter(root_cals.locals.len());
                         }
                         while calls.len() > 1 {
-                            // empty stack
+                            // empty function stack
                             calls.pop();
                         }
                     }
