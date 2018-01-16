@@ -48,15 +48,40 @@ Use -df <file\> or --debug-file <file\> to print the debugging info to a file
 ### Assignment =
 Copies by value or reference depending on the type
 
+### Comparison
+
+* == Checks if two items are the same, throws error if types are not the same
+
+### Numeric Operations
+All number ops check if the two types are integers, if not the operation is done as if they where floats
+
+* \+ Addition
+* \- Subtraction
+* \* Multiplication
+* \\ Division
+* \\\\ Modulo
+* \*\* Exponential
+
+### Grouping Operations
+All commands can be grouped with ()
+
+```
+    1 + 2 * 3 >> 1 # 7
+    (1 + 2) * 3 >> 1 # 9
+```
+
 ### String operations
+
 * \+ concat two strings to make a new string
 ```
     new_stirng = "a" + "b"
 ```
+
 * \+\+ modifies a string in place by adding a new string on to the end of it
 ```
     my_string ++ "a"
 ```
+
 * \* repeat a string a number of times into a new string
 ```
     new_string = "a" * 5

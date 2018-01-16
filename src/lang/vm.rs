@@ -101,8 +101,12 @@ impl Vm {
                 let right = self.pop_stack()?;
                 let left = self.pop_stack()?;
 
-                let b = if left.is_int() && right.is_int() {
+                let b = if left.is_bool() && right.is_bool() {
+                    left.as_bool() == right.as_bool()
+                } else if left.is_int() && right.is_int() {
                     left.as_int() == right.as_int()
+                } else if left.is_float() && right.is_float() {
+                    left.as_float() == right.as_float()
                 } else {
                     return Err(RuntimeError::CannotCompareTypes(
                         left.clone(),
