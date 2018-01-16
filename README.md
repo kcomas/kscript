@@ -15,6 +15,8 @@ cargo build --release
 ./target/release/kscript <flags> file.ks
 ```
 
+If not file is provided a repl is opened
+
 Use -h or --help for a full list of flags
 
 ### Examples
