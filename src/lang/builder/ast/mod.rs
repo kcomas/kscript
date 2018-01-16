@@ -17,7 +17,7 @@ pub fn load_ast_til_end(iter: &mut Peekable<Chars>) -> Result<Vec<Ast>, ParserEr
             ast.push(item);
         }
         if iter.next().is_none() {
-            break;
+            break 'out;
         }
     }
     Ok(ast)
