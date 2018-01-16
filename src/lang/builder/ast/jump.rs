@@ -47,13 +47,14 @@ pub fn shunt_yard(ast: &mut Vec<Ast>, symbols: &mut SymbolTable) -> Result<Vec<A
             if let Some(last) = op_stack.last() {
                 // compare presedence
                 let last_presedence = last.presedence();
-                if last_presedence > presedence {
+                if last_presedence >= presedence {
                     do_push = false;
                 }
             }
             if do_push {
                 op_stack.push(op);
             } else {
+                op_stack.reverse();
                 while let Some(last) = op_stack.pop() {
                     result_stack.push(last);
                 }
