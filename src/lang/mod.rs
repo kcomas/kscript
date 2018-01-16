@@ -71,7 +71,7 @@ impl Kscript {
         println!("{}", REPL_INTRO);
         let stdin = io::stdin();
         let stdout = io::stdout();
-        while exit_code == 0 {
+        loop {
             {
                 let mut stdout_lock = stdout.lock();
                 stdout_lock
@@ -84,7 +84,19 @@ impl Kscript {
                 println!("Exiting");
                 break;
             }
-            exit_code = self.run_string(&input)?;
+            exit_code = match self.run_string(&input) {
+                Ok(exit_code) => exit_code,
+                Err(error) => {
+                    println!("{:?}", error);
+                    // reset the symbol table counter
+                    if let Some(ref calls) = self.vm_calls {
+                        if let Some(root_cals) = calls.first() {
+                            self.symbols.set_counter(root_cals.locals.len());
+                        }
+                    }
+                    1
+                }
+            };
             input.clear();
         }
         Ok(exit_code)
@@ -124,7 +136,7 @@ impl Kscript {
         };
 
         if let Some(ref mut calls) = self.vm_calls {
-            calls.last_mut().unwrap().update_commands(commands);
+            calls.first_mut().unwrap().update_commands(commands);
         } else {
             self.vm_calls = Some(Vm::create_calls(commands));
         }

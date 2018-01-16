@@ -49,8 +49,8 @@ pub fn parse_args() -> Result<Kargs, String> {
         match next_arg.as_str() {
             "-h" | "--help" => flags.push(ArgFlags::Help),
             "-d" | "--debug" => flags.push(ArgFlags::Debug),
-            "-df" | "--debug-file" => flags.push(ArgFlags::DebugFile(arg_container
-                .next_arg("Cannot get the debug file")?)),
+            "-df" | "--debug-file" => flags
+                .push(ArgFlags::DebugFile(arg_container.next_arg("Cannot get the debug file")?)),
             _ => file = Some(next_arg),
         };
     }

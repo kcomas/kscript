@@ -30,6 +30,10 @@ impl SymbolTable {
         self.mode = SymbolType::Local(0);
     }
 
+    pub fn set_counter(&mut self, counter: usize) {
+        self.counter = counter;
+    }
+
     pub fn get(&mut self, name: &str) -> SymbolType {
         if let Some(symbol_type) = self.table.get(name) {
             return symbol_type.clone();
