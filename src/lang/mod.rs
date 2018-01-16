@@ -89,9 +89,13 @@ impl Kscript {
                 Err(error) => {
                     println!("{:?}", error);
                     // reset the symbol table counter
-                    if let Some(ref calls) = self.vm_calls {
+                    if let Some(ref mut calls) = self.vm_calls {
                         if let Some(root_cals) = calls.first() {
                             self.symbols.set_counter(root_cals.locals.len());
+                        }
+                        while calls.len() > 1 {
+                            // empty stack
+                            calls.pop();
                         }
                     }
                     1
