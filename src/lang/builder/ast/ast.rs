@@ -84,6 +84,13 @@ impl Ast {
         }
     }
 
+    pub fn is_group(&self) -> Option<&AstBody> {
+        if let Ast::Group(ref body) = *self {
+            return Some(body);
+        }
+        None
+    }
+
     pub fn is_function_call(&self) -> Option<&AstArgs> {
         if let Ast::FunctionCall(ref body) = *self {
             return Some(body);

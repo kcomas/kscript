@@ -38,6 +38,9 @@ pub fn load_commands_from_ast(ast: &Vec<Ast>) -> Result<Vec<Command>, ParserErro
             // add jump command
             new_commands.push(Command::JumpIfFalse(total_if_commands.len() + 1));
             new_commands.append(&mut total_if_commands);
+        } else if let Some(group_body) = ast[current_index].is_group() {
+            let mut group_commands = load_body(group_body)?;
+            new_commands.append(&mut group_commands);
         } else if !(current_index + 1 < ast.len() && ast[current_index].is_var()
             && (ast[current_index + 1].is_assign().is_some()
                 || ast[current_index + 1].is_function_call().is_some()))
@@ -87,6 +90,7 @@ fn ast_to_command(ast: &Ast) -> Result<Command, ParserError> {
         Ast::Mul => Command::Mul,
         Ast::Div => Command::Div,
         Ast::Rem => Command::Rem,
+        Ast::IoWrite => Command::IoWrite,
         Ast::IoAppend => Command::IoAppend,
         _ => return Err(ParserError::CannotConvertAstToCommand(ast.clone())),
     };

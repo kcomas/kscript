@@ -32,6 +32,7 @@ pub enum Command {
     // Exit from function
     Return,
     // IO
+    IoWrite,
     IoAppend,
     // stop program with exit code
     Halt(i32),

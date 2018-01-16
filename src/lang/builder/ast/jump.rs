@@ -21,6 +21,7 @@ pub fn shunt_yard(ast: &mut Vec<Ast>, symbols: &mut SymbolTable) -> Result<Vec<A
                 let new_body = shunt_body(body, &mut new_symbols)?;
                 Ast::Function(new_args, new_body)
             }
+            Ast::Group(ref mut body) => Ast::Group(shunt_body(body, symbols)?),
             Ast::FunctionCall(ref mut args) => Ast::FunctionCall(shunt_args(args, symbols)?),
             Ast::If(ref mut body) => Ast::If(shunt_body(body, symbols)?),
             Ast::Assign(ref mut body) => Ast::Assign(shunt_body(body, symbols)?),

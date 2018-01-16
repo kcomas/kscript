@@ -241,6 +241,17 @@ impl Vm {
 
                 return Ok((None, true, None));
             }
+            Command::IoWrite => {
+                let target = self.pop_stack()?;
+                let value = self.pop_stack()?;
+                if target.is_int() {
+                    match target.as_int() {
+                        1 => print!("{}", value),
+                        2 => eprint!("{}", value),
+                        _ => return Err(RuntimeError::InvalidIoAppendTarget(target.clone())),
+                    }
+                }
+            }
             Command::IoAppend => {
                 let target = self.pop_stack()?;
                 let value = self.pop_stack()?;
