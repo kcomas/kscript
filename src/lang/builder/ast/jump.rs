@@ -43,23 +43,24 @@ pub fn shunt_yard(ast: &mut Vec<Ast>, symbols: &mut SymbolTable) -> Result<Vec<A
                 result_stack.push(op);
             }
         } else {
-            let mut do_push = true;
+            let mut clear_op_stack = false;
+            let mut add_last = false;
             if let Some(last) = op_stack.last() {
                 // compare presedence
                 let last_presedence = last.presedence();
-                if last_presedence >= presedence {
-                    do_push = false;
+                if presedence < last_presedence {
+                    clear_op_stack = true;
+                } else if presedence == last_presedence {
+                    add_last = true;
                 }
             }
-            if do_push {
-                op_stack.push(op);
-            } else {
+            if clear_op_stack {
                 op_stack.reverse();
-                while let Some(last) = op_stack.pop() {
-                    result_stack.push(last);
-                }
-                op_stack.push(op);
+                result_stack.append(&mut op_stack);
+            } else if add_last {
+                result_stack.push(op_stack.pop().unwrap());
             }
+            op_stack.push(op);
         }
     }
     if op_stack.len() > 0 {
