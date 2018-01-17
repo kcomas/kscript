@@ -1,6 +1,6 @@
 use std::rc::Rc;
 use super::command::{Command, SharedCommands};
-use super::data_type::DataType;
+use super::data_type::{wrap_data, DataType, SharedData};
 use super::error::RuntimeError;
 
 #[derive(Debug)]
@@ -9,7 +9,7 @@ pub struct CallInfo {
     pub num_args: usize,
     pub stack_index: usize,
     pub command_index: usize,
-    pub locals: Vec<DataType>,
+    pub locals: Vec<SharedData>,
 }
 
 impl CallInfo {
@@ -21,7 +21,7 @@ impl CallInfo {
 
 #[derive(Debug)]
 pub struct Vm {
-    stack: Vec<DataType>,
+    stack: Vec<SharedData>,
 }
 
 impl Vm {
@@ -63,11 +63,17 @@ impl Vm {
         }
     }
 
-    fn pop_stack(&mut self) -> Result<DataType, RuntimeError> {
+    fn pop_stack(&mut self) -> Result<SharedData, RuntimeError> {
         if let Some(data) = self.stack.pop() {
             return Ok(data);
         }
         Err(RuntimeError::StackEmpty)
+    }
+
+    fn pop_borrow_clone(&mut self) -> Result<DataType, RuntimeError> {
+        let data = self.pop_stack()?;
+        let data = data.borrow();
+        Ok(data.clone())
     }
 
     fn match_command(
@@ -79,13 +85,13 @@ impl Vm {
             None => return Err(RuntimeError::NoMoreCommands),
         };
         match command {
-            Command::PushStack(data) => self.stack.push(data),
+            Command::PushStack(data) => self.stack.push(wrap_data(data)),
             Command::SaveLocal(index) => {
                 let value = self.pop_stack()?;
                 if index < current_calls.locals.len() {
-                    current_calls.locals[index] = value;
+                    current_calls.locals[index] = wrap_data(value.borrow().clone());
                 } else if index == current_calls.locals.len() {
-                    current_calls.locals.push(value);
+                    current_calls.locals.push(wrap_data(value.borrow().clone()));
                 } else {
                     return Err(RuntimeError::InvalidLocalSaveIndex(index));
                 }
@@ -99,7 +105,9 @@ impl Vm {
             }
             Command::Equals => {
                 let right = self.pop_stack()?;
+                let right = right.borrow();
                 let left = self.pop_stack()?;
+                let left = left.borrow();
 
                 let b = if left.is_bool() && right.is_bool() {
                     left.as_bool() == right.as_bool()
@@ -114,36 +122,38 @@ impl Vm {
                     ));
                 };
 
-                self.stack.push(DataType::Bool(b));
+                self.stack.push(wrap_data(DataType::Bool(b)));
             }
             Command::Add => {
-                let right = self.pop_stack()?;
-                let left = self.pop_stack()?;
-                self.stack.push(left + right);
+                let right = self.pop_borrow_clone()?;
+                let left = self.pop_borrow_clone()?;
+                self.stack.push(wrap_data(left + right));
             }
             Command::Sub => {
-                let right = self.pop_stack()?;
-                let left = self.pop_stack()?;
-                self.stack.push(left - right);
+                let right = self.pop_borrow_clone()?;
+                let left = self.pop_borrow_clone()?;
+                self.stack.push(wrap_data(left - right));
             }
             Command::Mul => {
-                let right = self.pop_stack()?;
-                let left = self.pop_stack()?;
-                self.stack.push(left * right);
+                let right = self.pop_borrow_clone()?;
+                let left = self.pop_borrow_clone()?;
+                self.stack.push(wrap_data(left * right));
             }
             Command::Div => {
-                let right = self.pop_stack()?;
-                let left = self.pop_stack()?;
-                self.stack.push(left / right);
+                let right = self.pop_borrow_clone()?;
+                let left = self.pop_borrow_clone()?;
+                self.stack.push(wrap_data(left / right));
             }
             Command::Rem => {
-                let right = self.pop_stack()?;
-                let left = self.pop_stack()?;
-                self.stack.push(left % right);
+                let right = self.pop_borrow_clone()?;
+                let left = self.pop_borrow_clone()?;
+                self.stack.push(wrap_data(left % right));
             }
             Command::Exp => {
                 let right = self.pop_stack()?;
+                let right = right.borrow();
                 let left = self.pop_stack()?;
+                let left = left.borrow();
 
                 let value = if left.is_int() && right.is_int() {
                     DataType::Integer(left.as_int().pow(right.as_int() as u32))
@@ -152,21 +162,24 @@ impl Vm {
                 } else {
                     DataType::Float(left.as_float().powf(right.as_float()))
                 };
-                self.stack.push(value);
+                self.stack.push(wrap_data(value));
             }
             Command::Concat => {
                 let right = self.pop_stack()?;
+                let right = right.borrow();
                 let left = self.pop_stack()?;
+                let mut left = left.borrow_mut();
                 if left.is_string() && right.is_string() {
-                    let left = left.as_string();
-                    let right = right.as_string();
-                    left.borrow_mut().push_str(right.borrow().as_str());
+                    let right = right.as_str();
+                    let mut left = left.as_string_mut()?;
+                    left.push_str(right);
                 } else {
                     return Err(RuntimeError::CannotConcat(left.clone(), right.clone()));
                 }
             }
             Command::JumpIfFalse(to) => {
                 let cmp = self.pop_stack()?;
+                let cmp = cmp.borrow();
 
                 if !cmp.get_bool()? {
                     current_calls.command_index += to;
@@ -175,6 +188,7 @@ impl Vm {
             }
             Command::Call => {
                 let function = self.pop_stack()?;
+                let function = function.borrow();
                 let (body, num_args) = function.get_function()?;
 
                 current_calls.command_index += 1;
@@ -223,11 +237,11 @@ impl Vm {
             Command::SaveStackArg(index) => {
                 let value = self.pop_stack()?;
                 let stack_index = current_calls.stack_index + index;
-                let stack_item = match self.stack.get_mut(stack_index) {
+                let stack_item = match self.stack.get(stack_index) {
                     Some(stack_item) => stack_item,
                     None => return Err(RuntimeError::CannotSaveToStackIndex(stack_index)),
                 };
-                *stack_item = value;
+                *stack_item.borrow_mut() = value.borrow().clone();
             }
             Command::Return => {
                 let mut save = None;
@@ -260,7 +274,9 @@ impl Vm {
             }
             Command::IoWrite => {
                 let target = self.pop_stack()?;
+                let target = target.borrow();
                 let value = self.pop_stack()?;
+                let value = value.borrow();
                 if target.is_int() {
                     match target.as_int() {
                         1 => print!("{}", value),
@@ -271,7 +287,9 @@ impl Vm {
             }
             Command::IoAppend => {
                 let target = self.pop_stack()?;
+                let target = target.borrow();
                 let value = self.pop_stack()?;
+                let value = value.borrow();
                 if target.is_int() {
                     match target.as_int() {
                         1 => println!("{}", value),

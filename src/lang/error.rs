@@ -17,6 +17,7 @@ pub enum RuntimeError {
     // type errors
     NotAFunction(DataType),
     NotABool(DataType),
+    NotAString(DataType),
     CannotCompareTypes(DataType, DataType),
     InvalidIoAppendTarget(DataType),
     TargetNotAString(DataType),

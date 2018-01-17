@@ -5,16 +5,14 @@ use std::fmt;
 use super::command::SharedCommands;
 use super::error::RuntimeError;
 
-pub type SharedString = Rc<RefCell<String>>;
-pub type SharedArray = Rc<RefCell<Vec<DataType>>>;
+pub type SharedData = Rc<RefCell<DataType>>;
 
 #[derive(Debug)]
 pub enum DataType {
     Bool(bool),
     Integer(i64),
     Float(f64),
-    String(SharedString),
-    Array(SharedArray),
+    String(String),
     // commands ref, num args
     Function(SharedCommands, usize),
 }
@@ -90,11 +88,18 @@ impl DataType {
         false
     }
 
-    pub fn as_string(&self) -> SharedString {
+    pub fn as_str(&self) -> &str {
         match *self {
-            DataType::String(ref string) => Rc::clone(string),
-            _ => Rc::new(RefCell::new(String::new())),
+            DataType::String(ref string) => string,
+            _ => "",
         }
+    }
+
+    pub fn as_string_mut(&mut self) -> Result<&mut String, RuntimeError> {
+        if let DataType::String(ref mut string) = *self {
+            return Ok(string);
+        }
+        Err(RuntimeError::NotAString(self.clone()))
     }
 
     pub fn is_fuction(&self) -> bool {
@@ -118,8 +123,7 @@ impl Clone for DataType {
             DataType::Bool(b) => DataType::Bool(b),
             DataType::Integer(int) => DataType::Integer(int),
             DataType::Float(float) => DataType::Float(float),
-            DataType::String(ref string) => DataType::String(Rc::clone(string)),
-            DataType::Array(ref array) => DataType::Array(Rc::clone(array)),
+            DataType::String(ref string) => DataType::String(string.clone()),
             DataType::Function(ref commands, index) => {
                 DataType::Function(Rc::clone(commands), index)
             }
@@ -133,7 +137,7 @@ impl fmt::Display for DataType {
             DataType::Bool(b) => write!(f, "{}", if b { "t" } else { "f" }),
             DataType::Integer(num) => write!(f, "{}", num),
             DataType::Float(float) => write!(f, "{}", float),
-            DataType::String(ref string) => write!(f, "{}", string.borrow()),
+            DataType::String(ref string) => write!(f, "{}", string),
             _ => write!(f, "NYI"),
         }
     }
@@ -144,11 +148,9 @@ impl Add for DataType {
 
     fn add(self, right: DataType) -> DataType {
         if self.is_string() && right.is_string() {
-            let left = self.as_string();
-            let left = left.borrow().clone();
-            let right = right.as_string();
-            let right = right.borrow().clone();
-            return DataType::String(Rc::new(RefCell::new(left + &right)));
+            let left = self.as_str().to_string();
+            let right = right.as_str();
+            return DataType::String(left + &right);
         } else if self.is_float() || right.is_float() {
             return DataType::Float(self.as_float() + right.as_float());
         }
@@ -172,10 +174,9 @@ impl Mul for DataType {
 
     fn mul(self, right: DataType) -> DataType {
         if self.is_string() && right.is_int() {
-            let left = self.as_string();
-            let left = left.borrow();
+            let left = self.as_str();
             let right = right.as_int();
-            return DataType::String(Rc::new(RefCell::new(left.repeat(right as usize))));
+            return DataType::String(left.repeat(right as usize));
         } else if self.is_float() || right.is_float() {
             return DataType::Float(self.as_float() * right.as_float());
         }
@@ -202,4 +203,8 @@ impl Rem for DataType {
         }
         DataType::Integer(self.as_int() % right.as_int())
     }
+}
+
+pub fn wrap_data(data: DataType) -> SharedData {
+    Rc::new(RefCell::new(data))
 }

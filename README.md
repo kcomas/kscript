@@ -37,17 +37,16 @@ Use -df <file\> or --debug-file <file\> to print the debugging info to a file
 
 ### Types
 
-#### Atoms passed by value
 * Bool represented as t and f
 * Integer
 * Float
-
-#### Collections passed by reference
 * String
 * Function
 
 ### Assignment =
-Copies by value or reference depending on the type
+Copies by value or reference depending if a function argument
+
+So a local variable gets updated by copy, and function arguments update what they reference
 
 ### Comparison
 
@@ -89,7 +88,7 @@ All commands can be grouped with ()
 ```
 
 ### Functions
-Functions are data that can be passed
+Functions are data that can be passed. All function arguments are passed by reference
 
 Have the signature
 ```
