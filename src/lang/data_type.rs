@@ -6,7 +6,6 @@ use super::command::SharedCommands;
 use super::error::RuntimeError;
 
 pub type SharedString = Rc<RefCell<String>>;
-pub type SharedArray = Rc<RefCell<Vec<DataType>>>;
 
 #[derive(Debug)]
 pub enum DataType {
@@ -14,7 +13,6 @@ pub enum DataType {
     Integer(i64),
     Float(f64),
     String(SharedString),
-    Array(SharedArray),
     // commands ref, num args
     Function(SharedCommands, usize),
 }
@@ -119,7 +117,6 @@ impl Clone for DataType {
             DataType::Integer(int) => DataType::Integer(int),
             DataType::Float(float) => DataType::Float(float),
             DataType::String(ref string) => DataType::String(Rc::clone(string)),
-            DataType::Array(ref array) => DataType::Array(Rc::clone(array)),
             DataType::Function(ref commands, index) => {
                 DataType::Function(Rc::clone(commands), index)
             }
