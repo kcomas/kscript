@@ -102,6 +102,14 @@ impl Kscript {
                 }
             };
             input.clear();
+            // print the stack if not empty
+            let stack = self.vm.get_stack_mut();
+            if stack.len() > 0 {
+                stack.reverse();
+                while let Some(data) = stack.pop() {
+                    println!("{}", data);
+                }
+            }
         }
         Ok(exit_code)
     }

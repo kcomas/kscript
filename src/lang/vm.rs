@@ -41,6 +41,10 @@ impl Vm {
         ]
     }
 
+    pub fn get_stack_mut(&mut self) -> &mut Vec<DataType> {
+        &mut self.stack
+    }
+
     pub fn run(&mut self, calls: &mut Vec<CallInfo>) -> Result<i32, RuntimeError> {
         loop {
             let (mabe_new_calls, do_return, mabe_exit_code) = match calls.last_mut() {

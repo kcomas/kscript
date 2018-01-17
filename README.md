@@ -95,7 +95,7 @@ Have the signature
 ```
 .x,y,z... { <body> }
 ```
-They can take any number of args and implicitly return the last value
+They can take any number of arguments and implicitly return the last value
 ```
     add = .x,y { x + y }
     add.1,2; >> 1
