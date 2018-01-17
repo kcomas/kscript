@@ -110,3 +110,19 @@ To leave a function use ;;
     e.; >> 1
 ```
 This will also return the last value on the stack if any
+
+### IO
+1. STDOUT
+2. STDERR
+
+* \> IoWrite
+    * STDOUT, STDERR writes without a new line
+```
+    "Test" > 1
+```
+
+* \>\> IoAppend
+    * STDOUT, STDERR writes with a new line
+```
+    "Test >> 1
+```
