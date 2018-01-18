@@ -24,6 +24,9 @@ pub fn load_commands_from_ast(ast: &Vec<Ast>) -> Result<Vec<Command>, ParserErro
                 }
             };
             new_commands.push(save_cmd);
+        } else if let Some(array_items) = ast[current_index].is_array() {
+            let mut array_commands = build_array(array_items)?;
+            new_commands.append(&mut array_commands);
         } else if let Some(ref args) = ast[current_index].is_function_call() {
             let mut call_commands = build_function_call(args)?;
             new_commands.append(&mut call_commands);
@@ -136,4 +139,16 @@ pub fn build_function_call(args: &AstArgs) -> Result<Vec<Command>, ParserError> 
         }
     }
     Ok(call_commands)
+}
+
+pub fn build_array(items: &AstArgs) -> Result<Vec<Command>, ParserError> {
+    let mut array_commands = vec![Command::InitArray];
+    for item in items.iter() {
+        for item_group in item.iter() {
+            let mut item_commands = load_commands_from_ast(item_group)?;
+            array_commands.append(&mut item_commands);
+            array_commands.push(Command::ArrayPush);
+        }
+    }
+    Ok(array_commands)
 }

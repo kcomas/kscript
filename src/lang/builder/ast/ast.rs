@@ -13,6 +13,7 @@ pub enum Ast {
     Integer(i64),
     Float(f64),
     String(String),
+    Array(AstArgs),
     Group(AstBody),
     // args, body
     Function(AstArgs, AstBody),
@@ -52,6 +53,7 @@ impl Ast {
             | Ast::Integer(_)
             | Ast::Float(_)
             | Ast::String(_)
+            | Ast::Array(_)
             | Ast::Function(_, _) => 1,
             Ast::If(_) | Ast::Assign(_) | Ast::Return | Ast::IoWrite | Ast::IoAppend => 2,
             Ast::Equals | Ast::Concat => 3,
@@ -75,6 +77,13 @@ impl Ast {
             Ast::Var(_) | Ast::VarArg(_, _) | Ast::VarLocal(_, _) => true,
             _ => false,
         }
+    }
+
+    pub fn is_array(&self) -> Option<&AstArgs> {
+        if let Ast::Array(ref items) = *self {
+            return Some(items);
+        }
+        None
     }
 
     pub fn num_look_back(&self) -> usize {

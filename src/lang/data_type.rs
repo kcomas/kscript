@@ -6,6 +6,7 @@ use super::command::SharedCommands;
 use super::error::RuntimeError;
 
 pub type SharedString = Rc<RefCell<String>>;
+pub type SharedArray = Rc<RefCell<Vec<DataType>>>;
 
 #[derive(Debug)]
 pub enum DataType {
@@ -13,6 +14,7 @@ pub enum DataType {
     Integer(i64),
     Float(f64),
     String(SharedString),
+    Array(SharedArray),
     // commands ref, num args
     Function(SharedCommands, usize),
 }
@@ -95,6 +97,13 @@ impl DataType {
         }
     }
 
+    pub fn get_array(&self) -> Result<SharedArray, RuntimeError> {
+        if let DataType::Array(ref items) = *self {
+            return Ok(Rc::clone(items));
+        }
+        Err(RuntimeError::TargetNotAnArray(self.clone()))
+    }
+
     pub fn is_fuction(&self) -> bool {
         if let DataType::Function(_, _) = *self {
             return true;
@@ -117,6 +126,7 @@ impl Clone for DataType {
             DataType::Integer(int) => DataType::Integer(int),
             DataType::Float(float) => DataType::Float(float),
             DataType::String(ref string) => DataType::String(Rc::clone(string)),
+            DataType::Array(ref items) => DataType::Array(Rc::clone(items)),
             DataType::Function(ref commands, index) => {
                 DataType::Function(Rc::clone(commands), index)
             }
@@ -131,6 +141,16 @@ impl fmt::Display for DataType {
             DataType::Integer(num) => write!(f, "{}", num),
             DataType::Float(float) => write!(f, "{}", float),
             DataType::String(ref string) => write!(f, "{}", string.borrow()),
+            DataType::Array(ref items) => write!(
+                f,
+                "{}",
+                items
+                    .borrow()
+                    .iter()
+                    .map(|x| format!("{}", x))
+                    .collect::<Vec<String>>()
+                    .join("")
+            ),
             _ => write!(f, "NYI"),
         }
     }

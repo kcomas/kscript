@@ -1,4 +1,5 @@
 use std::rc::Rc;
+use std::cell::RefCell;
 use super::command::{Command, SharedCommands};
 use super::data_type::DataType;
 use super::error::RuntimeError;
@@ -100,6 +101,19 @@ impl Vm {
                     None => return Err(RuntimeError::InvalidLocalGetIndex(index)),
                 };
                 self.stack.push(value);
+            }
+            Command::InitArray => {
+                self.stack
+                    .push(DataType::Array(Rc::new(RefCell::new(Vec::new()))));
+            }
+            Command::ArrayPush => {
+                let value = self.pop_stack()?;
+                let target = self.pop_stack()?;
+                {
+                    let shared_array = target.get_array()?;
+                    shared_array.borrow_mut().push(value);
+                }
+                self.stack.push(target);
             }
             Command::Equals => {
                 let right = self.pop_stack()?;

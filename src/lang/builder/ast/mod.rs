@@ -64,6 +64,17 @@ fn match_ast(iter: &mut Peekable<Chars>) -> Result<Option<Ast>, ParserError> {
         }
         '(' => return Ok(Some(Ast::Group(load_block(iter, '(', ')')?))),
         '"' => return Ok(Some(load_string(iter)?)),
+        '@' => {
+            iter.next();
+            let c = peek_next_char(iter, &ParserError::InvalidArrayItem)?;
+            match c {
+                '[' => {
+                    let (items, _) = load_items(iter, "]")?;
+                    return Ok(Some(Ast::Array(items)));
+                }
+                _ => return Err(ParserError::InvalidArrayItem),
+            }
+        }
         '?' => return Ok(Some(Ast::If(load_block(iter, '{', '}')?))),
         '=' => return Ok(Some(load_equals(iter)?)),
         '+' => {

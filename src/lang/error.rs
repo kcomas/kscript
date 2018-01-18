@@ -21,6 +21,7 @@ pub enum RuntimeError {
     InvalidIoAppendTarget(DataType),
     TargetNotAString(DataType),
     CannotConcat(DataType, DataType),
+    TargetNotAnArray(DataType),
 }
 
 #[derive(Debug, Clone)]
@@ -51,6 +52,7 @@ pub enum ParserError {
     InvalidExp,
     InvalidDiv,
     InvalidRem,
+    InvalidArrayItem,
 }
 
 #[derive(Debug)]

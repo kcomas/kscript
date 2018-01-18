@@ -10,6 +10,9 @@ pub enum Command {
     // Locals
     SaveLocal(usize),
     LoadLocal(usize),
+    // arrays
+    InitArray,
+    ArrayPush,
     // Comparisons
     Equals,
     // Math
