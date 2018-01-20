@@ -108,7 +108,6 @@ All commands can be grouped with ()
 ### Functions
 Functions are data that can be passed
 
-Have the signature
 ```
 .x,y,z... { <body> }
 ```
