@@ -6,6 +6,7 @@ ma = .x {
 
 
 a = "Hello" + " " + "World"
+a >> 1
 b = a + " Other"
 ma.a
 a >> 1

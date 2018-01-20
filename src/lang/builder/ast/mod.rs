@@ -71,6 +71,7 @@ fn match_ast(iter: &mut Peekable<Chars>) -> Result<Option<Ast>, ParserError> {
                 '[' => {
                     iter.next();
                     let (items, _) = load_items(iter, "]")?;
+                    iter.next();
                     return Ok(Some(Ast::Array(items)));
                 }
                 _ => return Err(ParserError::InvalidArrayItem),
@@ -189,7 +190,6 @@ fn load_items(
                 if current_arg.len() > 0 {
                     args.push(current_arg);
                 }
-                iter.next();
                 break 'out;
             }
         }

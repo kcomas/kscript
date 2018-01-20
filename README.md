@@ -41,10 +41,12 @@ Use -df <file\> or --debug-file <file\> to print the debugging info to a file
 * Bool represented as t and f
 * Integer
 * Float
+* Char
 
 #### Collections passed by reference
 * String
 * Function
+* Array
 
 ### Assignment =
 Copies by value or reference depending on the type
@@ -86,6 +88,21 @@ All commands can be grouped with ()
 * \* repeat a string a number of times into a new string
 ```
     new_string = "a" * 5
+```
+
+### Array/String Operations
+
+* \[\] get an element in the array/string
+```
+    a = @[1, 2, 3]
+    a[1] >> 1
+```
+
+* =\[\] get and update an element in the array string
+```
+    a = @[1, 2, 3]
+    a =[1] 5
+    a >> 1
 ```
 
 ### Functions

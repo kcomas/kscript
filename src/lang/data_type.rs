@@ -123,6 +123,7 @@ impl DataType {
     pub fn as_string(&self) -> SharedString {
         match *self {
             DataType::String(ref string) => Rc::clone(string),
+            DataType::Char(c) => Rc::new(RefCell::new(c.to_string())),
             _ => Rc::new(RefCell::new(String::new())),
         }
     }
@@ -199,7 +200,7 @@ impl Add for DataType {
     type Output = DataType;
 
     fn add(self, right: DataType) -> DataType {
-        if self.is_string() && right.is_string() {
+        if (self.is_string() || self.is_char()) && (right.is_string() || right.is_char()) {
             let left = self.as_string();
             let left = left.borrow().clone();
             let right = right.as_string();
