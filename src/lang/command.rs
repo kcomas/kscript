@@ -15,6 +15,7 @@ pub enum Command {
     ArrayPush,
     // Collection Update
     Access,
+    AccessAssign,
     // Comparisons
     Equals,
     // Math

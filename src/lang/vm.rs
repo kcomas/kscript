@@ -3,6 +3,7 @@ use std::cell::RefCell;
 use super::command::{Command, SharedCommands};
 use super::data_type::DataType;
 use super::error::RuntimeError;
+use super::access::{get_item_in_collection, update_elememnt_in_collection};
 
 #[derive(Debug)]
 pub struct CallInfo {
@@ -118,45 +119,13 @@ impl Vm {
             Command::Access => {
                 let accessor = self.pop_stack()?;
                 let target = self.pop_stack()?;
-
-                let value;
-
-                if accessor.is_int() {
-                    let index = accessor.as_int() as usize;
-                    if target.is_string() {
-                        let string = target.as_string();
-                        let string = string.borrow();
-                        if index >= string.len() {
-                            return Err(RuntimeError::IndexOutOfBound(
-                                target.clone(),
-                                accessor.clone(),
-                            ));
-                        }
-                        value = DataType::String(Rc::new(RefCell::new(
-                            string.chars().nth(index).unwrap().to_string(),
-                        )));
-                    } else if target.is_array() {
-                        let array = target.get_array()?;
-                        let array = array.borrow();
-                        if let Some(item) = array.get(index) {
-                            value = item.clone();
-                        } else {
-                            return Err(RuntimeError::IndexOutOfBound(
-                                target.clone(),
-                                accessor.clone(),
-                            ));
-                        }
-                    } else {
-                        return Err(RuntimeError::CannotAccessWithAccessor(
-                            target.clone(),
-                            accessor.clone(),
-                        ));
-                    }
-                } else {
-                    return Err(RuntimeError::InvalidAccessor(accessor.clone()));
-                }
-
-                self.stack.push(value);
+                self.stack.push(get_item_in_collection(&accessor, &target)?);
+            }
+            Command::AccessAssign => {
+                let value = self.pop_stack()?;
+                let accessor = self.pop_stack()?;
+                let target = self.pop_stack()?;
+                update_elememnt_in_collection(&accessor, &target, value)?;
             }
             Command::Equals => {
                 let right = self.pop_stack()?;

@@ -28,9 +28,12 @@ pub fn load_commands_from_ast(ast: &Vec<Ast>) -> Result<Vec<Command>, ParserErro
             let mut array_commands = build_array(array_items)?;
             new_commands.append(&mut array_commands);
         } else if let Some(access_body) = ast[current_index].is_access() {
-            let mut access_commands = load_body(access_body)?;
-            new_commands.append(&mut access_commands);
+            new_commands.append(&mut load_body(access_body)?);
             new_commands.push(Command::Access);
+        } else if let Some((access_body, assign_body)) = ast[current_index].is_access_assign() {
+            new_commands.append(&mut load_body(access_body)?);
+            new_commands.append(&mut load_body(assign_body)?);
+            new_commands.push(Command::AccessAssign);
         } else if let Some(ref args) = ast[current_index].is_function_call() {
             let mut call_commands = build_function_call(args)?;
             new_commands.append(&mut call_commands);
@@ -110,6 +113,7 @@ fn ast_to_data_type(ast: &Ast) -> Result<DataType, ParserError> {
         Ast::Bool(b) => DataType::Bool(b),
         Ast::Integer(int) => DataType::Integer(int),
         Ast::Float(float) => DataType::Float(float),
+        Ast::Char(c) => DataType::Char(c),
         Ast::String(ref string) => DataType::String(Rc::new(RefCell::new(string.clone()))),
         Ast::Function(ref args, ref body) => {
             let num_args = args.len();

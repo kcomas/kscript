@@ -23,6 +23,11 @@ pub fn shunt_yard(ast: &mut Vec<Ast>, symbols: &mut SymbolTable) -> Result<Vec<A
             }
             Ast::Group(ref mut body) => Ast::Group(shunt_body(body, symbols)?),
             Ast::Array(ref mut items) => Ast::Array(shunt_args(items, symbols)?),
+            Ast::Access(ref mut body) => Ast::Access(shunt_body(body, symbols)?),
+            Ast::AccessAssign(ref mut access_body, ref mut assign_body) => Ast::AccessAssign(
+                shunt_body(access_body, symbols)?,
+                shunt_body(assign_body, symbols)?,
+            ),
             Ast::FunctionCall(ref mut args) => Ast::FunctionCall(shunt_args(args, symbols)?),
             Ast::If(ref mut body) => Ast::If(shunt_body(body, symbols)?),
             Ast::Assign(ref mut body) => Ast::Assign(shunt_body(body, symbols)?),

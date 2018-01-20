@@ -12,9 +12,11 @@ pub enum Ast {
     Bool(bool),
     Integer(i64),
     Float(f64),
+    Char(char),
     String(String),
     Array(AstArgs),
     Access(AstBody),
+    AccessAssign(AstBody, AstBody),
     Group(AstBody),
     // args, body
     Function(AstArgs, AstBody),
@@ -53,6 +55,7 @@ impl Ast {
             | Ast::Bool(_)
             | Ast::Integer(_)
             | Ast::Float(_)
+            | Ast::Char(_)
             | Ast::String(_)
             | Ast::Array(_)
             | Ast::Function(_, _) => 1,
@@ -62,7 +65,7 @@ impl Ast {
             Ast::Mul | Ast::Div | Ast::Rem => 5,
             Ast::Exp => 6,
             Ast::FunctionCall(_) => 7,
-            Ast::Access(_) => 8,
+            Ast::Access(_) | Ast::AccessAssign(_, _) => 8,
             Ast::Group(_) => 9,
         }
     }
@@ -91,6 +94,13 @@ impl Ast {
     pub fn is_access(&self) -> Option<&AstBody> {
         if let Ast::Access(ref body) = *self {
             return Some(body);
+        }
+        None
+    }
+
+    pub fn is_access_assign(&self) -> Option<(&AstBody, &AstBody)> {
+        if let Ast::AccessAssign(ref access_body, ref assign_body) = *self {
+            return Some((access_body, assign_body));
         }
         None
     }
@@ -135,7 +145,9 @@ impl Ast {
             Ast::Bool(_)
             | Ast::Integer(_)
             | Ast::Float(_)
+            | Ast::Char(_)
             | Ast::String(_)
+            | Ast::Array(_)
             | Ast::Function(_, _) => true,
             _ => false,
         }

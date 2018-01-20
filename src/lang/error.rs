@@ -25,6 +25,7 @@ pub enum RuntimeError {
     InvalidAccessor(DataType),
     CannotAccessWithAccessor(DataType, DataType),
     IndexOutOfBound(DataType, DataType),
+    CannotInsertToString(DataType),
 }
 
 #[derive(Debug, Clone)]

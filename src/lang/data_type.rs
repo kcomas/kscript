@@ -13,6 +13,7 @@ pub enum DataType {
     Bool(bool),
     Integer(i64),
     Float(f64),
+    Char(char),
     String(SharedString),
     Array(SharedArray),
     // commands ref, num args
@@ -20,6 +21,14 @@ pub enum DataType {
 }
 
 impl DataType {
+    pub fn len(&self) -> usize {
+        match *self {
+            DataType::String(ref string) => string.borrow().len(),
+            DataType::Array(ref array) => array.borrow().len(),
+            _ => 0,
+        }
+    }
+
     pub fn is_bool(&self) -> bool {
         if let DataType::Bool(_) = *self {
             return true;
@@ -83,6 +92,27 @@ impl DataType {
         }
     }
 
+    pub fn is_char(&self) -> bool {
+        if let DataType::Char(_) = *self {
+            return true;
+        }
+        false
+    }
+
+    pub fn as_char(&self) -> char {
+        match *self {
+            DataType::Bool(b) => if b {
+                't'
+            } else {
+                'f'
+            },
+            DataType::Integer(int) => int as u8 as char,
+            DataType::Float(float) => float as u8 as char,
+            DataType::Char(c) => c,
+            _ => '\0',
+        }
+    }
+
     pub fn is_string(&self) -> bool {
         if let DataType::String(_) = *self {
             return true;
@@ -132,6 +162,7 @@ impl Clone for DataType {
             DataType::Bool(b) => DataType::Bool(b),
             DataType::Integer(int) => DataType::Integer(int),
             DataType::Float(float) => DataType::Float(float),
+            DataType::Char(c) => DataType::Char(c),
             DataType::String(ref string) => DataType::String(Rc::clone(string)),
             DataType::Array(ref items) => DataType::Array(Rc::clone(items)),
             DataType::Function(ref commands, index) => {
@@ -147,6 +178,7 @@ impl fmt::Display for DataType {
             DataType::Bool(b) => write!(f, "{}", if b { "t" } else { "f" }),
             DataType::Integer(num) => write!(f, "{}", num),
             DataType::Float(float) => write!(f, "{}", float),
+            DataType::Char(c) => write!(f, "{}", c),
             DataType::String(ref string) => write!(f, "{}", string.borrow()),
             DataType::Array(ref items) => write!(
                 f,

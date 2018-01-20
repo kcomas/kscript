@@ -334,6 +334,9 @@ fn load_string(iter: &mut Peekable<Chars>) -> Result<Ast, ParserError> {
         match c {
             '"' => {
                 iter.next();
+                if string.len() == 1 {
+                    return Ok(Ast::Char(string.pop().unwrap()));
+                }
                 return Ok(Ast::String(string));
             }
             '\\' => {
@@ -389,6 +392,11 @@ fn load_equals(iter: &mut Peekable<Chars>) -> Result<Ast, ParserError> {
     if c2 == '=' {
         iter.next();
         return Ok(Ast::Equals);
+    } else if c2 == '[' {
+        return Ok(Ast::AccessAssign(
+            load_block(iter, '[', ']')?,
+            load_til_end(iter, "\n;")?,
+        ));
     }
     Ok(Ast::Assign(load_til_end(iter, "\n;")?))
 }
