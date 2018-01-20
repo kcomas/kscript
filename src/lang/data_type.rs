@@ -97,6 +97,13 @@ impl DataType {
         }
     }
 
+    pub fn is_array(&self) -> bool {
+        if let DataType::Array(_) = *self {
+            return true;
+        }
+        false
+    }
+
     pub fn get_array(&self) -> Result<SharedArray, RuntimeError> {
         if let DataType::Array(ref items) = *self {
             return Ok(Rc::clone(items));

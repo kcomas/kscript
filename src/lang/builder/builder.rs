@@ -27,6 +27,10 @@ pub fn load_commands_from_ast(ast: &Vec<Ast>) -> Result<Vec<Command>, ParserErro
         } else if let Some(array_items) = ast[current_index].is_array() {
             let mut array_commands = build_array(array_items)?;
             new_commands.append(&mut array_commands);
+        } else if let Some(access_body) = ast[current_index].is_access() {
+            let mut access_commands = load_body(access_body)?;
+            new_commands.append(&mut access_commands);
+            new_commands.push(Command::Access);
         } else if let Some(ref args) = ast[current_index].is_function_call() {
             let mut call_commands = build_function_call(args)?;
             new_commands.append(&mut call_commands);

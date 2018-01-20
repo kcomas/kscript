@@ -13,6 +13,8 @@ pub enum Command {
     // arrays
     InitArray,
     ArrayPush,
+    // Collection Update
+    Access,
     // Comparisons
     Equals,
     // Math

@@ -69,13 +69,14 @@ fn match_ast(iter: &mut Peekable<Chars>) -> Result<Option<Ast>, ParserError> {
             let c = peek_next_char(iter, &ParserError::InvalidArrayItem)?;
             match c {
                 '[' => {
-                    let (items, _) = load_items(iter, "]")?;
                     iter.next();
+                    let (items, _) = load_items(iter, "]")?;
                     return Ok(Some(Ast::Array(items)));
                 }
                 _ => return Err(ParserError::InvalidArrayItem),
             }
         }
+        '[' => return Ok(Some(Ast::Access(load_block(iter, '[', ']')?))),
         '?' => return Ok(Some(Ast::If(load_block(iter, '{', '}')?))),
         '=' => return Ok(Some(load_equals(iter)?)),
         '+' => {
@@ -188,6 +189,7 @@ fn load_items(
                 if current_arg.len() > 0 {
                     args.push(current_arg);
                 }
+                iter.next();
                 break 'out;
             }
         }

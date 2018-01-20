@@ -22,6 +22,9 @@ pub enum RuntimeError {
     TargetNotAString(DataType),
     CannotConcat(DataType, DataType),
     TargetNotAnArray(DataType),
+    InvalidAccessor(DataType),
+    CannotAccessWithAccessor(DataType, DataType),
+    IndexOutOfBound(DataType, DataType),
 }
 
 #[derive(Debug, Clone)]

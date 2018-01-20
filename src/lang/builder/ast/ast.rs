@@ -14,6 +14,7 @@ pub enum Ast {
     Float(f64),
     String(String),
     Array(AstArgs),
+    Access(AstBody),
     Group(AstBody),
     // args, body
     Function(AstArgs, AstBody),
@@ -61,7 +62,8 @@ impl Ast {
             Ast::Mul | Ast::Div | Ast::Rem => 5,
             Ast::Exp => 6,
             Ast::FunctionCall(_) => 7,
-            Ast::Group(_) => 8,
+            Ast::Access(_) => 8,
+            Ast::Group(_) => 9,
         }
     }
 
@@ -82,6 +84,13 @@ impl Ast {
     pub fn is_array(&self) -> Option<&AstArgs> {
         if let Ast::Array(ref items) = *self {
             return Some(items);
+        }
+        None
+    }
+
+    pub fn is_access(&self) -> Option<&AstBody> {
+        if let Ast::Access(ref body) = *self {
+            return Some(body);
         }
         None
     }
