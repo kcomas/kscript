@@ -21,13 +21,13 @@ pub enum DataType {
 }
 
 impl DataType {
-    pub fn len(&self) -> usize {
-        match *self {
-            DataType::String(ref string) => string.borrow().len(),
-            DataType::Array(ref array) => array.borrow().len(),
-            _ => 0,
-        }
-    }
+    // pub fn len(&self) -> usize {
+    //     match *self {
+    //         DataType::String(ref string) => string.borrow().len(),
+    //         DataType::Array(ref array) => array.borrow().len(),
+    //         _ => 0,
+    //     }
+    // }
 
     pub fn is_bool(&self) -> bool {
         if let DataType::Bool(_) = *self {
@@ -49,7 +49,7 @@ impl DataType {
         if let DataType::Bool(b) = *self {
             return Ok(b);
         }
-        Err(RuntimeError::NotABool(self.clone()))
+        Err(RuntimeError::NotABool)
     }
 
     pub fn is_int(&self) -> bool {
@@ -128,6 +128,13 @@ impl DataType {
         }
     }
 
+    pub fn get_string(&self) -> Result<&SharedString, RuntimeError> {
+        if let DataType::String(ref string) = *self {
+            return Ok(string);
+        }
+        Err(RuntimeError::TargetNotAString)
+    }
+
     pub fn is_array(&self) -> bool {
         if let DataType::Array(_) = *self {
             return true;
@@ -135,25 +142,25 @@ impl DataType {
         false
     }
 
-    pub fn get_array(&self) -> Result<SharedArray, RuntimeError> {
+    pub fn get_array(&self) -> Result<&SharedArray, RuntimeError> {
         if let DataType::Array(ref items) = *self {
-            return Ok(Rc::clone(items));
+            return Ok(items);
         }
-        Err(RuntimeError::TargetNotAnArray(self.clone()))
+        Err(RuntimeError::TargetNotAnArray)
     }
 
-    pub fn is_fuction(&self) -> bool {
-        if let DataType::Function(_, _) = *self {
-            return true;
-        }
-        false
-    }
+    // pub fn is_fuction(&self) -> bool {
+    //     if let DataType::Function(_, _) = *self {
+    //         return true;
+    //     }
+    //     false
+    // }
 
     pub fn get_function(&self) -> Result<(SharedCommands, usize), RuntimeError> {
         if let DataType::Function(ref commands, num_args) = *self {
             return Ok((Rc::clone(commands), num_args));
         }
-        Err(RuntimeError::NotAFunction(self.clone()))
+        Err(RuntimeError::NotAFunction)
     }
 }
 

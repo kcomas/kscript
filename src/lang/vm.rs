@@ -119,13 +119,13 @@ impl Vm {
             Command::Access => {
                 let accessor = self.pop_stack()?;
                 let target = self.pop_stack()?;
-                self.stack.push(get_item_in_collection(&accessor, &target)?);
+                self.stack.push(get_item_in_collection(accessor, target)?);
             }
             Command::AccessAssign => {
                 let value = self.pop_stack()?;
                 let accessor = self.pop_stack()?;
                 let target = self.pop_stack()?;
-                update_elememnt_in_collection(&accessor, &target, value)?;
+                update_elememnt_in_collection(accessor, target, value)?;
             }
             Command::Equals => {
                 let right = self.pop_stack()?;
@@ -138,10 +138,7 @@ impl Vm {
                 } else if left.is_float() && right.is_float() {
                     left.as_float() == right.as_float()
                 } else {
-                    return Err(RuntimeError::CannotCompareTypes(
-                        left.clone(),
-                        right.clone(),
-                    ));
+                    return Err(RuntimeError::CannotCompareTypes);
                 };
 
                 self.stack.push(DataType::Bool(b));
@@ -192,7 +189,7 @@ impl Vm {
                     let right = right.as_string();
                     left.borrow_mut().push_str(right.borrow().as_str());
                 } else {
-                    return Err(RuntimeError::CannotConcat(left.clone(), right.clone()));
+                    return Err(RuntimeError::CannotConcat);
                 }
             }
             Command::JumpIfFalse(to) => {
@@ -295,7 +292,7 @@ impl Vm {
                     match target.as_int() {
                         1 => print!("{}", value),
                         2 => eprint!("{}", value),
-                        _ => return Err(RuntimeError::InvalidIoAppendTarget(target.clone())),
+                        _ => return Err(RuntimeError::InvalidIoAppendTarget),
                     }
                 }
             }
@@ -306,7 +303,7 @@ impl Vm {
                     match target.as_int() {
                         1 => println!("{}", value),
                         2 => eprintln!("{}", value),
-                        _ => return Err(RuntimeError::InvalidIoAppendTarget(target.clone())),
+                        _ => return Err(RuntimeError::InvalidIoAppendTarget),
                     }
                 }
             }

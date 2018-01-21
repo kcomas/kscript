@@ -1,4 +1,3 @@
-use super::data_type::DataType;
 use super::builder::Ast;
 
 #[derive(Debug)]
@@ -15,17 +14,17 @@ pub enum RuntimeError {
     InvalidLocalSaveIndex(usize),
     InvalidLocalGetIndex(usize),
     // type errors
-    NotAFunction(DataType),
-    NotABool(DataType),
-    CannotCompareTypes(DataType, DataType),
-    InvalidIoAppendTarget(DataType),
-    TargetNotAString(DataType),
-    CannotConcat(DataType, DataType),
-    TargetNotAnArray(DataType),
-    InvalidAccessor(DataType),
-    CannotAccessWithAccessor(DataType, DataType),
-    IndexOutOfBound(DataType, DataType),
-    CannotInsertToString(DataType),
+    NotAFunction,
+    NotABool,
+    CannotCompareTypes,
+    InvalidIoAppendTarget,
+    TargetNotAString,
+    CannotConcat,
+    TargetNotAnArray,
+    InvalidAccessor,
+    CannotAccessWithAccessor,
+    IndexOutOfBound,
+    CannotInsertToString,
 }
 
 #[derive(Debug, Clone)]
