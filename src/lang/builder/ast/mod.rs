@@ -53,6 +53,12 @@ fn match_ast(iter: &mut Peekable<Chars>) -> Result<Option<Ast>, ParserError> {
         '0'...'9' => return Ok(Some(load_number(iter)?)),
         '.' => {
             iter.next();
+            let c = peek_next_char(iter, &ParserError::InvalidFunction)?;
+            if c == '[' {
+                let access_body = load_block(iter, '[', ']')?;
+                let (args, _) = load_items(iter, "\n;{")?;
+                return Ok(Some(Ast::AccessCall(access_body, args)));
+            }
             let (args, end_c) = load_items(iter, "\n;{")?;
             if end_c == '{' {
                 return Ok(Some(Ast::Function(args, load_block(iter, '{', '}')?)));

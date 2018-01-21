@@ -56,6 +56,8 @@ pub enum ParserError {
     InvalidDiv,
     InvalidRem,
     InvalidArrayItem,
+    InvalidFunction,
+    InvalidAccessCall,
 }
 
 #[derive(Debug)]

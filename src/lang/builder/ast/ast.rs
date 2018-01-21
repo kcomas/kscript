@@ -17,6 +17,7 @@ pub enum Ast {
     Array(AstArgs),
     Access(AstBody),
     AccessAssign(AstBody, AstBody),
+    AccessCall(AstBody, AstArgs),
     Group(AstBody),
     // args, body
     Function(AstArgs, AstBody),
@@ -65,7 +66,7 @@ impl Ast {
             Ast::Mul | Ast::Div | Ast::Rem => 5,
             Ast::Exp => 6,
             Ast::FunctionCall(_) => 7,
-            Ast::Access(_) | Ast::AccessAssign(_, _) => 8,
+            Ast::Access(_) | Ast::AccessAssign(_, _) | Ast::AccessCall(_, _) => 8,
             Ast::Group(_) => 9,
         }
     }
@@ -101,6 +102,13 @@ impl Ast {
     pub fn is_access_assign(&self) -> Option<(&AstBody, &AstBody)> {
         if let Ast::AccessAssign(ref access_body, ref assign_body) = *self {
             return Some((access_body, assign_body));
+        }
+        None
+    }
+
+    pub fn is_access_call(&self) -> Option<(&AstBody, &AstArgs)> {
+        if let Ast::AccessCall(ref access_body, ref args) = *self {
+            return Some((access_body, args));
         }
         None
     }

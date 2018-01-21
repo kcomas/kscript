@@ -34,9 +34,18 @@ pub fn load_commands_from_ast(ast: &Vec<Ast>) -> Result<Vec<Command>, ParserErro
             new_commands.append(&mut load_body(access_body)?);
             new_commands.append(&mut load_body(assign_body)?);
             new_commands.push(Command::AccessAssign);
-        } else if let Some(ref args) = ast[current_index].is_function_call() {
-            let mut call_commands = build_function_call(args)?;
-            new_commands.append(&mut call_commands);
+        } else if let Some((access_body, args)) = ast[current_index].is_access_call() {
+            new_commands.append(&mut build_function_call(args)?);
+            if current_index > 0 && ast[current_index - 1].can_call() {
+                new_commands.push(ast_to_command(&ast[current_index - 1])?);
+                new_commands.append(&mut load_body(access_body)?);
+                new_commands.push(Command::Access);
+                new_commands.push(Command::Call);
+            } else {
+                return Err(ParserError::InvalidAccessCall);
+            }
+        } else if let Some(args) = ast[current_index].is_function_call() {
+            new_commands.append(&mut build_function_call(args)?);
             if current_index > 0 && ast[current_index - 1].can_call() {
                 new_commands.push(ast_to_command(&ast[current_index - 1])?);
                 new_commands.push(Command::Call);
