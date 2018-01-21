@@ -1,12 +1,10 @@
 
 # Sum an array
 
-sum = .arr,i,x,s {
-    i == x ? { s ;; }
-    s = s + arr[i]
-    i = i + 1
-    .arr,i,x,s;
+sum = .arr,i,x {
+    i == x ? { 0 ;; }
+    arr[i] + .arr,i + 1,x
 }
 
 a = @[1, 2, 3, 4]
-sum.a,0,4,0; >> 1
+sum.a,0,4; >> 1
