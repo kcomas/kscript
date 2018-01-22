@@ -105,6 +105,12 @@ All commands can be grouped with ()
     a >> 1
 ```
 
+* .\[\] run a function in a collection
+```
+    a = @[1, 2, .x,y { x + y }]
+    a.[2]a[0],a[1]; >> 1
+```
+
 * @? get the length of the collection as an integer
 ```
     a = @[1, 2, 3]

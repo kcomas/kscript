@@ -61,7 +61,8 @@ pub fn load_commands_from_ast(ast: &Vec<Ast>) -> Result<Vec<Command>, ParserErro
             new_commands.append(&mut group_commands);
         } else if !(current_index + 1 < ast.len() && ast[current_index].is_var()
             && (ast[current_index + 1].is_assign().is_some()
-                || ast[current_index + 1].is_function_call().is_some()))
+                || ast[current_index + 1].is_function_call().is_some()
+                || ast[current_index + 1].is_access_call().is_some()))
         {
             new_commands.push(ast_to_command(&ast[current_index])?);
         }
