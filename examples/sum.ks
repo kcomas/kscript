@@ -3,7 +3,7 @@
 
 sum = .arr,i {
     i == @? arr ? { 0 ;; }
-    arr[i] + .arr,i + 1
+    arr[i] + ..arr,i + 1
 }
 
 a = @[1, 2, 3, 4]

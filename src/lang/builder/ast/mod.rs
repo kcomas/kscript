@@ -52,12 +52,16 @@ fn match_ast(iter: &mut Peekable<Chars>) -> Result<Option<Ast>, ParserError> {
         'a'...'z' | 'A'...'Z' => return Ok(Some(load_var(iter)?)),
         '0'...'9' => return Ok(Some(load_number(iter)?)),
         '.' => {
+            let mut self_call = false;
             iter.next();
             let c = peek_next_char(iter, &ParserError::InvalidFunction)?;
             if c == '[' {
                 let access_body = load_block(iter, '[', ']')?;
                 let (args, _) = load_items(iter, "\n;{")?;
                 return Ok(Some(Ast::AccessCall(access_body, args)));
+            } else if c == '.' {
+                self_call = true;
+                iter.next();
             }
             let (args, end_c) = load_items(iter, "\n;{")?;
             if end_c == '{' {
@@ -65,6 +69,9 @@ fn match_ast(iter: &mut Peekable<Chars>) -> Result<Option<Ast>, ParserError> {
             }
             if end_c == ';' {
                 iter.next();
+            }
+            if self_call {
+                return Ok(Some(Ast::FunctionSelfCall(args)));
             }
             return Ok(Some(Ast::FunctionCall(args)));
         }

@@ -46,12 +46,11 @@ pub fn load_commands_from_ast(ast: &Vec<Ast>) -> Result<Vec<Command>, ParserErro
             }
         } else if let Some(args) = ast[current_index].is_function_call() {
             new_commands.append(&mut build_function_call(args)?);
-            if current_index > 0 && ast[current_index - 1].can_call() {
-                new_commands.push(ast_to_command(&ast[current_index - 1])?);
-                new_commands.push(Command::Call);
-            } else {
-                new_commands.push(Command::CallSelf);
-            }
+            new_commands.push(ast_to_command(&ast[current_index - 1])?);
+            new_commands.push(Command::Call);
+        } else if let Some(args) = ast[current_index].is_function_self_call() {
+            new_commands.append(&mut build_function_call(args)?);
+            new_commands.push(Command::CallSelf);
         } else if let Some(if_body) = ast[current_index].is_if() {
             let mut total_if_commands = load_body(if_body)?;
             // add jump command

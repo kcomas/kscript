@@ -24,6 +24,7 @@ pub enum Ast {
     Function(AstArgs, AstBody),
     // args
     FunctionCall(AstArgs),
+    FunctionSelfCall(AstArgs),
     // body
     If(AstBody),
     Return,
@@ -67,7 +68,7 @@ impl Ast {
             Ast::Mul | Ast::Div | Ast::Rem => 5,
             Ast::Exp => 6,
             Ast::Len => 7,
-            Ast::FunctionCall(_) => 8,
+            Ast::FunctionCall(_) | Ast::FunctionSelfCall(_) => 8,
             Ast::Access(_) | Ast::AccessAssign(_, _) | Ast::AccessCall(_, _) => 9,
             Ast::Group(_) => 10,
         }
@@ -131,6 +132,13 @@ impl Ast {
 
     pub fn is_function_call(&self) -> Option<&AstArgs> {
         if let Ast::FunctionCall(ref body) = *self {
+            return Some(body);
+        }
+        None
+    }
+
+    pub fn is_function_self_call(&self) -> Option<&AstArgs> {
+        if let Ast::FunctionSelfCall(ref body) = *self {
             return Some(body);
         }
         None
