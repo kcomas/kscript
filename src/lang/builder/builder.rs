@@ -101,6 +101,7 @@ fn ast_to_command(ast: &Ast) -> Result<Command, ParserError> {
     let cmd = match *ast {
         Ast::VarArg(_, id) => Command::LoadStackArg(id),
         Ast::VarLocal(_, id) => Command::LoadLocal(id),
+        Ast::Len => Command::Len,
         Ast::Return => Command::Return,
         Ast::Equals => Command::Equals,
         Ast::Add => Command::Add,

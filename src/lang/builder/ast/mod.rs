@@ -80,6 +80,10 @@ fn match_ast(iter: &mut Peekable<Chars>) -> Result<Option<Ast>, ParserError> {
                     iter.next();
                     return Ok(Some(Ast::Array(items)));
                 }
+                '?' => {
+                    iter.next();
+                    return Ok(Some(Ast::Len));
+                }
                 _ => return Err(ParserError::InvalidArrayItem),
             }
         }

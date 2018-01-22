@@ -18,6 +18,7 @@ pub enum Ast {
     Access(AstBody),
     AccessAssign(AstBody, AstBody),
     AccessCall(AstBody, AstArgs),
+    Len,
     Group(AstBody),
     // args, body
     Function(AstArgs, AstBody),
@@ -65,9 +66,10 @@ impl Ast {
             Ast::Add | Ast::Sub => 4,
             Ast::Mul | Ast::Div | Ast::Rem => 5,
             Ast::Exp => 6,
-            Ast::FunctionCall(_) => 7,
-            Ast::Access(_) | Ast::AccessAssign(_, _) | Ast::AccessCall(_, _) => 8,
-            Ast::Group(_) => 9,
+            Ast::Len => 7,
+            Ast::FunctionCall(_) => 8,
+            Ast::Access(_) | Ast::AccessAssign(_, _) | Ast::AccessCall(_, _) => 9,
+            Ast::Group(_) => 10,
         }
     }
 

@@ -21,13 +21,13 @@ pub enum DataType {
 }
 
 impl DataType {
-    // pub fn len(&self) -> usize {
-    //     match *self {
-    //         DataType::String(ref string) => string.borrow().len(),
-    //         DataType::Array(ref array) => array.borrow().len(),
-    //         _ => 0,
-    //     }
-    // }
+    pub fn len(&self) -> usize {
+        match *self {
+            DataType::String(ref string) => string.borrow().len(),
+            DataType::Array(ref array) => array.borrow().len(),
+            _ => 0,
+        }
+    }
 
     pub fn is_bool(&self) -> bool {
         if let DataType::Bool(_) = *self {

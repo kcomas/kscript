@@ -116,6 +116,13 @@ impl Vm {
                 }
                 self.stack.push(target);
             }
+            Command::Len => {
+                let target = self.pop_stack()?;
+                if !(target.is_string() || target.is_array()) {
+                    return Err(RuntimeError::CannotGetLengthOfType);
+                }
+                self.stack.push(DataType::Integer(target.len() as i64));
+            }
             Command::Access => {
                 let accessor = self.pop_stack()?;
                 let target = self.pop_stack()?;

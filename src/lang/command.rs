@@ -13,6 +13,8 @@ pub enum Command {
     // arrays
     InitArray,
     ArrayPush,
+    // Collection Info
+    Len,
     // Collection Update
     Access,
     AccessAssign,
