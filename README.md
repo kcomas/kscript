@@ -105,6 +105,12 @@ All commands can be grouped with ()
     a >> 1
 ```
 
+* @? get the length of the collection as an integer
+```
+    a = @[1, 2, 3]
+    @? a >> 1
+```
+
 ### Functions
 Functions are data that can be passed
 
