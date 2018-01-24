@@ -1,11 +1,11 @@
-use std::rc::Rc;
-use super::command::{Command, SharedCommands};
+use super::command::Command;
 use super::data_type::DataType;
 use super::error::RuntimeError;
+use super::function::FunctionLookup;
 
 #[derive(Debug)]
 pub struct CallInfo {
-    pub commands: SharedCommands,
+    pub commands: usize,
     pub num_args: usize,
     pub stack_index: usize,
     pub command_index: usize,
@@ -13,8 +13,8 @@ pub struct CallInfo {
 }
 
 impl CallInfo {
-    pub fn update_commands(&mut self, commands: &SharedCommands) {
-        self.commands = Rc::clone(commands);
+    pub fn update_commands(&mut self) {
+        self.commands = 0;
         self.command_index = 0;
     }
 }
@@ -29,10 +29,10 @@ impl Vm {
         Vm { stack: Vec::new() }
     }
 
-    pub fn create_calls(commands: &SharedCommands) -> Vec<CallInfo> {
+    pub fn create_calls() -> Vec<CallInfo> {
         vec![
             CallInfo {
-                commands: Rc::clone(commands),
+                commands: 0,
                 num_args: 0,
                 stack_index: 0,
                 command_index: 0,
@@ -45,10 +45,14 @@ impl Vm {
         &mut self.stack
     }
 
-    pub fn run(&mut self, calls: &mut Vec<CallInfo>) -> Result<i32, RuntimeError> {
+    pub fn run(
+        &mut self,
+        calls: &mut Vec<CallInfo>,
+        functions: &FunctionLookup,
+    ) -> Result<i32, RuntimeError> {
         loop {
             let (mabe_new_calls, do_return, mabe_exit_code) = match calls.last_mut() {
-                Some(ref mut current_calls) => self.match_command(current_calls)?,
+                Some(ref mut current_calls) => self.match_command(current_calls, functions)?,
                 None => return Err(RuntimeError::CallsEmpty),
             };
             if let Some(code) = mabe_exit_code {
@@ -77,8 +81,9 @@ impl Vm {
     fn match_command(
         &mut self,
         current_calls: &mut CallInfo,
+        functions: &FunctionLookup,
     ) -> Result<(Option<CallInfo>, bool, Option<i32>), RuntimeError> {
-        let command = match current_calls.commands.get(current_calls.command_index) {
+        let command = match functions.get(current_calls.commands, current_calls.command_index) {
             Some(ref_cmd) => ref_cmd,
             None => return Err(RuntimeError::NoMoreCommands),
         };
@@ -165,7 +170,7 @@ impl Vm {
             }
             Command::Call => {
                 let function = self.pop_stack()?;
-                let (body, num_args) = function.get_function()?;
+                let (command_index, num_args) = function.get_function()?;
 
                 current_calls.command_index += 1;
 
@@ -174,7 +179,7 @@ impl Vm {
                 }
 
                 let new_calls = CallInfo {
-                    commands: body,
+                    commands: command_index,
                     num_args: num_args,
                     stack_index: self.stack.len() - num_args,
                     command_index: 0,
@@ -193,7 +198,7 @@ impl Vm {
                 }
 
                 let new_calls = CallInfo {
-                    commands: Rc::clone(&current_calls.commands),
+                    commands: current_calls.commands,
                     num_args: num_args,
                     stack_index: self.stack.len() - num_args,
                     command_index: 0,

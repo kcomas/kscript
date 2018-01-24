@@ -1,10 +1,13 @@
-use std::rc::Rc;
 use super::super::command::Command;
 use super::super::data_type::DataType;
 use super::super::error::ParserError;
 use super::ast::{Ast, AstArgs, AstBody};
+use super::super::function::FunctionLookup;
 
-pub fn load_commands_from_ast(ast: &Vec<Ast>) -> Result<Vec<Command>, ParserError> {
+pub fn load_commands_from_ast(
+    ast: &Vec<Ast>,
+    functions: &mut FunctionLookup,
+) -> Result<Vec<Command>, ParserError> {
     let mut new_commands = Vec::new();
     let mut current_index = 0;
 
@@ -12,7 +15,7 @@ pub fn load_commands_from_ast(ast: &Vec<Ast>) -> Result<Vec<Command>, ParserErro
         if let Some(assign_body) = ast[current_index].is_assign() {
             let total_look_back = ast[current_index].num_look_back();
             can_look_back(current_index, total_look_back)?;
-            new_commands.append(&mut load_body(assign_body)?);
+            new_commands.append(&mut load_body(assign_body, functions)?);
             let save_cmd = match ast[current_index - 1] {
                 Ast::VarLocal(_, id) => Command::SaveLocal(id),
                 Ast::VarArg(_, id) => Command::SaveStackArg(id),
@@ -24,36 +27,36 @@ pub fn load_commands_from_ast(ast: &Vec<Ast>) -> Result<Vec<Command>, ParserErro
             };
             new_commands.push(save_cmd);
         } else if let Some(args) = ast[current_index].is_function_call() {
-            new_commands.append(&mut build_function_call(args)?);
-            new_commands.push(ast_to_command(&ast[current_index - 1])?);
+            new_commands.append(&mut build_function_call(args, functions)?);
+            new_commands.push(ast_to_command(&ast[current_index - 1], functions)?);
             new_commands.push(Command::Call);
         } else if let Some(args) = ast[current_index].is_function_self_call() {
-            new_commands.append(&mut build_function_call(args)?);
+            new_commands.append(&mut build_function_call(args, functions)?);
             new_commands.push(Command::CallSelf);
         } else if let Some(if_body) = ast[current_index].is_if() {
-            let mut total_if_commands = load_body(if_body)?;
+            let mut total_if_commands = load_body(if_body, functions)?;
             // add jump command
             new_commands.push(Command::JumpIfFalse(total_if_commands.len() + 1));
             new_commands.append(&mut total_if_commands);
         } else if let Some(group_body) = ast[current_index].is_group() {
-            let mut group_commands = load_body(group_body)?;
+            let mut group_commands = load_body(group_body, functions)?;
             new_commands.append(&mut group_commands);
         } else if !(current_index + 1 < ast.len() && ast[current_index].is_var()
             && (ast[current_index + 1].is_assign().is_some()
                 || ast[current_index + 1].is_function_call().is_some()
                 || ast[current_index + 1].is_access_call().is_some()))
         {
-            new_commands.push(ast_to_command(&ast[current_index])?);
+            new_commands.push(ast_to_command(&ast[current_index], functions)?);
         }
         current_index += 1;
     }
     Ok(new_commands)
 }
 
-fn load_body(body: &AstBody) -> Result<Vec<Command>, ParserError> {
+fn load_body(body: &AstBody, functions: &mut FunctionLookup) -> Result<Vec<Command>, ParserError> {
     let mut commands = Vec::new();
     for item in body.iter() {
-        let mut sub_commands = load_commands_from_ast(item)?;
+        let mut sub_commands = load_commands_from_ast(item, functions)?;
         commands.append(&mut sub_commands);
     }
     Ok(commands)
@@ -73,9 +76,9 @@ fn can_look_back(mut current_index: usize, mut total_look_back: usize) -> Result
     Ok(())
 }
 
-fn ast_to_command(ast: &Ast) -> Result<Command, ParserError> {
+fn ast_to_command(ast: &Ast, functions: &mut FunctionLookup) -> Result<Command, ParserError> {
     if ast.is_data() {
-        return Ok(Command::PushStack(ast_to_data_type(ast)?));
+        return Ok(Command::PushStack(ast_to_data_type(ast, functions)?));
     }
     let cmd = match *ast {
         Ast::VarArg(_, id) => Command::LoadStackArg(id),
@@ -95,17 +98,18 @@ fn ast_to_command(ast: &Ast) -> Result<Command, ParserError> {
     Ok(cmd)
 }
 
-fn ast_to_data_type(ast: &Ast) -> Result<DataType, ParserError> {
+fn ast_to_data_type(ast: &Ast, functions: &mut FunctionLookup) -> Result<DataType, ParserError> {
     let dt = match *ast {
         Ast::Bool(b) => DataType::Bool(b),
         Ast::Integer(int) => DataType::Integer(int),
         Ast::Float(float) => DataType::Float(float),
         Ast::Char(c) => DataType::Char(c),
         Ast::Function(ref args, ref body) => {
+            let f_index = functions.add();
             let num_args = args.len();
             let mut function_commands = Vec::new();
             for body_part in body.iter() {
-                let mut sub_commands = load_commands_from_ast(body_part)?;
+                let mut sub_commands = load_commands_from_ast(body_part, functions)?;
                 function_commands.append(&mut sub_commands);
             }
             let mut add_return = false;
@@ -117,18 +121,22 @@ fn ast_to_data_type(ast: &Ast) -> Result<DataType, ParserError> {
             if add_return {
                 function_commands.push(Command::Return);
             }
-            DataType::Function(Rc::new(function_commands), num_args)
+            functions.update(function_commands, f_index);
+            DataType::Function(f_index, num_args)
         }
         _ => return Err(ParserError::CannotConvetAstToDataType(ast.clone())),
     };
     Ok(dt)
 }
 
-pub fn build_function_call(args: &AstArgs) -> Result<Vec<Command>, ParserError> {
+pub fn build_function_call(
+    args: &AstArgs,
+    functions: &mut FunctionLookup,
+) -> Result<Vec<Command>, ParserError> {
     let mut call_commands = Vec::new();
     for arg in args.iter() {
         for arg_group in arg.iter() {
-            let mut arg_commands = load_commands_from_ast(arg_group)?;
+            let mut arg_commands = load_commands_from_ast(arg_group, functions)?;
             call_commands.append(&mut arg_commands);
         }
     }

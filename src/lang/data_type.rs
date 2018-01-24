@@ -1,7 +1,5 @@
-use std::rc::Rc;
 use std::ops::{Add, Div, Mul, Rem, Sub};
 use std::fmt;
-use super::command::SharedCommands;
 use super::error::RuntimeError;
 
 #[derive(Debug)]
@@ -10,8 +8,8 @@ pub enum DataType {
     Integer(i64),
     Float(f64),
     Char(char),
-    // commands ref, num args
-    Function(SharedCommands, usize),
+    // commands index, num args
+    Function(usize, usize),
 }
 
 impl DataType {
@@ -106,9 +104,9 @@ impl DataType {
     //     false
     // }
 
-    pub fn get_function(&self) -> Result<(SharedCommands, usize), RuntimeError> {
-        if let DataType::Function(ref commands, num_args) = *self {
-            return Ok((Rc::clone(commands), num_args));
+    pub fn get_function(&self) -> Result<(usize, usize), RuntimeError> {
+        if let DataType::Function(commands_index, num_args) = *self {
+            return Ok((commands_index, num_args));
         }
         Err(RuntimeError::NotAFunction)
     }
@@ -121,9 +119,7 @@ impl Clone for DataType {
             DataType::Integer(int) => DataType::Integer(int),
             DataType::Float(float) => DataType::Float(float),
             DataType::Char(c) => DataType::Char(c),
-            DataType::Function(ref commands, index) => {
-                DataType::Function(Rc::clone(commands), index)
-            }
+            DataType::Function(commands_index, index) => DataType::Function(commands_index, index),
         }
     }
 }

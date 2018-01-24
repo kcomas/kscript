@@ -5,21 +5,22 @@ mod util;
 mod builder;
 mod error;
 mod kargs;
+mod function;
 
 use std::io::{self, Write};
 use self::vm::{CallInfo, Vm};
 use self::util::{load_file_to_string, write_debug, KscriptDebug};
-use self::command::SharedCommands;
 use self::builder::{build_commands, SymbolTable};
 use self::error::{KscriptError, ParserError};
 use self::kargs::{help_message, parse_args, ArgFlags};
+use self::function::FunctionLookup;
 
 const REPL_INTRO: &str = "Kscript REPL, CTRL-D to exit";
 
 #[derive(Debug)]
 pub struct Kscript {
     symbols: SymbolTable,
-    commands: Option<SharedCommands>,
+    functions: FunctionLookup,
     vm: Vm,
     vm_calls: Option<Vec<CallInfo>>,
     debug: Option<KscriptDebug>,
@@ -29,7 +30,7 @@ impl Kscript {
     pub fn new() -> Kscript {
         Kscript {
             symbols: SymbolTable::new(),
-            commands: None,
+            functions: FunctionLookup::new(),
             vm: Vm::new(),
             vm_calls: None,
             debug: None,
@@ -133,7 +134,13 @@ impl Kscript {
 
     pub fn run_string(&mut self, program: &str) -> Result<i32, KscriptError> {
         let mut iter = program.chars().peekable();
-        self.commands = match build_commands(&mut iter, &mut self.symbols, &self.debug) {
+        self.functions.clear(0);
+        match build_commands(
+            &mut iter,
+            &mut self.symbols,
+            &mut self.functions,
+            &self.debug,
+        ) {
             Ok(commands) => Some(commands),
             Err(error) => return Err(KscriptError::ParserError(error)),
         };
@@ -142,15 +149,10 @@ impl Kscript {
     }
 
     fn run(&mut self) -> Result<i32, KscriptError> {
-        let commands = match self.commands {
-            Some(ref commands) => commands,
-            None => return Err(KscriptError::VmCommandsEmpty),
-        };
-
         if let Some(ref mut calls) = self.vm_calls {
-            calls.first_mut().unwrap().update_commands(commands);
+            calls.first_mut().unwrap().update_commands();
         } else {
-            self.vm_calls = Some(Vm::create_calls(commands));
+            self.vm_calls = Some(Vm::create_calls());
         }
 
         let vm_calls = match self.vm_calls {
@@ -158,7 +160,7 @@ impl Kscript {
             None => return Err(KscriptError::CallDataEmpty),
         };
 
-        let exit_code = match self.vm.run(vm_calls) {
+        let exit_code = match self.vm.run(vm_calls, &self.functions) {
             Ok(exit_code) => exit_code,
             Err(error) => return Err(KscriptError::RuntimeError(error)),
         };

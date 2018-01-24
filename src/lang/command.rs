@@ -1,7 +1,4 @@
-use std::rc::Rc;
 use super::data_type::DataType;
-
-pub type SharedCommands = Rc<Vec<Command>>;
 
 #[derive(Debug)]
 pub enum Command {
