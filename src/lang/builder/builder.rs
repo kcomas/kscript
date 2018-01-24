@@ -1,5 +1,4 @@
 use std::rc::Rc;
-use std::cell::RefCell;
 use super::super::command::Command;
 use super::super::data_type::DataType;
 use super::super::error::ParserError;
@@ -24,26 +23,6 @@ pub fn load_commands_from_ast(ast: &Vec<Ast>) -> Result<Vec<Command>, ParserErro
                 }
             };
             new_commands.push(save_cmd);
-        } else if let Some(array_items) = ast[current_index].is_array() {
-            let mut array_commands = build_array(array_items)?;
-            new_commands.append(&mut array_commands);
-        } else if let Some(access_body) = ast[current_index].is_access() {
-            new_commands.append(&mut load_body(access_body)?);
-            new_commands.push(Command::Access);
-        } else if let Some((access_body, assign_body)) = ast[current_index].is_access_assign() {
-            new_commands.append(&mut load_body(access_body)?);
-            new_commands.append(&mut load_body(assign_body)?);
-            new_commands.push(Command::AccessAssign);
-        } else if let Some((access_body, args)) = ast[current_index].is_access_call() {
-            new_commands.append(&mut build_function_call(args)?);
-            if current_index > 0 && ast[current_index - 1].can_call() {
-                new_commands.push(ast_to_command(&ast[current_index - 1])?);
-                new_commands.append(&mut load_body(access_body)?);
-                new_commands.push(Command::Access);
-                new_commands.push(Command::Call);
-            } else {
-                return Err(ParserError::InvalidAccessCall);
-            }
         } else if let Some(args) = ast[current_index].is_function_call() {
             new_commands.append(&mut build_function_call(args)?);
             new_commands.push(ast_to_command(&ast[current_index - 1])?);
@@ -101,11 +80,9 @@ fn ast_to_command(ast: &Ast) -> Result<Command, ParserError> {
     let cmd = match *ast {
         Ast::VarArg(_, id) => Command::LoadStackArg(id),
         Ast::VarLocal(_, id) => Command::LoadLocal(id),
-        Ast::Len => Command::Len,
         Ast::Return => Command::Return,
         Ast::Equals => Command::Equals,
         Ast::Add => Command::Add,
-        Ast::Concat => Command::Concat,
         Ast::Sub => Command::Sub,
         Ast::Mul => Command::Mul,
         Ast::Div => Command::Div,
@@ -124,7 +101,6 @@ fn ast_to_data_type(ast: &Ast) -> Result<DataType, ParserError> {
         Ast::Integer(int) => DataType::Integer(int),
         Ast::Float(float) => DataType::Float(float),
         Ast::Char(c) => DataType::Char(c),
-        Ast::String(ref string) => DataType::String(Rc::new(RefCell::new(string.clone()))),
         Ast::Function(ref args, ref body) => {
             let num_args = args.len();
             let mut function_commands = Vec::new();
@@ -157,16 +133,4 @@ pub fn build_function_call(args: &AstArgs) -> Result<Vec<Command>, ParserError> 
         }
     }
     Ok(call_commands)
-}
-
-pub fn build_array(items: &AstArgs) -> Result<Vec<Command>, ParserError> {
-    let mut array_commands = vec![Command::InitArray];
-    for item in items.iter() {
-        for item_group in item.iter() {
-            let mut item_commands = load_commands_from_ast(item_group)?;
-            array_commands.append(&mut item_commands);
-            array_commands.push(Command::ArrayPush);
-        }
-    }
-    Ok(array_commands)
 }

@@ -1,12 +1,8 @@
 use std::rc::Rc;
-use std::cell::RefCell;
 use std::ops::{Add, Div, Mul, Rem, Sub};
 use std::fmt;
 use super::command::SharedCommands;
 use super::error::RuntimeError;
-
-pub type SharedString = Rc<RefCell<String>>;
-pub type SharedArray = Rc<RefCell<Vec<DataType>>>;
 
 #[derive(Debug)]
 pub enum DataType {
@@ -14,21 +10,11 @@ pub enum DataType {
     Integer(i64),
     Float(f64),
     Char(char),
-    String(SharedString),
-    Array(SharedArray),
     // commands ref, num args
     Function(SharedCommands, usize),
 }
 
 impl DataType {
-    pub fn len(&self) -> usize {
-        match *self {
-            DataType::String(ref string) => string.borrow().len(),
-            DataType::Array(ref array) => array.borrow().len(),
-            _ => 0,
-        }
-    }
-
     pub fn is_bool(&self) -> bool {
         if let DataType::Bool(_) = *self {
             return true;
@@ -92,62 +78,26 @@ impl DataType {
         }
     }
 
-    pub fn is_char(&self) -> bool {
-        if let DataType::Char(_) = *self {
-            return true;
-        }
-        false
-    }
-
-    pub fn as_char(&self) -> char {
-        match *self {
-            DataType::Bool(b) => if b {
-                't'
-            } else {
-                'f'
-            },
-            DataType::Integer(int) => int as u8 as char,
-            DataType::Float(float) => float as u8 as char,
-            DataType::Char(c) => c,
-            _ => '\0',
-        }
-    }
-
-    pub fn is_string(&self) -> bool {
-        if let DataType::String(_) = *self {
-            return true;
-        }
-        false
-    }
-
-    pub fn as_string(&self) -> SharedString {
-        match *self {
-            DataType::String(ref string) => Rc::clone(string),
-            DataType::Char(c) => Rc::new(RefCell::new(c.to_string())),
-            _ => Rc::new(RefCell::new(String::new())),
-        }
-    }
-
-    pub fn get_string(&self) -> Result<&SharedString, RuntimeError> {
-        if let DataType::String(ref string) = *self {
-            return Ok(string);
-        }
-        Err(RuntimeError::TargetNotAString)
-    }
-
-    pub fn is_array(&self) -> bool {
-        if let DataType::Array(_) = *self {
-            return true;
-        }
-        false
-    }
-
-    pub fn get_array(&self) -> Result<&SharedArray, RuntimeError> {
-        if let DataType::Array(ref items) = *self {
-            return Ok(items);
-        }
-        Err(RuntimeError::TargetNotAnArray)
-    }
+    //    pub fn is_char(&self) -> bool {
+    //        if let DataType::Char(_) = *self {
+    //            return true;
+    //        }
+    //        false
+    //    }
+    //
+    //    pub fn as_char(&self) -> char {
+    //        match *self {
+    //            DataType::Bool(b) => if b {
+    //                't'
+    //            } else {
+    //                'f'
+    //            },
+    //            DataType::Integer(int) => int as u8 as char,
+    //            DataType::Float(float) => float as u8 as char,
+    //            DataType::Char(c) => c,
+    //            _ => '\0',
+    //        }
+    //    }
 
     // pub fn is_fuction(&self) -> bool {
     //     if let DataType::Function(_, _) = *self {
@@ -171,8 +121,6 @@ impl Clone for DataType {
             DataType::Integer(int) => DataType::Integer(int),
             DataType::Float(float) => DataType::Float(float),
             DataType::Char(c) => DataType::Char(c),
-            DataType::String(ref string) => DataType::String(Rc::clone(string)),
-            DataType::Array(ref items) => DataType::Array(Rc::clone(items)),
             DataType::Function(ref commands, index) => {
                 DataType::Function(Rc::clone(commands), index)
             }
@@ -187,17 +135,6 @@ impl fmt::Display for DataType {
             DataType::Integer(num) => write!(f, "{}", num),
             DataType::Float(float) => write!(f, "{}", float),
             DataType::Char(c) => write!(f, "{}", c),
-            DataType::String(ref string) => write!(f, "{}", string.borrow()),
-            DataType::Array(ref items) => write!(
-                f,
-                "{}",
-                items
-                    .borrow()
-                    .iter()
-                    .map(|x| format!("{}", x))
-                    .collect::<Vec<String>>()
-                    .join("")
-            ),
             _ => write!(f, "NYI"),
         }
     }
@@ -207,13 +144,7 @@ impl Add for DataType {
     type Output = DataType;
 
     fn add(self, right: DataType) -> DataType {
-        if (self.is_string() || self.is_char()) && (right.is_string() || right.is_char()) {
-            let left = self.as_string();
-            let left = left.borrow().clone();
-            let right = right.as_string();
-            let right = right.borrow().clone();
-            return DataType::String(Rc::new(RefCell::new(left + &right)));
-        } else if self.is_float() || right.is_float() {
+        if self.is_float() || right.is_float() {
             return DataType::Float(self.as_float() + right.as_float());
         }
         DataType::Integer(self.as_int() + right.as_int())
@@ -235,12 +166,7 @@ impl Mul for DataType {
     type Output = DataType;
 
     fn mul(self, right: DataType) -> DataType {
-        if self.is_string() && right.is_int() {
-            let left = self.as_string();
-            let left = left.borrow();
-            let right = right.as_int();
-            return DataType::String(Rc::new(RefCell::new(left.repeat(right as usize))));
-        } else if self.is_float() || right.is_float() {
+        if self.is_float() || right.is_float() {
             return DataType::Float(self.as_float() * right.as_float());
         }
         DataType::Integer(self.as_int() * right.as_int())

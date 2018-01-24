@@ -1,9 +1,7 @@
 use std::rc::Rc;
-use std::cell::RefCell;
 use super::command::{Command, SharedCommands};
 use super::data_type::DataType;
 use super::error::RuntimeError;
-use super::access::{get_item_in_collection, update_elememnt_in_collection};
 
 #[derive(Debug)]
 pub struct CallInfo {
@@ -81,11 +79,11 @@ impl Vm {
         current_calls: &mut CallInfo,
     ) -> Result<(Option<CallInfo>, bool, Option<i32>), RuntimeError> {
         let command = match current_calls.commands.get(current_calls.command_index) {
-            Some(ref_cmd) => ref_cmd.clone(),
+            Some(ref_cmd) => ref_cmd,
             None => return Err(RuntimeError::NoMoreCommands),
         };
-        match command {
-            Command::PushStack(data) => self.stack.push(data),
+        match *command {
+            Command::PushStack(ref data) => self.stack.push(data.clone()),
             Command::SaveLocal(index) => {
                 let value = self.pop_stack()?;
                 if index < current_calls.locals.len() {
@@ -102,37 +100,6 @@ impl Vm {
                     None => return Err(RuntimeError::InvalidLocalGetIndex(index)),
                 };
                 self.stack.push(value);
-            }
-            Command::InitArray => {
-                self.stack
-                    .push(DataType::Array(Rc::new(RefCell::new(Vec::new()))));
-            }
-            Command::ArrayPush => {
-                let value = self.pop_stack()?;
-                let target = self.pop_stack()?;
-                {
-                    let shared_array = target.get_array()?;
-                    shared_array.borrow_mut().push(value);
-                }
-                self.stack.push(target);
-            }
-            Command::Len => {
-                let target = self.pop_stack()?;
-                if !(target.is_string() || target.is_array()) {
-                    return Err(RuntimeError::CannotGetLengthOfType);
-                }
-                self.stack.push(DataType::Integer(target.len() as i64));
-            }
-            Command::Access => {
-                let accessor = self.pop_stack()?;
-                let target = self.pop_stack()?;
-                self.stack.push(get_item_in_collection(accessor, target)?);
-            }
-            Command::AccessAssign => {
-                let value = self.pop_stack()?;
-                let accessor = self.pop_stack()?;
-                let target = self.pop_stack()?;
-                update_elememnt_in_collection(accessor, target, value)?;
             }
             Command::Equals => {
                 let right = self.pop_stack()?;
@@ -187,17 +154,6 @@ impl Vm {
                     DataType::Float(left.as_float().powf(right.as_float()))
                 };
                 self.stack.push(value);
-            }
-            Command::Concat => {
-                let right = self.pop_stack()?;
-                let left = self.pop_stack()?;
-                if left.is_string() && right.is_string() {
-                    let left = left.as_string();
-                    let right = right.as_string();
-                    left.borrow_mut().push_str(right.borrow().as_str());
-                } else {
-                    return Err(RuntimeError::CannotConcat);
-                }
             }
             Command::JumpIfFalse(to) => {
                 let cmp = self.pop_stack()?;

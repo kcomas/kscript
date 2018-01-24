@@ -80,11 +80,6 @@ All commands can be grouped with ()
     new_stirng = "a" + "b"
 ```
 
-* \+\+ modifies a string in place by adding a new string on to the end of it
-```
-    my_string ++ "a"
-```
-
 * \* repeat a string a number of times into a new string
 ```
     new_string = "a" * 5
@@ -105,16 +100,24 @@ All commands can be grouped with ()
     a >> 1
 ```
 
-* .\[\] run a function in a collection
+* \+\+ modifies a string in place by adding a new string on to the end of it
+
 ```
-    a = @[1, 2, .x,y { x + y }]
-    a.[2]a[0],a[1]; >> 1
+    my_string ++ "a"
 ```
 
 * @? get the length of the collection as an integer
 ```
     a = @[1, 2, 3]
     @? a >> 1
+```
+
+### Array
+
+* .\[\] run a function in a collection
+```
+    a = @[1, 2, .x,y { x + y }]
+    a.[2]a[0],a[1]; >> 1
 ```
 
 ### Functions

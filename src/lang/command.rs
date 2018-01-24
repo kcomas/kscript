@@ -3,21 +3,13 @@ use super::data_type::DataType;
 
 pub type SharedCommands = Rc<Vec<Command>>;
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub enum Command {
     // Add values to the stack
     PushStack(DataType),
     // Locals
     SaveLocal(usize),
     LoadLocal(usize),
-    // arrays
-    InitArray,
-    ArrayPush,
-    // Collection Info
-    Len,
-    // Collection Update
-    Access,
-    AccessAssign,
     // Comparisons
     Equals,
     // Math
@@ -28,7 +20,6 @@ pub enum Command {
     Rem,
     Exp,
     // Joins
-    Concat,
     // Jumps all relative
     // if the top boolean in the stack is false
     JumpIfFalse(usize),

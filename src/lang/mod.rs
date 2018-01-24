@@ -5,7 +5,6 @@ mod util;
 mod builder;
 mod error;
 mod kargs;
-mod access;
 
 use std::io::{self, Write};
 use self::vm::{CallInfo, Vm};
