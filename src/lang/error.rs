@@ -8,6 +8,7 @@ pub enum RuntimeError {
     CannotReturn,
     NoMoreCommands,
     InvalidNumberOfArguments,
+    CannotCallMainSelf,
     ArgumentsNotOnStack(usize, usize),
     CannotLoadArgToStack(usize),
     CannotSaveToStackIndex(usize),
@@ -19,6 +20,7 @@ pub enum RuntimeError {
     CannotCompareTypes,
     InvalidIoAppendTarget,
     TargetNotAString,
+    // collection errors
     CannotConcat,
     TargetNotAnArray,
     InvalidAccessor,

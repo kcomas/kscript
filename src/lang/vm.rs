@@ -197,6 +197,10 @@ impl Vm {
                     return Err(RuntimeError::InvalidNumberOfArguments);
                 }
 
+                if current_calls.commands == 0 {
+                    return Err(RuntimeError::CannotCallMainSelf);
+                }
+
                 let new_calls = CallInfo {
                     commands: current_calls.commands,
                     num_args: num_args,
