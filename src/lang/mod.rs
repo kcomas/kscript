@@ -32,6 +32,7 @@ pub fn run() {
         vec![
             Command::PushStack(i1),
             Command::PushStack(i2),
+            Command::Add,
             Command::Halt(0),
         ],
         0,
@@ -46,4 +47,5 @@ pub fn run() {
     let exit_code = vm.run(&mut memory, &mut vm_calls).unwrap();
     println!("Exit Code {}", exit_code);
     println!("{:?}", memory);
+    println!("{:?}", vm);
 }

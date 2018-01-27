@@ -1,5 +1,6 @@
 use super::command::Command;
 use super::data::{DataHolder, RefDataHolder};
+use std::collections::VecDeque;
 
 #[derive(Debug)]
 pub struct MemoryItem<T: Clone> {
@@ -39,7 +40,7 @@ where
 #[derive(Debug)]
 pub struct MemoryContainer<T: Clone> {
     items: Vec<MemoryItem<T>>,
-    free: Vec<usize>,
+    free: VecDeque<usize>,
 }
 
 impl<T> MemoryContainer<T>
@@ -49,12 +50,12 @@ where
     pub fn new() -> MemoryContainer<T> {
         MemoryContainer {
             items: Vec::new(),
-            free: Vec::new(),
+            free: VecDeque::new(),
         }
     }
 
     pub fn insert(&mut self, value: T) -> usize {
-        if let Some(pos) = self.free.pop() {
+        if let Some(pos) = self.free.pop_front() {
             self.items[pos] = MemoryItem::new(value);
             return pos;
         }
@@ -70,10 +71,14 @@ where
         self.items[index].update(value);
     }
 
-    pub fn remove(&mut self, index: usize) {
+    pub fn inc(&mut self, index: usize) {
+        self.items[index].inc();
+    }
+
+    pub fn dec(&mut self, index: usize) {
         let count = self.items[index].dec();
         if count == 0 {
-            self.free.push(index);
+            self.free.push_back(index);
         }
     }
 }
@@ -111,9 +116,9 @@ impl Function {
         }
     }
 
-    pub fn get_command(&self, index: usize) -> Option<&Command> {
+    pub fn get_command(&self, index: usize) -> Option<Command> {
         if let Some(cmd) = self.commands.get(index) {
-            return Some(cmd);
+            return Some(cmd.clone());
         }
         None
     }
@@ -183,6 +188,24 @@ impl Memory {
                     self.functions.update(index, function);
                 }
             }
+        }
+    }
+
+    pub fn inc(&mut self, place: &MemoryAddress) {
+        match *place {
+            MemoryAddress::Bool(index) => self.bools.inc(index),
+            MemoryAddress::Integer(index) => self.integers.inc(index),
+            MemoryAddress::Float(index) => self.floats.inc(index),
+            MemoryAddress::Function(index) => self.functions.inc(index),
+        }
+    }
+
+    pub fn dec(&mut self, place: &MemoryAddress) {
+        match *place {
+            MemoryAddress::Bool(index) => self.bools.dec(index),
+            MemoryAddress::Integer(index) => self.integers.dec(index),
+            MemoryAddress::Float(index) => self.floats.dec(index),
+            MemoryAddress::Function(index) => self.functions.dec(index),
         }
     }
 }

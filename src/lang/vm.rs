@@ -64,8 +64,16 @@ impl Vm {
             None => return Err(RuntimeError::InvalidCommandIndex),
         };
 
-        match *command {
-            Command::PushStack(ref addr) => self.stack.push(addr.clone()),
+        match command {
+            Command::PushStack(addr) => self.stack.push(addr),
+            Command::Add => {
+                let right = self.pop_stack()?;
+                let left = self.pop_stack()?;
+                let rst = memory.get(&left) + memory.get(&right);
+                memory.dec(&left);
+                memory.dec(&right);
+                self.stack.push(memory.insert(rst));
+            }
             Command::Halt(exit_code) => return Ok((None, false, Some(exit_code))),
         };
 

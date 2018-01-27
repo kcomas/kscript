@@ -4,7 +4,7 @@ use super::memory::MemoryAddress;
 pub enum Command {
     PushStack(MemoryAddress),
     // Assign,
-    // Add,
+    Add,
     //  Sub,
     //  Call,
     //  Return,
