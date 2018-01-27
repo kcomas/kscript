@@ -1,12 +1,8 @@
 
-# Fibonacci Recursive
-
-.fib, n {
-    n == 0 ? { 0 ;; }
-    n == 1 ? { 1 ;; }
-   .fib, n - 1; + .fib, n - 2
+fib = { (x)
+    x == 0 ? { 0 ;; }
+    x == 1 ? { 1 ;; }
+    ..(x - 1) + ..(x - 2)
 }
 
-.main, {
-    .fib, 15; >> 1
-}
+fib.(15) >> 1
