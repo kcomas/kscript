@@ -1,4 +1,4 @@
-use std::ops::Add;
+use std::ops::{Add, Sub};
 use super::memory::Function;
 
 #[derive(Debug)]
@@ -59,6 +59,17 @@ impl<'a> Add for RefDataHolder<'a> {
             return DataHolder::Float(self.as_float() + right.as_float());
         }
         DataHolder::Integer(self.as_int() + right.as_int())
+    }
+}
+
+impl<'a> Sub for RefDataHolder<'a> {
+    type Output = DataHolder;
+
+    fn sub(self, right: RefDataHolder<'a>) -> DataHolder {
+        if self.is_float() || right.is_float() {
+            return DataHolder::Float(self.as_float() - right.as_float());
+        }
+        DataHolder::Integer(self.as_int() - right.as_int())
     }
 }
 

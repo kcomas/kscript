@@ -74,6 +74,14 @@ impl Vm {
                 memory.dec(&right);
                 self.stack.push(memory.insert(rst));
             }
+            Command::Sub => {
+                let right = self.pop_stack()?;
+                let left = self.pop_stack()?;
+                let rst = memory.get(&left) - memory.get(&right);
+                memory.dec(&left);
+                memory.dec(&right);
+                self.stack.push(memory.insert(rst));
+            }
             Command::Halt(exit_code) => return Ok((None, false, Some(exit_code))),
         };
 

@@ -5,7 +5,7 @@ pub enum Command {
     PushStack(MemoryAddress),
     // Assign,
     Add,
-    //  Sub,
+    Sub,
     //  Call,
     //  Return,
     Halt(i32),
