@@ -86,6 +86,7 @@ pub fn run() {
     let mut vm = Vm::new();
 
     let exit_code = vm.run(&mut memory, &mut vm_calls).unwrap();
+    memory.dec(&main_address).unwrap();
     println!("Exit Code {}", exit_code);
     println!("{:?}", memory);
     println!("{:?}", vm);
