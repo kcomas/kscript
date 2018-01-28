@@ -1,5 +1,6 @@
 use super::command::Command;
 use super::memory::{Memory, MemoryAddress};
+use super::data::DataHolder;
 use super::error::RuntimeError;
 
 #[derive(Debug)]
@@ -80,24 +81,47 @@ impl Vm {
 
         match command {
             Command::PushStack(addr) => self.stack.push(addr),
+            Command::Equals => {
+                let right = self.pop_stack()?;
+                let left = self.pop_stack()?;
+                memory.dec(&left);
+                memory.dec(&right);
+
+                let value = {
+                    let right = memory.get(&right);
+                    let left = memory.get(&left);
+
+                    if left.is_int() && right.is_int() {
+                        left.as_int() == right.as_int()
+                    } else if left.is_float() && right.is_float() {
+                        left.as_float() == right.as_float()
+                    } else {
+                        return Err(RuntimeError::CannotCompareTypes);
+                    }
+                };
+
+                self.stack
+                    .push(memory.insert(DataHolder::Bool(value), false));
+            }
             Command::Add => {
                 let right = self.pop_stack()?;
                 let left = self.pop_stack()?;
-                let rst = memory.get(&left) + memory.get(&right);
                 memory.dec(&left);
                 memory.dec(&right);
+                let rst = memory.get(&left) + memory.get(&right);
                 self.stack.push(memory.insert(rst, false));
             }
             Command::Sub => {
                 let right = self.pop_stack()?;
                 let left = self.pop_stack()?;
-                let rst = memory.get(&left) - memory.get(&right);
                 memory.dec(&left);
                 memory.dec(&right);
+                let rst = memory.get(&left) - memory.get(&right);
                 self.stack.push(memory.insert(rst, false));
             }
             Command::Call => {
                 let target = self.pop_stack()?;
+                memory.dec(&target);
 
                 if !target.is_function() {
                     return Err(RuntimeError::InvalidFunction);
@@ -108,7 +132,6 @@ impl Vm {
                     let function = memory.get_function(function_address);
                     function.get_args()
                 };
-                memory.dec(&target);
 
                 current_calls.function_command_index += 1;
 
@@ -132,6 +155,7 @@ impl Vm {
                     Some(value) => value.clone(),
                     None => return Err(RuntimeError::CannotLoadStackArgument),
                 };
+                memory.inc(&value);
                 self.stack.push(value);
             }
             Command::Return => {
@@ -152,7 +176,7 @@ impl Vm {
                 }
 
                 for _ in 0..current_calls.num_arguments {
-                    self.pop_stack()?;
+                    memory.dec(&self.pop_stack()?);
                 }
 
                 if let Some(value) = save {

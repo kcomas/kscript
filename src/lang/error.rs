@@ -8,4 +8,5 @@ pub enum RuntimeError {
     ArgumentsNotOnStack,
     CannotReturn,
     CannotLoadStackArgument,
+    CannotCompareTypes,
 }
