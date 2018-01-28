@@ -216,7 +216,7 @@ impl Vm {
             Command::PrintDebug => {
                 let target = self.pop_stack()?;
                 memory.dec(&target)?;
-                println!("{:?}", memory.get(&target));
+                println!("{:?}", memory.get(&target)?);
             }
             Command::Halt(exit_code) => return Ok((None, false, Some(exit_code))),
         };
