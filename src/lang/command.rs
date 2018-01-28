@@ -9,6 +9,7 @@ pub enum Command {
     Add,
     Sub,
     Call,
+    CallSelf,
     LoadArgument(usize),
     Return,
     PrintDebug,

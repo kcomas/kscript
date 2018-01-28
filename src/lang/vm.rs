@@ -59,11 +59,29 @@ impl Vm {
         }
     }
 
-    pub fn pop_stack(&mut self) -> Result<MemoryAddress, RuntimeError> {
+    fn pop_stack(&mut self) -> Result<MemoryAddress, RuntimeError> {
         if let Some(addr) = self.stack.pop() {
             return Ok(addr);
         }
         Err(RuntimeError::CannotPopStackEmpty)
+    }
+
+    fn fn_call(
+        &mut self,
+        target_address: usize,
+        num_args: usize,
+    ) -> Result<CallInfo, RuntimeError> {
+        if self.stack.len() < num_args {
+            return Err(RuntimeError::InvalidNumberOfArguments);
+        }
+
+        Ok(CallInfo {
+            function_memory_address: target_address,
+            function_command_index: 0,
+            num_arguments: num_args,
+            argument_stack_index: self.stack.len() - num_args,
+            locals: Vec::new(),
+        })
     }
 
     pub fn match_command(
@@ -137,27 +155,27 @@ impl Vm {
                     return Err(RuntimeError::InvalidFunction);
                 }
 
+                current_calls.function_command_index += 1;
+
                 let function_address = target.get_address();
                 let num_args = {
                     let function = memory.get_function(function_address);
                     function.get_args()
                 };
 
+                return Ok((Some(self.fn_call(function_address, num_args)?), false, None));
+            }
+            Command::CallSelf => {
                 current_calls.function_command_index += 1;
 
-                if self.stack.len() < num_args {
-                    return Err(RuntimeError::InvalidNumberOfArguments);
-                }
-
-                let new_calls = CallInfo {
-                    function_memory_address: function_address,
-                    function_command_index: 0,
-                    num_arguments: num_args,
-                    argument_stack_index: self.stack.len() - num_args,
-                    locals: Vec::new(),
-                };
-
-                return Ok((Some(new_calls), false, None));
+                return Ok((
+                    Some(self.fn_call(
+                        current_calls.function_memory_address,
+                        current_calls.num_arguments,
+                    )?),
+                    false,
+                    None,
+                ));
             }
             Command::LoadArgument(index) => {
                 let stack_index = current_calls.argument_stack_index + index;

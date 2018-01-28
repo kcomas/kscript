@@ -1,11 +1,14 @@
 use std::ops::{Add, Sub};
 use super::memory::Function;
+use super::memory::MemoryAddress;
 
 #[derive(Debug)]
 pub enum RefDataHolder<'a> {
     Bool(&'a bool),
     Integer(&'a i64),
     Float(&'a f64),
+    String(&'a String),
+    Array(&'a Vec<MemoryAddress>),
     Function(&'a Function),
 }
 
@@ -78,5 +81,7 @@ pub enum DataHolder {
     Bool(bool),
     Integer(i64),
     Float(f64),
+    String(String),
+    Array(Vec<MemoryAddress>),
     Function(Function),
 }

@@ -25,26 +25,39 @@ pub fn run() {
     //    println!("{:?}", ref1);
     //    println!("{:?}", ref2);
 
-    let i1 = memory.insert(DataHolder::Integer(8), false);
+    let i1 = memory.insert(DataHolder::Integer(15), false);
     let i2 = memory.insert(DataHolder::Integer(0), true);
-    let i3 = memory.insert(DataHolder::Integer(1), true);
+    let i3 = memory.insert(DataHolder::Integer(0), true);
+    let i4 = memory.insert(DataHolder::Integer(1), true);
+    let i5 = memory.insert(DataHolder::Integer(1), true);
+    let i6 = memory.insert(DataHolder::Integer(1), true);
+    let i7 = memory.insert(DataHolder::Integer(2), true);
+    let s1 = memory.insert(DataHolder::String("Hello World".to_string()), false);
 
     let f1 = memory.insert(
         DataHolder::Function(Function::new(
             vec![
                 Command::LoadArgument(0),
-                Command::PushStack(i2.clone()),
+                Command::PushStack(i2),
                 Command::Equals,
                 Command::JumpIfFalse(2),
-                Command::PushStack(i2.clone()),
+                Command::PushStack(i3),
                 Command::Return,
                 Command::LoadArgument(0),
-                Command::PushStack(i3.clone()),
+                Command::PushStack(i4),
                 Command::Equals,
                 Command::JumpIfFalse(2),
-                Command::PushStack(i3.clone()),
+                Command::PushStack(i5),
                 Command::Return,
                 Command::LoadArgument(0),
+                Command::PushStack(i6),
+                Command::Sub,
+                Command::CallSelf,
+                Command::LoadArgument(0),
+                Command::PushStack(i7),
+                Command::Sub,
+                Command::CallSelf,
+                Command::Add,
                 Command::Return,
             ],
             1,
@@ -58,6 +71,8 @@ pub fn run() {
                 Command::PushStack(i1),
                 Command::PushStack(f1),
                 Command::Call,
+                Command::PrintDebug,
+                Command::PushStack(s1),
                 Command::PrintDebug,
                 Command::Halt(0),
             ],

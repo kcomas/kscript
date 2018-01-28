@@ -96,6 +96,8 @@ pub enum MemoryAddress {
     Bool(usize),
     Integer(usize),
     Float(usize),
+    String(usize),
+    Array(usize),
     Function(usize),
 }
 
@@ -105,6 +107,8 @@ impl MemoryAddress {
             MemoryAddress::Bool(index)
             | MemoryAddress::Integer(index)
             | MemoryAddress::Float(index)
+            | MemoryAddress::String(index)
+            | MemoryAddress::Array(index)
             | MemoryAddress::Function(index) => index,
         }
     }
@@ -155,6 +159,8 @@ pub struct Memory {
     bools: MemoryContainer<bool>,
     integers: MemoryContainer<i64>,
     floats: MemoryContainer<f64>,
+    strings: MemoryContainer<String>,
+    arrays: MemoryContainer<Vec<MemoryAddress>>,
     functions: MemoryContainer<Function>,
 }
 
@@ -164,6 +170,8 @@ impl Memory {
             bools: MemoryContainer::new(),
             integers: MemoryContainer::new(),
             floats: MemoryContainer::new(),
+            strings: MemoryContainer::new(),
+            arrays: MemoryContainer::new(),
             functions: MemoryContainer::new(),
         }
     }
@@ -173,6 +181,8 @@ impl Memory {
             MemoryAddress::Bool(index) => RefDataHolder::Bool(self.bools.get(index)),
             MemoryAddress::Integer(index) => RefDataHolder::Integer(self.integers.get(index)),
             MemoryAddress::Float(index) => RefDataHolder::Float(self.floats.get(index)),
+            MemoryAddress::String(index) => RefDataHolder::String(self.strings.get(index)),
+            MemoryAddress::Array(index) => RefDataHolder::Array(self.arrays.get(index)),
             MemoryAddress::Function(index) => RefDataHolder::Function(self.functions.get(index)),
         }
     }
@@ -190,33 +200,12 @@ impl Memory {
             DataHolder::Bool(b) => MemoryAddress::Bool(self.bools.insert(b, constant)),
             DataHolder::Integer(int) => MemoryAddress::Integer(self.integers.insert(int, constant)),
             DataHolder::Float(float) => MemoryAddress::Float(self.floats.insert(float, constant)),
+            DataHolder::String(string) => {
+                MemoryAddress::String(self.strings.insert(string, constant))
+            }
+            DataHolder::Array(array) => MemoryAddress::Array(self.arrays.insert(array, constant)),
             DataHolder::Function(function) => {
                 MemoryAddress::Function(self.functions.insert(function, constant))
-            }
-        }
-    }
-
-    pub fn update(&mut self, place: &MemoryAddress, value: DataHolder) {
-        match *place {
-            MemoryAddress::Bool(index) => {
-                if let DataHolder::Bool(b) = value {
-                    self.bools.update(index, b);
-                }
-            }
-            MemoryAddress::Integer(index) => {
-                if let DataHolder::Integer(int) = value {
-                    self.integers.update(index, int);
-                }
-            }
-            MemoryAddress::Float(index) => {
-                if let DataHolder::Float(float) = value {
-                    self.floats.update(index, float);
-                }
-            }
-            MemoryAddress::Function(index) => {
-                if let DataHolder::Function(function) = value {
-                    self.functions.update(index, function);
-                }
             }
         }
     }
@@ -226,6 +215,8 @@ impl Memory {
             MemoryAddress::Bool(index) => self.bools.inc(index),
             MemoryAddress::Integer(index) => self.integers.inc(index),
             MemoryAddress::Float(index) => self.floats.inc(index),
+            MemoryAddress::String(index) => self.strings.inc(index),
+            MemoryAddress::Array(index) => self.arrays.inc(index),
             MemoryAddress::Function(index) => self.functions.inc(index),
         }
     }
@@ -235,6 +226,8 @@ impl Memory {
             MemoryAddress::Bool(index) => self.bools.dec(index),
             MemoryAddress::Integer(index) => self.integers.dec(index),
             MemoryAddress::Float(index) => self.floats.dec(index),
+            MemoryAddress::String(index) => self.strings.dec(index),
+            MemoryAddress::Array(index) => self.arrays.dec(index),
             MemoryAddress::Function(index) => self.functions.dec(index),
         }
     }
