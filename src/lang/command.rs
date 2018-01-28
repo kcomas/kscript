@@ -5,6 +5,7 @@ pub enum Command {
     PushStack(MemoryAddress),
     // Assign,
     Equals,
+    JumpIfFalse(usize),
     Add,
     Sub,
     Call,

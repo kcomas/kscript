@@ -25,7 +25,7 @@ pub fn run() {
     //    println!("{:?}", ref1);
     //    println!("{:?}", ref2);
 
-    let i1 = memory.insert(DataHolder::Integer(1), false);
+    let i1 = memory.insert(DataHolder::Integer(8), false);
     let i2 = memory.insert(DataHolder::Integer(0), true);
     let i3 = memory.insert(DataHolder::Integer(1), true);
 
@@ -33,8 +33,18 @@ pub fn run() {
         DataHolder::Function(Function::new(
             vec![
                 Command::LoadArgument(0),
-                Command::PushStack(i2),
+                Command::PushStack(i2.clone()),
                 Command::Equals,
+                Command::JumpIfFalse(2),
+                Command::PushStack(i2.clone()),
+                Command::Return,
+                Command::LoadArgument(0),
+                Command::PushStack(i3.clone()),
+                Command::Equals,
+                Command::JumpIfFalse(2),
+                Command::PushStack(i3.clone()),
+                Command::Return,
+                Command::LoadArgument(0),
                 Command::Return,
             ],
             1,

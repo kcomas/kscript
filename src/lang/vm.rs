@@ -84,6 +84,9 @@ impl Vm {
             Command::Equals => {
                 let right = self.pop_stack()?;
                 let left = self.pop_stack()?;
+                memory.dec(&left);
+                memory.dec(&right);
+
                 let value = {
                     let right = memory.get(&right);
                     let left = memory.get(&left);
@@ -96,30 +99,39 @@ impl Vm {
                         return Err(RuntimeError::CannotCompareTypes);
                     }
                 };
-                memory.dec(&left);
-                memory.dec(&right);
-
                 self.stack
                     .push(memory.insert(DataHolder::Bool(value), false));
+            }
+            Command::JumpIfFalse(to) => {
+                let target = self.pop_stack()?;
+                memory.dec(&target);
+                if !target.is_bool() {
+                    return Err(RuntimeError::InvalidJumpBool);
+                }
+                let b = memory.get_bool(target.get_address());
+                if !*b {
+                    current_calls.function_command_index += to;
+                }
             }
             Command::Add => {
                 let right = self.pop_stack()?;
                 let left = self.pop_stack()?;
-                let rst = memory.get(&left) + memory.get(&right);
                 memory.dec(&left);
                 memory.dec(&right);
+                let rst = memory.get(&left) + memory.get(&right);
                 self.stack.push(memory.insert(rst, false));
             }
             Command::Sub => {
                 let right = self.pop_stack()?;
                 let left = self.pop_stack()?;
-                let rst = memory.get(&left) - memory.get(&right);
                 memory.dec(&left);
                 memory.dec(&right);
+                let rst = memory.get(&left) - memory.get(&right);
                 self.stack.push(memory.insert(rst, false));
             }
             Command::Call => {
                 let target = self.pop_stack()?;
+                memory.dec(&target);
 
                 if !target.is_function() {
                     return Err(RuntimeError::InvalidFunction);
@@ -144,8 +156,6 @@ impl Vm {
                     argument_stack_index: self.stack.len() - num_args,
                     locals: Vec::new(),
                 };
-
-                memory.dec(&target);
 
                 return Ok((Some(new_calls), false, None));
             }

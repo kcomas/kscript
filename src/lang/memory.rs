@@ -109,6 +109,13 @@ impl MemoryAddress {
         }
     }
 
+    pub fn is_bool(&self) -> bool {
+        if let MemoryAddress::Bool(_) = *self {
+            return true;
+        }
+        false
+    }
+
     pub fn is_function(&self) -> bool {
         if let MemoryAddress::Function(_) = *self {
             return true;
@@ -168,6 +175,10 @@ impl Memory {
             MemoryAddress::Float(index) => RefDataHolder::Float(self.floats.get(index)),
             MemoryAddress::Function(index) => RefDataHolder::Function(self.functions.get(index)),
         }
+    }
+
+    pub fn get_bool(&self, index: usize) -> &bool {
+        self.bools.get(index)
     }
 
     pub fn get_function(&self, index: usize) -> &Function {

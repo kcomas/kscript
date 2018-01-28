@@ -9,4 +9,5 @@ pub enum RuntimeError {
     CannotReturn,
     CannotLoadStackArgument,
     CannotCompareTypes,
+    InvalidJumpBool,
 }
