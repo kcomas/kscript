@@ -90,7 +90,7 @@ impl Vm {
         current_calls: &mut CallInfo,
     ) -> Result<(Option<CallInfo>, bool, Option<i32>), RuntimeError> {
         let command = match memory
-            .get_function(current_calls.function_memory_address)
+            .get_function(current_calls.function_memory_address)?
             .get_command(current_calls.function_command_index)
         {
             Some(command) => command,
@@ -102,12 +102,12 @@ impl Vm {
             Command::Equals => {
                 let right = self.pop_stack()?;
                 let left = self.pop_stack()?;
-                memory.dec(&left);
-                memory.dec(&right);
+                memory.dec(&left)?;
+                memory.dec(&right)?;
 
                 let value = {
-                    let right = memory.get(&right);
-                    let left = memory.get(&left);
+                    let right = memory.get(&right)?;
+                    let left = memory.get(&left)?;
 
                     if left.is_int() && right.is_int() {
                         left.as_int() == right.as_int()
@@ -122,11 +122,11 @@ impl Vm {
             }
             Command::JumpIfFalse(to) => {
                 let target = self.pop_stack()?;
-                memory.dec(&target);
+                memory.dec(&target)?;
                 if !target.is_bool() {
                     return Err(RuntimeError::InvalidJumpBool);
                 }
-                let b = memory.get_bool(target.get_address());
+                let b = memory.get_bool(target.get_address())?;
                 if !*b {
                     current_calls.function_command_index += to;
                 }
@@ -134,22 +134,22 @@ impl Vm {
             Command::Add => {
                 let right = self.pop_stack()?;
                 let left = self.pop_stack()?;
-                memory.dec(&left);
-                memory.dec(&right);
-                let rst = memory.get(&left) + memory.get(&right);
+                memory.dec(&left)?;
+                memory.dec(&right)?;
+                let rst = memory.get(&left)? + memory.get(&right)?;
                 self.stack.push(memory.insert(rst, false));
             }
             Command::Sub => {
                 let right = self.pop_stack()?;
                 let left = self.pop_stack()?;
-                memory.dec(&left);
-                memory.dec(&right);
-                let rst = memory.get(&left) - memory.get(&right);
+                memory.dec(&left)?;
+                memory.dec(&right)?;
+                let rst = memory.get(&left)? - memory.get(&right)?;
                 self.stack.push(memory.insert(rst, false));
             }
             Command::Call => {
                 let target = self.pop_stack()?;
-                memory.dec(&target);
+                memory.dec(&target)?;
 
                 if !target.is_function() {
                     return Err(RuntimeError::InvalidFunction);
@@ -159,7 +159,7 @@ impl Vm {
 
                 let function_address = target.get_address();
                 let num_args = {
-                    let function = memory.get_function(function_address);
+                    let function = memory.get_function(function_address)?;
                     function.get_args()
                 };
 
@@ -183,7 +183,7 @@ impl Vm {
                     Some(value) => value.clone(),
                     None => return Err(RuntimeError::CannotLoadStackArgument),
                 };
-                memory.inc(&value);
+                memory.inc(&value)?;
                 self.stack.push(value);
             }
             Command::Return => {
@@ -204,7 +204,7 @@ impl Vm {
                 }
 
                 for _ in 0..current_calls.num_arguments {
-                    memory.dec(&self.pop_stack()?);
+                    memory.dec(&self.pop_stack()?)?;
                 }
 
                 if let Some(value) = save {
@@ -215,7 +215,7 @@ impl Vm {
             }
             Command::PrintDebug => {
                 let target = self.pop_stack()?;
-                memory.dec(&target);
+                memory.dec(&target)?;
                 println!("{:?}", memory.get(&target));
             }
             Command::Halt(exit_code) => return Ok((None, false, Some(exit_code))),

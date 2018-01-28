@@ -1,6 +1,7 @@
+use std::collections::VecDeque;
 use super::command::Command;
 use super::data::{DataHolder, RefDataHolder};
-use std::collections::VecDeque;
+use super::error::RuntimeError;
 
 #[derive(Debug)]
 pub struct MemoryItem<T: Clone> {
@@ -71,23 +72,38 @@ where
         self.items.len() - 1
     }
 
-    pub fn get(&self, index: usize) -> &T {
-        self.items[index].get()
-    }
-
-    pub fn update(&mut self, index: usize, value: T) {
-        self.items[index].update(value);
-    }
-
-    pub fn inc(&mut self, index: usize) {
-        self.items[index].inc();
-    }
-
-    pub fn dec(&mut self, index: usize) {
-        let count = self.items[index].dec();
-        if count == 0 {
-            self.free.push_back(index);
+    pub fn get(&self, index: usize) -> Result<&T, RuntimeError> {
+        if let Some(item) = self.items.get(index) {
+            return Ok(item.get());
         }
+        Err(RuntimeError::InvalidMemoryAccess)
+    }
+
+    pub fn update(&mut self, index: usize, value: T) -> Result<(), RuntimeError> {
+        if let Some(item) = self.items.get_mut(index) {
+            item.update(value);
+            return Ok(());
+        }
+        Err(RuntimeError::InvalidMemoryUpdate)
+    }
+
+    pub fn inc(&mut self, index: usize) -> Result<(), RuntimeError> {
+        if let Some(item) = self.items.get_mut(index) {
+            item.inc();
+            return Ok(());
+        }
+        Err(RuntimeError::CannotIncreaseRefCount)
+    }
+
+    pub fn dec(&mut self, index: usize) -> Result<(), RuntimeError> {
+        if let Some(item) = self.items.get_mut(index) {
+            let count = item.dec();
+            if count == 0 {
+                self.free.push_back(index);
+            }
+            return Ok(());
+        }
+        Err(RuntimeError::CannotDecreaseRefCount)
     }
 }
 
@@ -176,22 +192,23 @@ impl Memory {
         }
     }
 
-    pub fn get(&self, place: &MemoryAddress) -> RefDataHolder {
-        match *place {
-            MemoryAddress::Bool(index) => RefDataHolder::Bool(self.bools.get(index)),
-            MemoryAddress::Integer(index) => RefDataHolder::Integer(self.integers.get(index)),
-            MemoryAddress::Float(index) => RefDataHolder::Float(self.floats.get(index)),
-            MemoryAddress::String(index) => RefDataHolder::String(self.strings.get(index)),
-            MemoryAddress::Array(index) => RefDataHolder::Array(self.arrays.get(index)),
-            MemoryAddress::Function(index) => RefDataHolder::Function(self.functions.get(index)),
-        }
+    pub fn get(&self, place: &MemoryAddress) -> Result<RefDataHolder, RuntimeError> {
+        let rst = match *place {
+            MemoryAddress::Bool(index) => RefDataHolder::Bool(self.bools.get(index)?),
+            MemoryAddress::Integer(index) => RefDataHolder::Integer(self.integers.get(index)?),
+            MemoryAddress::Float(index) => RefDataHolder::Float(self.floats.get(index)?),
+            MemoryAddress::String(index) => RefDataHolder::String(self.strings.get(index)?),
+            MemoryAddress::Array(index) => RefDataHolder::Array(self.arrays.get(index)?),
+            MemoryAddress::Function(index) => RefDataHolder::Function(self.functions.get(index)?),
+        };
+        Ok(rst)
     }
 
-    pub fn get_bool(&self, index: usize) -> &bool {
+    pub fn get_bool(&self, index: usize) -> Result<&bool, RuntimeError> {
         self.bools.get(index)
     }
 
-    pub fn get_function(&self, index: usize) -> &Function {
+    pub fn get_function(&self, index: usize) -> Result<&Function, RuntimeError> {
         self.functions.get(index)
     }
 
@@ -210,7 +227,7 @@ impl Memory {
         }
     }
 
-    pub fn inc(&mut self, place: &MemoryAddress) {
+    pub fn inc(&mut self, place: &MemoryAddress) -> Result<(), RuntimeError> {
         match *place {
             MemoryAddress::Bool(index) => self.bools.inc(index),
             MemoryAddress::Integer(index) => self.integers.inc(index),
@@ -221,7 +238,7 @@ impl Memory {
         }
     }
 
-    pub fn dec(&mut self, place: &MemoryAddress) {
+    pub fn dec(&mut self, place: &MemoryAddress) -> Result<(), RuntimeError> {
         match *place {
             MemoryAddress::Bool(index) => self.bools.dec(index),
             MemoryAddress::Integer(index) => self.integers.dec(index),

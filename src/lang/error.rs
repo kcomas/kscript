@@ -10,4 +10,9 @@ pub enum RuntimeError {
     CannotLoadStackArgument,
     CannotCompareTypes,
     InvalidJumpBool,
+    // Memory
+    InvalidMemoryAccess,
+    InvalidMemoryUpdate,
+    CannotIncreaseRefCount,
+    CannotDecreaseRefCount,
 }
