@@ -6,6 +6,9 @@ use super::error::RuntimeError;
 pub struct CallInfo {
     pub function_memory_address: usize,
     pub function_command_index: usize,
+    pub num_arguments: usize,
+    pub argument_stack_index: usize,
+    pub locals: Vec<MemoryAddress>,
 }
 
 #[derive(Debug)]
@@ -23,6 +26,9 @@ impl Vm {
             CallInfo {
                 function_memory_address: function_memory_address,
                 function_command_index: 0,
+                num_arguments: 0,
+                argument_stack_index: 0,
+                locals: Vec::new(),
             },
         ]
     }
@@ -40,6 +46,14 @@ impl Vm {
 
             if let Some(exit_code) = mabe_exit_code {
                 return Ok(exit_code);
+            }
+
+            if do_return {
+                if let None = calls.pop() {
+                    return Err(RuntimeError::CannotReturn);
+                }
+            } else if let Some(new_calls) = mabe_new_calls {
+                calls.push(new_calls);
             }
         }
     }
@@ -72,7 +86,7 @@ impl Vm {
                 let rst = memory.get(&left) + memory.get(&right);
                 memory.dec(&left);
                 memory.dec(&right);
-                self.stack.push(memory.insert(rst));
+                self.stack.push(memory.insert(rst, false));
             }
             Command::Sub => {
                 let right = self.pop_stack()?;
@@ -80,7 +94,77 @@ impl Vm {
                 let rst = memory.get(&left) - memory.get(&right);
                 memory.dec(&left);
                 memory.dec(&right);
-                self.stack.push(memory.insert(rst));
+                self.stack.push(memory.insert(rst, false));
+            }
+            Command::Call => {
+                let target = self.pop_stack()?;
+
+                if !target.is_function() {
+                    return Err(RuntimeError::InvalidFunction);
+                }
+
+                let function_address = target.get_address();
+                let num_args = {
+                    let function = memory.get_function(function_address);
+                    function.get_args()
+                };
+                memory.dec(&target);
+
+                current_calls.function_command_index += 1;
+
+                if self.stack.len() < num_args {
+                    return Err(RuntimeError::InvalidNumberOfArguments);
+                }
+
+                let new_calls = CallInfo {
+                    function_memory_address: function_address,
+                    function_command_index: 0,
+                    num_arguments: num_args,
+                    argument_stack_index: self.stack.len() - num_args,
+                    locals: Vec::new(),
+                };
+
+                return Ok((Some(new_calls), false, None));
+            }
+            Command::LoadArgument(index) => {
+                let stack_index = current_calls.argument_stack_index + index;
+                let value = match self.stack.get(stack_index) {
+                    Some(value) => value.clone(),
+                    None => return Err(RuntimeError::CannotLoadStackArgument),
+                };
+                self.stack.push(value);
+            }
+            Command::Return => {
+                let mut save = None;
+
+                if self.stack.len() < current_calls.num_arguments {
+                    return Err(RuntimeError::ArgumentsNotOnStack);
+                }
+
+                if self.stack.len() - current_calls.num_arguments
+                    == current_calls.argument_stack_index + 1
+                {
+                    save = Some(self.pop_stack()?);
+                } else if self.stack.len() - current_calls.num_arguments
+                    != current_calls.argument_stack_index
+                {
+                    return Err(RuntimeError::ArgumentsNotOnStack);
+                }
+
+                for _ in 0..current_calls.num_arguments {
+                    self.pop_stack()?;
+                }
+
+                if let Some(value) = save {
+                    self.stack.push(value);
+                }
+
+                return Ok((None, true, None));
+            }
+            Command::PrintDebug => {
+                let target = self.pop_stack()?;
+                memory.dec(&target);
+                println!("{:?}", memory.get(&target));
             }
             Command::Halt(exit_code) => return Ok((None, false, Some(exit_code))),
         };

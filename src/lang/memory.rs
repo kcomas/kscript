@@ -6,16 +6,18 @@ use std::collections::VecDeque;
 pub struct MemoryItem<T: Clone> {
     value: T,
     total_refs: usize,
+    constant: bool,
 }
 
 impl<T> MemoryItem<T>
 where
     T: Clone,
 {
-    pub fn new(value: T) -> MemoryItem<T> {
+    pub fn new(value: T, constant: bool) -> MemoryItem<T> {
         MemoryItem {
             value: value,
             total_refs: 1,
+            constant: constant,
         }
     }
 
@@ -24,15 +26,21 @@ where
     }
 
     pub fn update(&mut self, value: T) {
-        self.value = value;
+        if !self.constant {
+            self.value = value;
+        }
     }
 
     pub fn inc(&mut self) {
-        self.total_refs += 1;
+        if !self.constant {
+            self.total_refs += 1;
+        }
     }
 
     pub fn dec(&mut self) -> usize {
-        self.total_refs -= 1;
+        if !self.constant {
+            self.total_refs -= 1;
+        }
         self.total_refs
     }
 }
@@ -54,12 +62,12 @@ where
         }
     }
 
-    pub fn insert(&mut self, value: T) -> usize {
+    pub fn insert(&mut self, value: T, constant: bool) -> usize {
         if let Some(pos) = self.free.pop_front() {
-            self.items[pos] = MemoryItem::new(value);
+            self.items[pos] = MemoryItem::new(value, constant);
             return pos;
         }
-        self.items.push(MemoryItem::new(value));
+        self.items.push(MemoryItem::new(value, constant));
         self.items.len() - 1
     }
 
@@ -100,6 +108,13 @@ impl MemoryAddress {
             | MemoryAddress::Function(index) => index,
         }
     }
+
+    pub fn is_function(&self) -> bool {
+        if let MemoryAddress::Function(_) = *self {
+            return true;
+        }
+        false
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -121,6 +136,10 @@ impl Function {
             return Some(cmd.clone());
         }
         None
+    }
+
+    pub fn get_args(&self) -> usize {
+        self.num_args
     }
 }
 
@@ -155,13 +174,13 @@ impl Memory {
         self.functions.get(index)
     }
 
-    pub fn insert(&mut self, value: DataHolder) -> MemoryAddress {
+    pub fn insert(&mut self, value: DataHolder, constant: bool) -> MemoryAddress {
         match value {
-            DataHolder::Bool(b) => MemoryAddress::Bool(self.bools.insert(b)),
-            DataHolder::Integer(int) => MemoryAddress::Integer(self.integers.insert(int)),
-            DataHolder::Float(float) => MemoryAddress::Float(self.floats.insert(float)),
+            DataHolder::Bool(b) => MemoryAddress::Bool(self.bools.insert(b, constant)),
+            DataHolder::Integer(int) => MemoryAddress::Integer(self.integers.insert(int, constant)),
+            DataHolder::Float(float) => MemoryAddress::Float(self.floats.insert(float, constant)),
             DataHolder::Function(function) => {
-                MemoryAddress::Function(self.functions.insert(function))
+                MemoryAddress::Function(self.functions.insert(function, constant))
             }
         }
     }

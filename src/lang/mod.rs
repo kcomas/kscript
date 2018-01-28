@@ -25,20 +25,36 @@ pub fn run() {
     //    println!("{:?}", ref1);
     //    println!("{:?}", ref2);
 
-    let i1 = memory.insert(DataHolder::Integer(10));
-    let i2 = memory.insert(DataHolder::Integer(3));
+    let i1 = memory.insert(DataHolder::Integer(8), false);
+    let i2 = memory.insert(DataHolder::Integer(0), true);
+    let i3 = memory.insert(DataHolder::Integer(1), true);
 
-    let main = Function::new(
-        vec![
-            Command::PushStack(i1),
-            Command::PushStack(i2),
-            Command::Add,
-            Command::Halt(0),
-        ],
-        0,
+    let f1 = memory.insert(
+        DataHolder::Function(Function::new(
+            vec![
+                Command::LoadArgument(0),
+                Command::PushStack(i2),
+                Command::Add,
+                Command::Return,
+            ],
+            1,
+        )),
+        false,
     );
 
-    let main_address = memory.insert(DataHolder::Function(main));
+    let main_address = memory.insert(
+        DataHolder::Function(Function::new(
+            vec![
+                Command::PushStack(i1),
+                Command::PushStack(f1),
+                Command::Call,
+                Command::PrintDebug,
+                Command::Halt(0),
+            ],
+            0,
+        )),
+        false,
+    );
 
     let mut vm_calls = Vm::create_calls(main_address.get_address());
 
