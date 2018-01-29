@@ -1,3 +1,5 @@
+use std::sync::Arc;
+use std::sync::Mutex;
 use super::command::Command;
 use super::memory::{Memory, MemoryAddress};
 use super::data::DataHolder;
@@ -36,12 +38,15 @@ impl Vm {
 
     pub fn run(
         &mut self,
-        memory: &mut Memory,
+        memory: &Arc<Mutex<Memory>>,
         calls: &mut Vec<CallInfo>,
     ) -> Result<i32, RuntimeError> {
+        let memory_clone = Arc::clone(memory);
         loop {
             let (mabe_new_calls, do_return, mabe_exit_code) = match calls.last_mut() {
-                Some(ref mut current_calls) => self.match_command(memory, current_calls)?,
+                Some(ref mut current_calls) => {
+                    self.match_command(&mut *memory_clone.lock().unwrap(), current_calls)?
+                }
                 None => return Err(RuntimeError::CallsEmpty),
             };
 

@@ -4,6 +4,7 @@ mod data;
 mod vm;
 mod error;
 
+use std::sync::{Arc, Mutex};
 use self::command::Command;
 use self::memory::{Function, Memory};
 use self::data::DataHolder;
@@ -25,7 +26,7 @@ pub fn run() {
     //    println!("{:?}", ref1);
     //    println!("{:?}", ref2);
 
-    let i1 = memory.insert(DataHolder::Integer(15), false);
+    let i1 = memory.insert(DataHolder::Integer(30), false);
     let i2 = memory.insert(DataHolder::Integer(0), true);
     let i3 = memory.insert(DataHolder::Integer(0), true);
     let i4 = memory.insert(DataHolder::Integer(1), true);
@@ -85,9 +86,11 @@ pub fn run() {
 
     let mut vm = Vm::new();
 
-    let exit_code = vm.run(&mut memory, &mut vm_calls).unwrap();
-    memory.dec(&main_address).unwrap();
+    let shared_memory = Arc::new(Mutex::new(memory));
+
+    let exit_code = vm.run(&shared_memory, &mut vm_calls).unwrap();
+    shared_memory.lock().unwrap().dec(&main_address).unwrap();
     println!("Exit Code {}", exit_code);
-    println!("{:?}", memory);
+    println!("{:?}", *shared_memory.lock().unwrap());
     println!("{:?}", vm);
 }
