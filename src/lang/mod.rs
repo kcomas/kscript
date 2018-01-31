@@ -3,13 +3,25 @@ mod memory;
 mod data;
 mod vm;
 mod error;
+mod util;
+mod ast;
 
 use self::command::Command;
 use self::memory::{Function, Memory};
 use self::data::DataHolder;
 use self::vm::Vm;
+use self::util::read_file_to_string;
+use self::ast::string_to_ast;
 
-pub fn run() {
+pub fn run_parser() {
+    let file_string = read_file_to_string("./examples/fib.ks").unwrap();
+    println!("{}", file_string);
+    let mut iter = file_string.chars().peekable();
+    let ast_body = string_to_ast(&mut iter).unwrap();
+    println!("{:#?}", ast_body);
+}
+
+pub fn run_vm() {
     let mut memory = Memory::new();
     //    let i1 = memory.insert(DataHolder::Integer(1));
     //    let i2 = memory.insert(DataHolder::Integer(2));

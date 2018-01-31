@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum RuntimeError {
     CannotPopStackEmpty,
     InvalidCommandIndex,
@@ -15,4 +15,13 @@ pub enum RuntimeError {
     InvalidMemoryUpdate,
     CannotIncreaseRefCount,
     CannotDecreaseRefCount,
+}
+
+#[derive(Debug, Clone)]
+pub enum ParserError {
+    InvalidComment,
+    InvalidVarNumber,
+    InvalidReturn,
+    InvalidGroup,
+    InvalidFunctionCall,
 }
