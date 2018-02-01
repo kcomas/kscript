@@ -5,13 +5,14 @@ mod vm;
 mod error;
 mod util;
 mod ast;
+mod lexer;
 
 use self::command::Command;
 use self::memory::{Function, Memory};
 use self::data::DataHolder;
 use self::vm::Vm;
 use self::util::read_file_to_string;
-use self::ast::string_to_ast;
+use self::lexer::string_to_ast;
 
 pub fn run_parser() {
     let file_string = read_file_to_string("./examples/fib.ks").unwrap();

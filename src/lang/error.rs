@@ -23,5 +23,8 @@ pub enum ParserError {
     InvalidVarNumber,
     InvalidReturn,
     InvalidGroup,
-    InvalidFunctionCall,
+    InvalidBlock,
+    InvalidAssign,
+    InvalidEqualsGreaterLess,
+    InvalidIoWriteIoAppendGreater,
 }
