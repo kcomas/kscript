@@ -1,33 +1,33 @@
 use std::iter::Peekable;
 use std::str::Chars;
 use super::error::ParserError;
-use super::ast::{Ast, AstBody};
+use super::token::{Token, TokenBody};
 
-pub fn string_to_ast(iter: &mut Peekable<Chars>) -> Result<AstBody, ParserError> {
-    let mut ast_body = Vec::new();
-    let mut current_ast = Vec::new();
+pub fn string_to_token(iter: &mut Peekable<Chars>) -> Result<TokenBody, ParserError> {
+    let mut token_body = Vec::new();
+    let mut current_token = Vec::new();
 
     loop {
         let c = match iter.peek() {
             Some(c) => *c,
             None => break,
         };
-        match_ast(c, iter, &mut ast_body, &mut current_ast)?;
+        match_token(c, iter, &mut token_body, &mut current_token)?;
     }
-    update_ast_body(&mut ast_body, &mut current_ast);
-    Ok(ast_body)
+    update_token_body(&mut token_body, &mut current_token);
+    Ok(token_body)
 }
 
-fn match_ast(
+fn match_token(
     c: char,
     iter: &mut Peekable<Chars>,
-    ast_body: &mut AstBody,
-    current_ast: &mut Vec<Ast>,
+    token_body: &mut TokenBody,
+    current_token: &mut Vec<Token>,
 ) -> Result<(), ParserError> {
     match c {
         '\n' | ',' => {
             iter.next();
-            update_ast_body(ast_body, current_ast);
+            update_token_body(token_body, current_token);
         }
         ';' => {
             iter.next();
@@ -37,37 +37,37 @@ fn match_ast(
             };
             if c2 == ';' {
                 iter.next();
-                current_ast.push(Ast::Return);
+                current_token.push(Token::Return);
             }
-            update_ast_body(ast_body, current_ast);
+            update_token_body(token_body, current_token);
         }
-        '0'...'9' | '_' | 'a'...'z' | 'A'...'Z' => current_ast.push(load_var_number(iter)?),
+        '0'...'9' | '_' | 'a'...'z' | 'A'...'Z' => current_token.push(load_var_number(iter)?),
         '#' => {
-            current_ast.push(load_comment(iter)?);
-            update_ast_body(ast_body, current_ast);
+            current_token.push(load_comment(iter)?);
+            update_token_body(token_body, current_token);
         }
         '?' | '+' | '-' | '.' => {
             let token = match c {
-                '?' => Ast::If,
-                '+' => Ast::Add,
-                '-' => Ast::Sub,
-                '.' => Ast::Call,
+                '?' => Token::If,
+                '+' => Token::Add,
+                '-' => Token::Sub,
+                '.' => Token::Call,
                 _ => panic!("Impossible Symbol Mismatch"),
             };
-            current_ast.push(token);
             iter.next();
+            current_token.push(token);
         }
-        '=' => current_ast.push(load_equals(iter)?),
-        '>' => current_ast.push(multi_char(
+        '=' => current_token.push(load_equals(iter)?),
+        '>' => current_token.push(multi_char(
             iter,
             '>',
-            vec![Ast::Greater, Ast::IoWrite, Ast::IoAppend],
+            vec![Token::Greater, Token::IoWrite, Token::IoAppend],
             ParserError::InvalidIoWriteIoAppendGreater,
         )?),
-        '(' => current_ast.push(Ast::Group(combine_ast(iter, ')', true)?)),
+        '(' => current_token.push(Token::Group(combine_token(iter, ')', true)?)),
         '{' => {
-            current_ast.push(Ast::Block(combine_ast(iter, '}', false)?));
-            update_ast_body(ast_body, current_ast);
+            current_token.push(Token::Block(combine_token(iter, '}', false)?));
+            update_token_body(token_body, current_token);
         }
         _ => {
             iter.next();
@@ -76,9 +76,9 @@ fn match_ast(
     Ok(())
 }
 
-fn update_ast_body(ast_body: &mut AstBody, current_ast: &mut Vec<Ast>) {
-    ast_body.push(current_ast.clone());
-    current_ast.clear();
+fn update_token_body(token_body: &mut TokenBody, current_token: &mut Vec<Token>) {
+    token_body.push(current_token.clone());
+    current_token.clear();
 }
 
 fn peek_next_char(iter: &mut Peekable<Chars>, error: &ParserError) -> Result<char, ParserError> {
@@ -88,7 +88,7 @@ fn peek_next_char(iter: &mut Peekable<Chars>, error: &ParserError) -> Result<cha
     Err(error.clone())
 }
 
-fn load_comment(iter: &mut Peekable<Chars>) -> Result<Ast, ParserError> {
+fn load_comment(iter: &mut Peekable<Chars>) -> Result<Token, ParserError> {
     let mut comment_string = String::new();
     let error = ParserError::InvalidComment;
     loop {
@@ -104,10 +104,10 @@ fn load_comment(iter: &mut Peekable<Chars>) -> Result<Ast, ParserError> {
         };
     }
     iter.next();
-    Ok(Ast::Comment(comment_string))
+    Ok(Token::Comment(comment_string))
 }
 
-fn load_var_number(iter: &mut Peekable<Chars>) -> Result<Ast, ParserError> {
+fn load_var_number(iter: &mut Peekable<Chars>) -> Result<Token, ParserError> {
     let mut holder = String::new();
     let error = ParserError::InvalidVarNumber;
     let mut is_var = false;
@@ -136,22 +136,22 @@ fn load_var_number(iter: &mut Peekable<Chars>) -> Result<Ast, ParserError> {
         };
     }
     let token = if is_var {
-        Ast::Var(holder)
+        Token::Var(holder)
     } else if is_float {
-        Ast::Float(holder.parse().unwrap())
+        Token::Float(holder.parse().unwrap())
     } else {
-        Ast::Integer(holder.parse().unwrap())
+        Token::Integer(holder.parse().unwrap())
     };
     Ok(token)
 }
 
-fn combine_ast(
+fn combine_token(
     iter: &mut Peekable<Chars>,
     end: char,
     separate: bool,
-) -> Result<AstBody, ParserError> {
-    let mut ast_body = Vec::new();
-    let mut current_ast = Vec::new();
+) -> Result<TokenBody, ParserError> {
+    let mut token_body = Vec::new();
+    let mut current_token = Vec::new();
     let error = ParserError::InvalidGroup;
     iter.next();
     loop {
@@ -162,19 +162,19 @@ fn combine_ast(
         match c {
             ',' => {
                 if separate {
-                    update_ast_body(&mut ast_body, &mut current_ast);
+                    update_token_body(&mut token_body, &mut current_token);
                 }
                 iter.next();
             }
-            _ => match_ast(c, iter, &mut ast_body, &mut current_ast)?,
+            _ => match_token(c, iter, &mut token_body, &mut current_token)?,
         };
     }
     iter.next();
-    update_ast_body(&mut ast_body, &mut current_ast);
-    Ok(ast_body)
+    update_token_body(&mut token_body, &mut current_token);
+    Ok(token_body)
 }
 
-fn load_equals(iter: &mut Peekable<Chars>) -> Result<Ast, ParserError> {
+fn load_equals(iter: &mut Peekable<Chars>) -> Result<Token, ParserError> {
     let error = ParserError::InvalidAssign;
     let c = peek_next_char(iter, &error)?;
     if c != '=' {
@@ -184,10 +184,10 @@ fn load_equals(iter: &mut Peekable<Chars>) -> Result<Ast, ParserError> {
     let error = ParserError::InvalidEqualsGreaterLess;
     let c = peek_next_char(iter, &error)?;
     let token = match c {
-        '=' => Ast::Equals,
-        '>' => Ast::EqualsGreater,
-        '<' => Ast::EqualsLess,
-        _ => return Ok(Ast::Assign),
+        '=' => Token::Equals,
+        '>' => Token::EqualsGreater,
+        '<' => Token::EqualsLess,
+        _ => return Ok(Token::Assign),
     };
     iter.next();
     Ok(token)
@@ -196,20 +196,20 @@ fn load_equals(iter: &mut Peekable<Chars>) -> Result<Ast, ParserError> {
 fn multi_char(
     iter: &mut Peekable<Chars>,
     target: char,
-    ast_result: Vec<Ast>,
+    token_result: Vec<Token>,
     error: ParserError,
-) -> Result<Ast, ParserError> {
-    let mut current_ast = None;
-    for ast in ast_result.iter() {
+) -> Result<Token, ParserError> {
+    let mut current_token = None;
+    for token in token_result.iter() {
         let c = peek_next_char(iter, &error)?;
         if c != target {
             break;
         }
-        current_ast = Some(ast.clone());
+        current_token = Some(token.clone());
         iter.next();
     }
-    if let Some(ast) = current_ast {
-        return Ok(ast);
+    if let Some(token) = current_token {
+        return Ok(token);
     }
     Err(error)
 }

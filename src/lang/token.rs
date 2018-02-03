@@ -1,16 +1,14 @@
-pub type AstBody = Vec<Vec<Ast>>;
+pub type TokenBody = Vec<Vec<Token>>;
 
 #[derive(Debug, Clone)]
-pub enum Ast {
+pub enum Token {
     Comment(String),
     Integer(i64),
     Float(f64),
     Var(String),
-    Group(AstBody), // ()
-    Function(AstBody, AstBody),
-    FunctionCall(String, AstBody),
-    SelfFuctionCall(AstBody),
-    IfStatement(AstBody),
+    Group(TokenBody), // ()
+    Block(TokenBody), // {}
+    If,
     Add,
     Sub,
     Call,

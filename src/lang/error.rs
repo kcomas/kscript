@@ -33,4 +33,10 @@ pub enum ParserError {
 pub enum JoinError {
     InvalidIfStatement,
     InvalidSelfCallStatement,
+    BlockShouldNotBeReached,
+}
+
+#[derive(Debug, Clone)]
+pub enum ShuntError {
+
 }

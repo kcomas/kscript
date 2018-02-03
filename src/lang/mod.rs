@@ -4,25 +4,27 @@ mod data;
 mod vm;
 mod error;
 mod util;
+mod token;
 mod ast;
 mod lexer;
 mod joiner;
+mod shunt;
 
 use self::command::Command;
 use self::memory::{Function, Memory};
 use self::data::DataHolder;
 use self::vm::Vm;
 use self::util::read_file_to_string;
-use self::lexer::string_to_ast;
+use self::lexer::string_to_token;
 use self::joiner::join_tokens;
 
 pub fn run_parser() {
     let file_string = read_file_to_string("./examples/fib.ks").unwrap();
     println!("{}", file_string);
     let mut iter = file_string.chars().peekable();
-    let ast_body = string_to_ast(&mut iter).unwrap();
-    println!("{:#?}", ast_body);
-    let joined_ast = join_tokens(&ast_body).unwrap();
+    let token_body = string_to_token(&mut iter).unwrap();
+    println!("{:#?}", token_body);
+    let joined_ast = join_tokens(&token_body).unwrap();
     println!("{:#?}", joined_ast);
 }
 
