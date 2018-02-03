@@ -6,6 +6,7 @@ mod error;
 mod util;
 mod ast;
 mod lexer;
+mod joiner;
 
 use self::command::Command;
 use self::memory::{Function, Memory};
@@ -13,6 +14,7 @@ use self::data::DataHolder;
 use self::vm::Vm;
 use self::util::read_file_to_string;
 use self::lexer::string_to_ast;
+use self::joiner::join_tokens;
 
 pub fn run_parser() {
     let file_string = read_file_to_string("./examples/fib.ks").unwrap();
@@ -20,6 +22,8 @@ pub fn run_parser() {
     let mut iter = file_string.chars().peekable();
     let ast_body = string_to_ast(&mut iter).unwrap();
     println!("{:#?}", ast_body);
+    let joined_ast = join_tokens(&ast_body).unwrap();
+    println!("{:#?}", joined_ast);
 }
 
 pub fn run_vm() {

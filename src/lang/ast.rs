@@ -21,4 +21,9 @@ pub enum Ast {
     Less,
     IoWrite,
     IoAppend,
+    // Joined Ast
+    Function(AstBody, AstBody),
+    FunctionCall(String, AstBody),
+    SelfFuctionCall(AstBody),
+    IfStatement(AstBody),
 }

@@ -28,3 +28,9 @@ pub enum ParserError {
     InvalidEqualsGreaterLess,
     InvalidIoWriteIoAppendGreater,
 }
+
+#[derive(Debug, Clone)]
+pub enum JoinError {
+    InvalidIfStatement,
+    InvalidSelfCallStatement,
+}
