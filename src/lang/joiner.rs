@@ -12,8 +12,7 @@ pub fn join_tokens(tokens: &TokenBody) -> Result<AstBody, JoinError> {
         }
         let mut y = 0;
         while y < tokens[x].len() {
-            let current = &tokens[x][y];
-            let ast = match *current {
+            let ast = match tokens[x][y] {
                 Token::Comment(ref comment) => Ast::Comment(comment.clone()),
                 Token::Integer(int) => Ast::Integer(int),
                 Token::Float(float) => Ast::Float(float),

@@ -5,7 +5,7 @@ pub enum Ast {
     Comment(String),
     Integer(i64),
     Float(f64),
-    Var(String),
+    Var(usize),
     Group(AstBody), // ()
     Function(AstBody, AstBody),
     FunctionCall(String, AstBody),
