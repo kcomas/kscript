@@ -40,5 +40,5 @@ pub enum JoinError {
 
 #[derive(Debug, Clone)]
 pub enum ShuntError {
-
+    FaileToPopOperatorStack,
 }

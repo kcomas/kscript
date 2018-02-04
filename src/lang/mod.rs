@@ -19,6 +19,7 @@ use self::util::read_file_to_string;
 use self::symbol::SymbolTable;
 use self::lexer::string_to_token;
 use self::joiner::join_tokens;
+use self::shunt::shunt_ast;
 
 pub fn run_parser() {
     let file_string = read_file_to_string("./examples/fib.ks").unwrap();
@@ -27,8 +28,10 @@ pub fn run_parser() {
     let token_body = string_to_token(&mut iter).unwrap();
     println!("{:#?}", token_body);
     let mut root_symbols = SymbolTable::new();
-    let joined_ast = join_tokens(&token_body, &mut root_symbols).unwrap();
+    let mut joined_ast = join_tokens(&token_body, &mut root_symbols).unwrap();
     println!("{:#?}", joined_ast);
+    let shunted_ast = shunt_ast(&mut joined_ast).unwrap();
+    println!("{:#?}", shunted_ast);
 }
 
 pub fn run_vm() {
