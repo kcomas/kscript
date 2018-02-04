@@ -35,7 +35,7 @@ pub fn build_commands(
 
     let address = memory.insert(
         DataHolder::Function(Function::new(commands, num_arguments)),
-        false,
+        true,
     );
     Ok(address)
 }

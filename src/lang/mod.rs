@@ -42,9 +42,10 @@ pub fn run_parser() {
     let mut vm = Vm::new();
 
     let exit_code = vm.run(&mut memory, &mut vm_calls).unwrap();
-    memory.dec(&main_address).unwrap();
+    memory.clear(&main_address).unwrap();
     println!("Exit Code {}", exit_code);
-    println!("{:?}", memory);
+    println!("{:#?}", memory);
+    println!("{:#?}", vm_calls);
     println!("{:?}", vm);
 }
 

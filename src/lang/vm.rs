@@ -119,7 +119,7 @@ impl Vm {
                 }
 
                 if index == current_calls.locals.len() {
-                    current_calls.locals.push(target);
+                    current_calls.locals.push(memory.clone_memory(&target)?);
                 } else {
                     return Err(RuntimeError::InvalidLocalSaveIndex);
                 }
