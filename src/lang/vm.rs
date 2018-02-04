@@ -113,7 +113,7 @@ impl Vm {
                 memory.dec(&target)?;
                 if let Some(address) = current_calls.locals.get_mut(index) {
                     memory.clear(address)?;
-                    *address = memory.clone(&target)?;
+                    *address = memory.clone_memory(&target)?;
                     current_calls.function_command_index += 1;
                     return Ok((None, false, None));
                 }
@@ -215,9 +215,8 @@ impl Vm {
                 let target = self.pop_stack()?;
                 memory.dec(&target)?;
                 let stack_index = current_calls.argument_stack_index + index;
-                if let Some(address) = self.stack.get_mut(stack_index) {
-                    memory.clear(address)?;
-                    *address = memory.clone(&target)?;
+                if let Some(address) = self.stack.get(stack_index) {
+                    memory.update(address, &target)?;
                 } else {
                     return Err(RuntimeError::InvalidArgumentSaveIndex);
                 }
@@ -253,12 +252,39 @@ impl Vm {
 
                 return Ok((None, true, None));
             }
-            Command::IoWrite => {}
-            Command::IoAppend => {}
-            Command::PrintDebug => {
-                let target = self.pop_stack()?;
-                memory.dec(&target)?;
-                println!("{:?}", memory.get(&target)?);
+            Command::IoWrite => {
+                let right = self.pop_stack()?;
+                let left = self.pop_stack()?;
+                memory.dec(&left)?;
+                memory.dec(&right)?;
+
+                let left = memory.get(&left)?;
+
+                match right {
+                    MemoryAddress::Integer(index) => match *memory.get_integer(index)? {
+                        1 => print!("{:?}", left),
+                        2 => eprint!("{:?}", left),
+                        _ => return Err(RuntimeError::InvalidIoWriteFdIndex),
+                    },
+                    _ => return Err(RuntimeError::InvalidIoWriteType),
+                };
+            }
+            Command::IoAppend => {
+                let right = self.pop_stack()?;
+                let left = self.pop_stack()?;
+                memory.dec(&left)?;
+                memory.dec(&right)?;
+
+                let left = memory.get(&left)?;
+
+                match right {
+                    MemoryAddress::Integer(index) => match *memory.get_integer(index)? {
+                        1 => println!("{:?}", left),
+                        2 => eprintln!("{:?}", left),
+                        _ => return Err(RuntimeError::InvalidIoAppendFdIndex),
+                    },
+                    _ => return Err(RuntimeError::InvalidIoAppendType),
+                };
             }
             Command::Halt(exit_code) => return Ok((None, false, Some(exit_code))),
         };

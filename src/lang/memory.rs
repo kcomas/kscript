@@ -142,6 +142,17 @@ impl MemoryAddress {
         }
     }
 
+    pub fn get_type_byte(&self) -> u8 {
+        match *self {
+            MemoryAddress::Bool(_) => 1,
+            MemoryAddress::Integer(_) => 2,
+            MemoryAddress::Float(_) => 3,
+            MemoryAddress::String(_) => 4,
+            MemoryAddress::Array(_) => 5,
+            MemoryAddress::Function(_) => 6,
+        }
+    }
+
     pub fn is_bool(&self) -> bool {
         if let MemoryAddress::Bool(_) = *self {
             return true;
@@ -221,6 +232,10 @@ impl Memory {
         self.bools.get(index)
     }
 
+    pub fn get_integer(&self, index: usize) -> Result<&i64, RuntimeError> {
+        self.integers.get(index)
+    }
+
     pub fn get_function(&self, index: usize) -> Result<&Function, RuntimeError> {
         self.functions.get(index)
     }
@@ -273,7 +288,7 @@ impl Memory {
         }
     }
 
-    pub fn clone(&mut self, place: &MemoryAddress) -> Result<MemoryAddress, RuntimeError> {
+    pub fn clone_memory(&mut self, place: &MemoryAddress) -> Result<MemoryAddress, RuntimeError> {
         let c = match *place {
             MemoryAddress::Bool(index) => {
                 let new_bool = self.bools.get(index)?.clone();
@@ -292,14 +307,7 @@ impl Memory {
                 MemoryAddress::String(self.strings.insert(new_string, false))
             }
             MemoryAddress::Array(index) => {
-                let mut new_array = Vec::new();
-                let mut to_clone = Vec::new();
-                for item in self.arrays.get(index)?.iter() {
-                    to_clone.push(item.clone());
-                }
-                for c in to_clone.iter() {
-                    new_array.push(self.clone(c)?);
-                }
+                let new_array = self.clone_array(index)?;
                 MemoryAddress::Array(self.arrays.insert(new_array, false))
             }
             MemoryAddress::Function(index) => {
@@ -308,5 +316,62 @@ impl Memory {
             }
         };
         Ok(c)
+    }
+
+    pub fn update(
+        &mut self,
+        target: &MemoryAddress,
+        source: &MemoryAddress,
+    ) -> Result<(), RuntimeError> {
+        let target_type_byte = target.get_type_byte();
+        let source_type_byte = source.get_type_byte();
+
+        if target_type_byte != source_type_byte {
+            return Err(RuntimeError::UpdateTypeMismatch);
+        }
+
+        let target_index = target.get_address();
+        let source_index = source.get_address();
+
+        match target_type_byte {
+            1 => {
+                let value = self.bools.get(source_index)?.clone();
+                self.bools.update(target_index, value)?;
+            }
+            2 => {
+                let value = self.integers.get(source_index)?.clone();
+                self.integers.update(target_index, value)?;
+            }
+            3 => {
+                let value = self.floats.get(source_index)?.clone();
+                self.floats.update(target_index, value)?;
+            }
+            4 => {
+                let value = self.strings.get(source_index)?.clone();
+                self.strings.update(target_index, value)?;
+            }
+            5 => {
+                let value = self.clone_array(source_index)?;
+                self.arrays.update(target_index, value)?;
+            }
+            6 => {
+                let value = self.functions.get(source_index)?.clone();
+                self.functions.update(target_index, value)?;
+            }
+            _ => return Err(RuntimeError::InvalidType),
+        };
+        Ok(())
+    }
+
+    fn clone_array(&mut self, index: usize) -> Result<Vec<MemoryAddress>, RuntimeError> {
+        let mut new_array = Vec::new();
+        let mut to_clone = Vec::new();
+        for item in self.arrays.get(index)?.iter() {
+            to_clone.push(item.clone());
+        }
+        for c in to_clone.iter() {
+            new_array.push(self.clone_memory(c)?);
+        }
+        Ok(new_array)
     }
 }

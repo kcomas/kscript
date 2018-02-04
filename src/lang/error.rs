@@ -19,6 +19,13 @@ pub enum RuntimeError {
     CannotLoadLocal,
     InvalidLocalSaveIndex,
     InvalidArgumentSaveIndex,
+    InvalidIoWriteType,
+    InvalidIoWriteFdIndex,
+    InvalidIoAppendType,
+    InvalidIoAppendFdIndex,
+    // Update Errors
+    UpdateTypeMismatch,
+    InvalidType,
 }
 
 #[derive(Debug, Clone)]
@@ -52,4 +59,5 @@ pub enum ShuntError {
 #[derive(Debug)]
 pub enum BuilderError {
     InvalidSingleAst,
+    InvalidAstWithBody,
 }

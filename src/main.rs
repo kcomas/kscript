@@ -1,8 +1,7 @@
 mod lang;
 
-use self::lang::{run_parser, run_vm};
+use self::lang::run_parser;
 
 fn main() {
-    // run_vm();
     run_parser();
 }
