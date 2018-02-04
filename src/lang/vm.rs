@@ -101,7 +101,7 @@ impl Vm {
             Command::PushStack(addr) => self.stack.push(addr),
             Command::LoadLocal(index) => {
                 if let Some(address) = current_calls.locals.get(index) {
-                    memory.inc(address);
+                    memory.inc(address)?;
                     self.stack.push(address.clone());
                     current_calls.function_command_index += 1;
                     return Ok((None, false, None));
@@ -110,9 +110,9 @@ impl Vm {
             }
             Command::SaveLocal(index) => {
                 let target = self.pop_stack()?;
-                memory.dec(&target);
+                memory.dec(&target)?;
                 if let Some(address) = current_calls.locals.get_mut(index) {
-                    memory.clear(address);
+                    memory.clear(address)?;
                     *address = memory.clone(&target)?;
                     current_calls.function_command_index += 1;
                     return Ok((None, false, None));
@@ -213,11 +213,11 @@ impl Vm {
             }
             Command::SaveArgument(index) => {
                 let target = self.pop_stack()?;
-                memory.dec(&target);
+                memory.dec(&target)?;
                 let stack_index = current_calls.argument_stack_index + index;
                 if let Some(address) = self.stack.get_mut(stack_index) {
-                    memory.clear(address);
-                    *address = target.clone();
+                    memory.clear(address)?;
+                    *address = memory.clone(&target)?;
                 } else {
                     return Err(RuntimeError::InvalidArgumentSaveIndex);
                 }
