@@ -6,6 +6,7 @@ mod error;
 mod util;
 mod token;
 mod ast;
+mod symbol;
 mod lexer;
 mod joiner;
 mod shunt;
@@ -15,6 +16,7 @@ use self::memory::{Function, Memory};
 use self::data::DataHolder;
 use self::vm::Vm;
 use self::util::read_file_to_string;
+use self::symbol::SymbolTable;
 use self::lexer::string_to_token;
 use self::joiner::join_tokens;
 
@@ -24,7 +26,8 @@ pub fn run_parser() {
     let mut iter = file_string.chars().peekable();
     let token_body = string_to_token(&mut iter).unwrap();
     println!("{:#?}", token_body);
-    let joined_ast = join_tokens(&token_body).unwrap();
+    let mut root_symbols = SymbolTable::new();
+    let joined_ast = join_tokens(&token_body, &mut root_symbols).unwrap();
     println!("{:#?}", joined_ast);
 }
 

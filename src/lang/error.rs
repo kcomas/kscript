@@ -34,6 +34,7 @@ pub enum JoinError {
     InvalidIfStatement,
     InvalidSelfCallStatement,
     BlockShouldNotBeReached,
+    InvalidFunctionVarSymbol,
 }
 
 #[derive(Debug, Clone)]
