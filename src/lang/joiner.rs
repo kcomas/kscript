@@ -31,7 +31,6 @@ pub fn join_tokens<T: STable>(
                 Token::Call => load_self_function_call(tokens[x].get(y + 1), &mut y, symbol_table)?,
                 Token::Add => Ast::Add,
                 Token::Sub => Ast::Sub,
-                Token::Call => Ast::Call,
                 Token::Return => Ast::Return,
                 Token::Assign => Ast::Assign,
                 Token::Equals => Ast::Equals,
@@ -62,8 +61,29 @@ fn load_function<T: STable>(
         if let Token::Block(ref block) = *next_token {
             *y += 1;
             let mut sub_table = SymbolTable::new();
+            let arg_index = {
+                let mut arg_table = sub_table.get_arg_table();
+                let mut arg_index = 0;
+                for arg in group.iter() {
+                    if arg.len() != 1 {
+                        return Err(JoinError::InvalidFunctionArgument);
+                    }
+                    let name = match arg.get(0) {
+                        Some(ast) => match *ast {
+                            Token::Var(ref name) => name,
+                            _ => return Err(JoinError::InvalidFunctionArgument),
+                        },
+                        _ => return Err(JoinError::InvalidFunctionArgument),
+                    };
+                    arg_index = match arg_table.getsert(name) {
+                        Ast::VarArg(index) => index,
+                        _ => return Err(JoinError::InvalidFunctionArgument),
+                    };
+                }
+                arg_index
+            };
             return Ok(Ast::Function(
-                join_tokens(group, &mut sub_table.get_arg_table())?,
+                arg_index + 1,
                 join_tokens(block, &mut sub_table)?,
             ));
         }
