@@ -21,7 +21,7 @@ pub fn join_tokens<T: STable>(
                 Token::Integer(int) => Ast::Integer(int),
                 Token::Float(float) => Ast::Float(float),
                 Token::Var(ref var_name) => {
-                    load_function_call(var_name, tokens[x].get(y + 1), &mut y, symbol_table)?
+                    load_var(var_name, tokens[x].get(y + 1), &mut y, symbol_table)?
                 }
                 Token::Group(ref group) => {
                     load_function(group, tokens[x].get(y + 1), &mut y, symbol_table)?
@@ -32,7 +32,7 @@ pub fn join_tokens<T: STable>(
                 Token::Add => Ast::Add,
                 Token::Sub => Ast::Sub,
                 Token::Return => Ast::Return,
-                Token::Assign => Ast::Assign,
+                Token::Assign => return Err(JoinError::AssignShouldNotBeReached),
                 Token::Equals => Ast::Equals,
                 Token::EqualsGreater => Ast::EqualsGreater,
                 Token::EqualsLess => Ast::EqualsLess,
@@ -91,7 +91,7 @@ fn load_function<T: STable>(
     Ok(Ast::Group(join_tokens(group, symbol_table)?))
 }
 
-fn load_function_call<T: STable>(
+fn load_var<T: STable>(
     var_name: &str,
     next: Option<&Token>,
     y: &mut usize,
@@ -114,6 +114,13 @@ fn load_function_call<T: STable>(
                     ));
                 }
                 _ => return Err(JoinError::InvalidFunctionVarSymbol),
+            }
+        } else if let Token::Assign = *next_token {
+            *y += 1;
+            match symbol_table.getsert(var_name) {
+                Ast::VarLocal(index) => return Ok(Ast::SaveLocal(index)),
+                Ast::VarArg(index) => return Ok(Ast::SaveArg(index)),
+                _ => return Err(JoinError::InvalidAssignVarSymbol),
             }
         }
     }

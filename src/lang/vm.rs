@@ -99,6 +99,31 @@ impl Vm {
 
         match command {
             Command::PushStack(addr) => self.stack.push(addr),
+            Command::LoadLocal(index) => {
+                if let Some(address) = current_calls.locals.get(index) {
+                    memory.inc(address);
+                    self.stack.push(address.clone());
+                    current_calls.function_command_index += 1;
+                    return Ok((None, false, None));
+                }
+                return Err(RuntimeError::CannotLoadLocal);
+            }
+            Command::SaveLocal(index) => {
+                let target = self.pop_stack()?;
+                memory.dec(&target);
+                if let Some(address) = current_calls.locals.get_mut(index) {
+                    memory.clear(address);
+                    *address = memory.clone(&target)?;
+                    current_calls.function_command_index += 1;
+                    return Ok((None, false, None));
+                }
+
+                if index == current_calls.locals.len() {
+                    current_calls.locals.push(target);
+                } else {
+                    return Err(RuntimeError::InvalidLocalSaveIndex);
+                }
+            }
             Command::Equals => {
                 let right = self.pop_stack()?;
                 let left = self.pop_stack()?;
@@ -186,6 +211,17 @@ impl Vm {
                 memory.inc(&value)?;
                 self.stack.push(value);
             }
+            Command::SaveArgument(index) => {
+                let target = self.pop_stack()?;
+                memory.dec(&target);
+                let stack_index = current_calls.argument_stack_index + index;
+                if let Some(address) = self.stack.get_mut(stack_index) {
+                    memory.clear(address);
+                    *address = target.clone();
+                } else {
+                    return Err(RuntimeError::InvalidArgumentSaveIndex);
+                }
+            }
             Command::Return => {
                 let mut save = None;
 
@@ -211,8 +247,14 @@ impl Vm {
                     self.stack.push(value);
                 }
 
+                for local in current_calls.locals.iter() {
+                    memory.clear(local)?;
+                }
+
                 return Ok((None, true, None));
             }
+            Command::IoWrite => {}
+            Command::IoAppend => {}
             Command::PrintDebug => {
                 let target = self.pop_stack()?;
                 memory.dec(&target)?;

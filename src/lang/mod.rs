@@ -10,6 +10,7 @@ mod symbol;
 mod lexer;
 mod joiner;
 mod shunt;
+mod builder;
 
 use self::command::Command;
 use self::memory::{Function, Memory};
@@ -20,6 +21,7 @@ use self::symbol::SymbolTable;
 use self::lexer::string_to_token;
 use self::joiner::join_tokens;
 use self::shunt::shunt_ast;
+use self::builder::build_commands;
 
 pub fn run_parser() {
     let file_string = read_file_to_string("./examples/fib.ks").unwrap();
@@ -32,6 +34,10 @@ pub fn run_parser() {
     println!("{:#?}", joined_ast);
     let shunted_ast = shunt_ast(&mut joined_ast).unwrap();
     println!("{:#?}", shunted_ast);
+    let mut memory = Memory::new();
+    let entry = build_commands(&shunted_ast, 0, &mut memory).unwrap();
+    println!("{:?}", entry);
+    println!("{:#?}", memory);
 }
 
 pub fn run_vm() {

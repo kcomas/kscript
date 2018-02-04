@@ -1,4 +1,4 @@
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub enum RuntimeError {
     CannotPopStackEmpty,
     InvalidCommandIndex,
@@ -15,6 +15,10 @@ pub enum RuntimeError {
     InvalidMemoryUpdate,
     CannotIncreaseRefCount,
     CannotDecreaseRefCount,
+    CannotClearMemory,
+    CannotLoadLocal,
+    InvalidLocalSaveIndex,
+    InvalidArgumentSaveIndex,
 }
 
 #[derive(Debug, Clone)]
@@ -29,16 +33,23 @@ pub enum ParserError {
     InvalidIoWriteIoAppendGreater,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub enum JoinError {
     InvalidIfStatement,
     InvalidSelfCallStatement,
     BlockShouldNotBeReached,
     InvalidFunctionVarSymbol,
+    InvalidAssignVarSymbol,
     InvalidFunctionArgument,
+    AssignShouldNotBeReached,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub enum ShuntError {
     FaileToPopOperatorStack,
+}
+
+#[derive(Debug)]
+pub enum BuilderError {
+    InvalidSingleAst,
 }

@@ -44,6 +44,10 @@ where
         }
         self.total_refs
     }
+
+    pub fn clear(&mut self) {
+        self.total_refs = 0;
+    }
 }
 
 #[derive(Debug)]
@@ -104,6 +108,15 @@ where
             return Ok(());
         }
         Err(RuntimeError::CannotDecreaseRefCount)
+    }
+
+    pub fn clear(&mut self, index: usize) -> Result<(), RuntimeError> {
+        if let Some(item) = self.items.get_mut(index) {
+            item.clear();
+            self.free.push_back(index);
+            return Ok(());
+        }
+        Err(RuntimeError::CannotClearMemory)
     }
 }
 
@@ -247,5 +260,53 @@ impl Memory {
             MemoryAddress::Array(index) => self.arrays.dec(index),
             MemoryAddress::Function(index) => self.functions.dec(index),
         }
+    }
+
+    pub fn clear(&mut self, place: &MemoryAddress) -> Result<(), RuntimeError> {
+        match *place {
+            MemoryAddress::Bool(index) => self.bools.clear(index),
+            MemoryAddress::Integer(index) => self.integers.clear(index),
+            MemoryAddress::Float(index) => self.floats.clear(index),
+            MemoryAddress::String(index) => self.strings.clear(index),
+            MemoryAddress::Array(index) => self.arrays.clear(index),
+            MemoryAddress::Function(index) => self.functions.clear(index),
+        }
+    }
+
+    pub fn clone(&mut self, place: &MemoryAddress) -> Result<MemoryAddress, RuntimeError> {
+        let c = match *place {
+            MemoryAddress::Bool(index) => {
+                let new_bool = self.bools.get(index)?.clone();
+                MemoryAddress::Bool(self.bools.insert(new_bool, false))
+            }
+            MemoryAddress::Integer(index) => {
+                let new_int = self.integers.get(index)?.clone();
+                MemoryAddress::Integer(self.integers.insert(new_int, false))
+            }
+            MemoryAddress::Float(index) => {
+                let new_float = self.floats.get(index)?.clone();
+                MemoryAddress::Float(self.floats.insert(new_float, false))
+            }
+            MemoryAddress::String(index) => {
+                let new_string = self.strings.get(index)?.clone();
+                MemoryAddress::String(self.strings.insert(new_string, false))
+            }
+            MemoryAddress::Array(index) => {
+                let mut new_array = Vec::new();
+                let mut to_clone = Vec::new();
+                for item in self.arrays.get(index)?.iter() {
+                    to_clone.push(item.clone());
+                }
+                for c in to_clone.iter() {
+                    new_array.push(self.clone(c)?);
+                }
+                MemoryAddress::Array(self.arrays.insert(new_array, false))
+            }
+            MemoryAddress::Function(index) => {
+                let new_function = self.functions.get(index)?.clone();
+                MemoryAddress::Function(self.functions.insert(new_function, false))
+            }
+        };
+        Ok(c)
     }
 }
