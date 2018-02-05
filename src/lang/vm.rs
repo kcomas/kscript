@@ -114,12 +114,15 @@ impl Vm {
                 if let Some(address) = current_calls.locals.get_mut(index) {
                     memory.clear(address)?;
                     *address = memory.clone_memory(&target)?;
+                    memory.inc(address)?;
                     current_calls.function_command_index += 1;
                     return Ok((None, false, None));
                 }
 
                 if index == current_calls.locals.len() {
-                    current_calls.locals.push(memory.clone_memory(&target)?);
+                    let new_address = memory.clone_memory(&target)?;
+                    memory.inc(&new_address)?;
+                    current_calls.locals.push(new_address);
                 } else {
                     return Err(RuntimeError::InvalidLocalSaveIndex);
                 }
@@ -249,6 +252,8 @@ impl Vm {
                 for local in current_calls.locals.iter() {
                     memory.clear(local)?;
                 }
+
+                memory.clear_function(current_calls.function_memory_address)?;
 
                 return Ok((None, true, None));
             }

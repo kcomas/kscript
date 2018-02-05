@@ -22,8 +22,21 @@ where
         }
     }
 
+    pub fn can_clear_constant(&mut self) -> bool {
+        if self.constant {
+            self.total_refs = 0;
+            self.constant = false;
+            return true;
+        }
+        false
+    }
+
     pub fn get(&self) -> &T {
         &self.value
+    }
+
+    pub fn get_ref_count(&self) -> usize {
+        self.total_refs
     }
 
     pub fn update(&mut self, value: T) {
@@ -67,6 +80,13 @@ where
         }
     }
 
+    pub fn get_ref_count(&mut self, index: usize) -> Result<usize, RuntimeError> {
+        if let Some(item) = self.items.get(index) {
+            return Ok(item.get_ref_count());
+        }
+        Err(RuntimeError::InvalidMemoryAccess)
+    }
+
     pub fn insert(&mut self, value: T, constant: bool) -> usize {
         if let Some(pos) = self.free.pop_front() {
             self.items[pos] = MemoryItem::new(value, constant);
@@ -99,13 +119,13 @@ where
         Err(RuntimeError::CannotIncreaseRefCount)
     }
 
-    pub fn dec(&mut self, index: usize) -> Result<(), RuntimeError> {
+    pub fn dec(&mut self, index: usize) -> Result<usize, RuntimeError> {
         if let Some(item) = self.items.get_mut(index) {
             let count = item.dec();
             if count == 0 {
                 self.free.push_back(index);
             }
-            return Ok(());
+            return Ok(count);
         }
         Err(RuntimeError::CannotDecreaseRefCount)
     }
@@ -117,6 +137,14 @@ where
             return Ok(());
         }
         Err(RuntimeError::CannotClearMemory)
+    }
+
+    pub fn clear_constant(&mut self, index: usize) {
+        if let Some(item) = self.items.get_mut(index) {
+            if item.can_clear_constant() {
+                self.free.push_back(index);
+            }
+        }
     }
 }
 
@@ -192,6 +220,16 @@ impl Function {
     pub fn get_args(&self) -> usize {
         self.num_args
     }
+
+    pub fn get_memory_addresses(&self) -> Vec<MemoryAddress> {
+        let mut addresses = Vec::new();
+        for cmd in self.commands.iter() {
+            if let Command::PushStack(ref address) = *cmd {
+                addresses.push(address.clone());
+            }
+        }
+        addresses
+    }
 }
 
 #[derive(Debug)]
@@ -266,7 +304,7 @@ impl Memory {
         }
     }
 
-    pub fn dec(&mut self, place: &MemoryAddress) -> Result<(), RuntimeError> {
+    pub fn dec(&mut self, place: &MemoryAddress) -> Result<usize, RuntimeError> {
         match *place {
             MemoryAddress::Bool(index) => self.bools.dec(index),
             MemoryAddress::Integer(index) => self.integers.dec(index),
@@ -284,7 +322,10 @@ impl Memory {
             MemoryAddress::Float(index) => self.floats.clear(index),
             MemoryAddress::String(index) => self.strings.clear(index),
             MemoryAddress::Array(index) => self.arrays.clear(index),
-            MemoryAddress::Function(index) => self.functions.clear(index),
+            MemoryAddress::Function(index) => {
+                self.clear_function(index)?;
+                self.functions.clear(index)
+            }
         }
     }
 
@@ -363,6 +404,20 @@ impl Memory {
         Ok(())
     }
 
+    pub fn clear_function(&mut self, index: usize) -> Result<(), RuntimeError> {
+        if self.functions.get_ref_count(index)? > 0 {
+            return Ok(());
+        }
+        let addresses = {
+            let function = self.get_function(index)?;
+            function.get_memory_addresses()
+        };
+        for address in addresses.iter() {
+            self.clear_constant(address);
+        }
+        Ok(())
+    }
+
     fn clone_array(&mut self, index: usize) -> Result<Vec<MemoryAddress>, RuntimeError> {
         let mut new_array = Vec::new();
         let mut to_clone = Vec::new();
@@ -373,5 +428,16 @@ impl Memory {
             new_array.push(self.clone_memory(c)?);
         }
         Ok(new_array)
+    }
+
+    pub fn clear_constant(&mut self, place: &MemoryAddress) {
+        match *place {
+            MemoryAddress::Bool(index) => self.bools.clear_constant(index),
+            MemoryAddress::Integer(index) => self.integers.clear_constant(index),
+            MemoryAddress::Float(index) => self.floats.clear_constant(index),
+            MemoryAddress::String(index) => self.strings.clear_constant(index),
+            MemoryAddress::Array(index) => self.arrays.clear_constant(index),
+            MemoryAddress::Function(index) => self.functions.clear_constant(index),
+        }
     }
 }
