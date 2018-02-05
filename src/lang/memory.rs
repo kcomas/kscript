@@ -311,7 +311,13 @@ impl Memory {
             MemoryAddress::Float(index) => self.floats.dec(index),
             MemoryAddress::String(index) => self.strings.dec(index),
             MemoryAddress::Array(index) => self.arrays.dec(index),
-            MemoryAddress::Function(index) => self.functions.dec(index),
+            MemoryAddress::Function(index) => {
+                let count = self.functions.dec(index)?;
+                if count == 0 {
+                    self.clear_function(index)?;
+                }
+                Ok(count)
+            }
         }
     }
 
@@ -323,7 +329,7 @@ impl Memory {
             MemoryAddress::String(index) => self.strings.clear(index),
             MemoryAddress::Array(index) => self.arrays.clear(index),
             MemoryAddress::Function(index) => {
-                self.clear_function(index)?;
+                self.clear_function(index);
                 self.functions.clear(index)
             }
         }
@@ -405,9 +411,6 @@ impl Memory {
     }
 
     pub fn clear_function(&mut self, index: usize) -> Result<(), RuntimeError> {
-        if self.functions.get_ref_count(index)? > 0 {
-            return Ok(());
-        }
         let addresses = {
             let function = self.get_function(index)?;
             function.get_memory_addresses()

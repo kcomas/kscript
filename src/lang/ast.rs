@@ -12,6 +12,8 @@ pub enum Ast {
     Group(AstBody), // ()
     // num arguments
     Function(usize, AstBody),
+    // args, body, passed args
+    ImmidiateFunction(usize, AstBody, AstBody),
     LocalFunctionCall(usize, AstBody),
     ArgFunctionCall(usize, AstBody),
     SelfFuctionCall(AstBody),
@@ -45,9 +47,10 @@ impl Ast {
             | Ast::IoAppend => 3,
             Ast::Equals | Ast::EqualsGreater | Ast::EqualsLess | Ast::Greater | Ast::Less => 4,
             Ast::Add | Ast::Sub => 5,
-            Ast::LocalFunctionCall(_, _) | Ast::ArgFunctionCall(_, _) | Ast::SelfFuctionCall(_) => {
-                6
-            }
+            Ast::LocalFunctionCall(_, _)
+            | Ast::ArgFunctionCall(_, _)
+            | Ast::SelfFuctionCall(_)
+            | Ast::ImmidiateFunction(_, _, _) => 6,
             Ast::Group(_) => 7,
         }
     }
@@ -59,6 +62,7 @@ impl Ast {
             | Ast::LocalFunctionCall(_, _)
             | Ast::ArgFunctionCall(_, _)
             | Ast::SelfFuctionCall(_)
+            | Ast::ImmidiateFunction(_, _, _)
             | Ast::IfStatement(_) => true,
             _ => false,
         }

@@ -23,9 +23,13 @@ pub fn join_tokens<T: STable>(
                 Token::Var(ref var_name) => {
                     load_var(var_name, tokens[x].get(y + 1), &mut y, symbol_table)?
                 }
-                Token::Group(ref group) => {
-                    load_function(group, tokens[x].get(y + 1), &mut y, symbol_table)?
-                }
+                Token::Group(ref group) => load_function(
+                    group,
+                    tokens[x].get(y + 1),
+                    tokens[x].get(y + 2),
+                    &mut y,
+                    symbol_table,
+                )?,
                 Token::Block(_) => return Err(JoinError::BlockShouldNotBeReached),
                 Token::If => load_if_statement(tokens[x].get(y + 1), &mut y, symbol_table)?,
                 Token::Call => load_self_function_call(tokens[x].get(y + 1), &mut y, symbol_table)?,
@@ -54,6 +58,7 @@ pub fn join_tokens<T: STable>(
 fn load_function<T: STable>(
     group: &TokenBody,
     next: Option<&Token>,
+    peek: Option<&Token>,
     y: &mut usize,
     symbol_table: &mut T,
 ) -> Result<Ast, JoinError> {
@@ -82,6 +87,16 @@ fn load_function<T: STable>(
                 }
                 arg_index
             };
+            if let Some(peek_token) = peek {
+                if let Token::Group(ref group) = *peek_token {
+                    *y += 1;
+                    return Ok(Ast::ImmidiateFunction(
+                        arg_index + 1,
+                        join_tokens(block, &mut sub_table)?,
+                        join_tokens(group, symbol_table)?,
+                    ));
+                }
+            }
             return Ok(Ast::Function(
                 arg_index + 1,
                 join_tokens(block, &mut sub_table)?,

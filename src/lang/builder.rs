@@ -64,6 +64,12 @@ fn ast_to_commands(ast_with_body: &Ast, memory: &mut Memory) -> Result<Vec<Comma
             let function_memory = build_commands(body, num_arguments, memory, false)?;
             new_commands.push(Command::PushStack(function_memory));
         }
+        Ast::ImmidiateFunction(num_arguments, ref body, ref arg_body) => {
+            let function_memory = build_commands(body, num_arguments, memory, false)?;
+            build_body(arg_body, memory, &mut new_commands)?;
+            new_commands.push(Command::PushStack(function_memory));
+            new_commands.push(Command::Call);
+        }
         Ast::LocalFunctionCall(local, ref arg_body) => {
             build_body(arg_body, memory, &mut new_commands)?;
             new_commands.push(Command::LoadLocal(local));

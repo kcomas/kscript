@@ -25,6 +25,9 @@ fn shunt(ast_section: &mut Vec<Ast>) -> Result<Vec<Ast>, ShuntError> {
         op = match op {
             Ast::Group(ref mut group) => Ast::Group(shunt_ast(group)?),
             Ast::Function(num_args, ref mut body) => Ast::Function(num_args, shunt_ast(body)?),
+            Ast::ImmidiateFunction(num_args, ref mut body, ref mut arg_body) => {
+                Ast::ImmidiateFunction(num_args, shunt_ast(body)?, shunt_ast(arg_body)?)
+            }
             Ast::LocalFunctionCall(local_index, ref mut body) => {
                 Ast::LocalFunctionCall(local_index, shunt_ast(body)?)
             }

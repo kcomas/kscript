@@ -162,22 +162,21 @@ impl Vm {
             Command::Add => {
                 let right = self.pop_stack()?;
                 let left = self.pop_stack()?;
-                memory.dec(&left)?;
-                memory.dec(&right)?;
                 let rst = memory.get(&left)? + memory.get(&right)?;
                 self.stack.push(memory.insert(rst, false));
+                memory.dec(&left)?;
+                memory.dec(&right)?;
             }
             Command::Sub => {
                 let right = self.pop_stack()?;
                 let left = self.pop_stack()?;
-                memory.dec(&left)?;
-                memory.dec(&right)?;
                 let rst = memory.get(&left)? - memory.get(&right)?;
                 self.stack.push(memory.insert(rst, false));
+                memory.dec(&left)?;
+                memory.dec(&right)?;
             }
             Command::Call => {
                 let target = self.pop_stack()?;
-                memory.dec(&target)?;
 
                 if !target.is_function() {
                     return Err(RuntimeError::InvalidFunction);
@@ -195,6 +194,10 @@ impl Vm {
             }
             Command::CallSelf => {
                 current_calls.function_command_index += 1;
+
+                memory.inc(&MemoryAddress::Function(
+                    current_calls.function_memory_address,
+                ))?;
 
                 return Ok((
                     Some(self.fn_call(
@@ -253,7 +256,9 @@ impl Vm {
                     memory.clear(local)?;
                 }
 
-                memory.clear_function(current_calls.function_memory_address)?;
+                memory.dec(&MemoryAddress::Function(
+                    current_calls.function_memory_address,
+                ))?;
 
                 return Ok((None, true, None));
             }

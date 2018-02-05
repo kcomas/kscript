@@ -67,7 +67,6 @@ fn match_token(
         '(' => current_token.push(Token::Group(combine_token(iter, ')', true)?)),
         '{' => {
             current_token.push(Token::Block(combine_token(iter, '}', false)?));
-            update_token_body(token_body, current_token);
         }
         _ => {
             iter.next();
