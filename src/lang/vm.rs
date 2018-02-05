@@ -256,9 +256,13 @@ impl Vm {
                     memory.clear(local)?;
                 }
 
-                memory.dec(&MemoryAddress::Function(
+                let count = memory.dec(&MemoryAddress::Function(
                     current_calls.function_memory_address,
                 ))?;
+
+                if count == 0 {
+                    memory.clear_function(current_calls.function_memory_address)?;
+                }
 
                 return Ok((None, true, None));
             }
