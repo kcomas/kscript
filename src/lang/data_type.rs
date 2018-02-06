@@ -1,5 +1,6 @@
 use std::rc::Rc;
 use std::cell::RefCell;
+use std::ops::{Add, Sub};
 
 #[derive(Debug)]
 pub struct FunctionPointer {
@@ -18,6 +19,46 @@ pub enum DataType {
 }
 
 impl DataType {
+    pub fn is_int(&self) -> bool {
+        if let DataType::Integer(_) = *self {
+            return true;
+        }
+        false
+    }
+
+    pub fn as_int(&self) -> i64 {
+        match *self {
+            DataType::Bool(ref b) => if *b.borrow() {
+                1
+            } else {
+                0
+            },
+            DataType::Integer(ref int) => *int.borrow(),
+            DataType::Float(ref float) => *float.borrow() as i64,
+            _ => 0,
+        }
+    }
+
+    pub fn is_float(&self) -> bool {
+        if let DataType::Float(_) = *self {
+            return true;
+        }
+        false
+    }
+
+    pub fn as_float(&self) -> f64 {
+        match *self {
+            DataType::Bool(ref b) => if *b.borrow() {
+                1.0
+            } else {
+                0.0
+            },
+            DataType::Integer(ref int) => *int.borrow() as f64,
+            DataType::Float(ref float) => *float.borrow(),
+            _ => 0.0,
+        }
+    }
+
     pub fn shallow_clone(&self) -> DataType {
         match *self {
             DataType::Bool(ref b) => DataType::Bool(Rc::clone(b)),
@@ -34,5 +75,31 @@ impl DataType {
 
     pub fn create_integer(int: i64) -> DataType {
         return DataType::Integer(Rc::new(RefCell::new(int)));
+    }
+
+    pub fn create_float(float: f64) -> DataType {
+        return DataType::Float(Rc::new(RefCell::new(float)));
+    }
+}
+
+impl Add for DataType {
+    type Output = DataType;
+
+    fn add(self, right: DataType) -> DataType {
+        if self.is_float() || right.is_float() {
+            return DataType::create_float(self.as_float() + right.as_float());
+        }
+        return DataType::create_integer(self.as_int() + right.as_int());
+    }
+}
+
+impl Sub for DataType {
+    type Output = DataType;
+
+    fn sub(self, right: DataType) -> DataType {
+        if self.is_float() || right.is_float() {
+            return DataType::create_float(self.as_float() - right.as_float());
+        }
+        return DataType::create_integer(self.as_int() - right.as_int());
     }
 }

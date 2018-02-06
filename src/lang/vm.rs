@@ -61,9 +61,26 @@ impl Vm {
     ) -> Result<(Option<i32>, Option<Frame>), RuntimeError> {
         match *command {
             Command::PushStack(ref data_type) => self.stack.push(data_type.shallow_clone()),
+            Command::Add => {
+                let right = self.pop_stack()?;
+                let left = self.pop_stack()?;
+                self.stack.push(left + right);
+            }
+            Command::Sub => {
+                let right = self.pop_stack()?;
+                let left = self.pop_stack()?;
+                self.stack.push(left - right);
+            }
             Command::Halt(exit_code) => return Ok((Some(exit_code), None)),
         };
         self.command_index += 1;
         Ok((None, None))
+    }
+
+    fn pop_stack(&mut self) -> Result<DataType, RuntimeError> {
+        if let Some(data_type) = self.stack.pop() {
+            return Ok(data_type);
+        }
+        Err(RuntimeError::StackEmpty)
     }
 }

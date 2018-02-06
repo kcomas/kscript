@@ -2,4 +2,5 @@
 pub enum RuntimeError {
     NoMoreFrames,
     NoMoreCommands,
+    StackEmpty,
 }

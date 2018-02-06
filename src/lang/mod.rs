@@ -11,6 +11,9 @@ pub fn run() {
     let commands = vec![
         Command::PushStack(DataType::create_integer(4)),
         Command::PushStack(DataType::create_integer(5)),
+        Command::Add,
+        Command::PushStack(DataType::create_integer(3)),
+        Command::Sub,
         Command::Halt(0),
     ];
 
