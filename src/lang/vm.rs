@@ -105,9 +105,37 @@ impl Vm {
                     false,
                 ));
             }
+            Command::LoadArgument(index) => {
+                let arg_index = frame.stack_index - frame.num_arguments + index;
+                self.push_stack_postion(arg_index)?;
+            }
             Command::Return => {
-                if frame.num_arguments > 0 {}
-                if frame.num_locals > 0 {}
+                let mut return_value = None;
+
+                if self.stack.len()
+                    == frame.stack_index + frame.num_locals + frame.num_arguments + 1
+                {
+                    return_value = Some(self.pop_stack()?);
+                } else if self.stack.len()
+                    != frame.stack_index + frame.num_locals + frame.num_arguments
+                {
+                    return Err(RuntimeError::InvalidFunctionStackLength);
+                }
+
+                if frame.num_locals > 0 {
+                    for _ in 0..frame.num_locals {
+                        self.pop_stack()?;
+                    }
+                }
+                if frame.num_arguments > 0 {
+                    for _ in 0..frame.num_arguments {
+                        self.pop_stack()?;
+                    }
+                }
+
+                if let Some(value) = return_value {
+                    self.stack.push(value);
+                }
 
                 self.command_index = frame.return_index;
                 return Ok((None, None, true));
@@ -123,6 +151,15 @@ impl Vm {
             return Ok(data_type);
         }
         Err(RuntimeError::StackEmpty)
+    }
+
+    fn push_stack_postion(&mut self, index: usize) -> Result<(), RuntimeError> {
+        let item = match self.stack.get(index) {
+            Some(item) => item.shallow_clone(),
+            _ => return Err(RuntimeError::CannotLoadStackPositionToFront),
+        };
+        self.stack.push(item);
+        Ok(())
     }
 
     fn frame_from_function(

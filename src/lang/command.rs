@@ -6,6 +6,7 @@ pub enum Command {
     Add,
     Sub,
     Call,
+    LoadArgument(usize),
     Return,
     Halt(i32),
 }
