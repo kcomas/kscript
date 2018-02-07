@@ -1,12 +1,14 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::ops::{Add, Sub};
+use super::error::RuntimeError;
 
 #[derive(Debug)]
 pub struct FunctionPointer {
-    command_index: usize,
-    args: usize,
-    length: usize,
+    pub command_index: usize,
+    pub num_arguments: usize,
+    pub num_locals: usize,
+    pub length: usize,
 }
 
 #[derive(Debug)]
@@ -59,6 +61,13 @@ impl DataType {
         }
     }
 
+    pub fn get_function(&self) -> Result<&Rc<RefCell<FunctionPointer>>, RuntimeError> {
+        if let DataType::Function(ref function) = *self {
+            return Ok(function);
+        }
+        Err(RuntimeError::TargetNotAFunction)
+    }
+
     pub fn shallow_clone(&self) -> DataType {
         match *self {
             DataType::Bool(ref b) => DataType::Bool(Rc::clone(b)),
@@ -79,6 +88,14 @@ impl DataType {
 
     pub fn create_float(float: f64) -> DataType {
         return DataType::Float(Rc::new(RefCell::new(float)));
+    }
+
+    pub fn create_string(string: String) -> DataType {
+        return DataType::String(Rc::new(RefCell::new(string)));
+    }
+
+    pub fn create_function(function: FunctionPointer) -> DataType {
+        return DataType::Function(Rc::new(RefCell::new(function)));
     }
 }
 
