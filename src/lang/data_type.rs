@@ -3,6 +3,9 @@ use std::cell::RefCell;
 use std::ops::{Add, Sub};
 use super::error::RuntimeError;
 
+type DataBool = Rc<RefCell<bool>>;
+type DataFunction = Rc<RefCell<FunctionPointer>>;
+
 #[derive(Debug)]
 pub struct FunctionPointer {
     pub command_index: usize,
@@ -13,14 +16,21 @@ pub struct FunctionPointer {
 
 #[derive(Debug)]
 pub enum DataType {
-    Bool(Rc<RefCell<bool>>),
+    Bool(DataBool),
     Integer(Rc<RefCell<i64>>),
     Float(Rc<RefCell<f64>>),
     String(Rc<RefCell<String>>),
-    Function(Rc<RefCell<FunctionPointer>>),
+    Function(DataFunction),
 }
 
 impl DataType {
+    pub fn get_bool(&self) -> Result<&DataBool, RuntimeError> {
+        if let DataType::Bool(ref b) = *self {
+            return Ok(b);
+        }
+        Err(RuntimeError::TargetNotABool)
+    }
+
     pub fn is_int(&self) -> bool {
         if let DataType::Integer(_) = *self {
             return true;
@@ -61,7 +71,7 @@ impl DataType {
         }
     }
 
-    pub fn get_function(&self) -> Result<&Rc<RefCell<FunctionPointer>>, RuntimeError> {
+    pub fn get_function(&self) -> Result<&DataFunction, RuntimeError> {
         if let DataType::Function(ref function) = *self {
             return Ok(function);
         }

@@ -6,6 +6,7 @@ use super::error::RuntimeError;
 pub struct Frame {
     return_index: usize,
     stack_index: usize,
+    command_index: usize,
     num_arguments: usize,
     num_locals: usize,
     length: usize,
@@ -30,6 +31,7 @@ impl Vm {
             Frame {
                 return_index: 0,
                 stack_index: 0,
+                command_index: 0,
                 num_arguments: 0,
                 num_locals: 0,
                 length: 0,
@@ -76,6 +78,25 @@ impl Vm {
     ) -> Result<(Option<i32>, Option<Frame>, bool), RuntimeError> {
         match *command {
             Command::PushStack(ref data_type) => self.stack.push(data_type.shallow_clone()),
+            Command::Equals => {
+                let right = self.pop_stack()?;
+                let left = self.pop_stack()?;
+
+                let b = if left.is_int() && right.is_int() {
+                    left.as_int() == right.as_int()
+                } else {
+                    return Err(RuntimeError::CannotCompareDifferentTypes);
+                };
+
+                self.stack.push(DataType::create_bool(b));
+            }
+            Command::JumpIfFalse(count) => {
+                let target = self.pop_stack()?;
+
+                if !*target.get_bool()?.borrow() {
+                    self.command_index += count;
+                }
+            }
             Command::Add => {
                 let right = self.pop_stack()?;
                 let left = self.pop_stack()?;
@@ -92,6 +113,8 @@ impl Vm {
                 let function = target.get_function()?;
                 let function = function.borrow();
 
+                if function.num_locals > 0 {}
+
                 let return_index = self.command_index + 1;
                 self.command_index = function.command_index;
 
@@ -105,20 +128,28 @@ impl Vm {
                     false,
                 ));
             }
+            Command::CallSelf => {
+                if frame.num_locals > 0 {}
+
+                let return_index = self.command_index + 1;
+                self.command_index = frame.command_index;
+
+                return Ok((
+                    None,
+                    Some(Vm::copy_frame(frame, return_index, self.stack.len())),
+                    false,
+                ));
+            }
             Command::LoadArgument(index) => {
-                let arg_index = frame.stack_index - frame.num_arguments + index;
+                let arg_index = frame.stack_index - frame.num_locals - frame.num_arguments + index;
                 self.push_stack_postion(arg_index)?;
             }
             Command::Return => {
                 let mut return_value = None;
 
-                if self.stack.len()
-                    == frame.stack_index + frame.num_locals + frame.num_arguments + 1
-                {
+                if self.stack.len() == frame.stack_index + 1 {
                     return_value = Some(self.pop_stack()?);
-                } else if self.stack.len()
-                    != frame.stack_index + frame.num_locals + frame.num_arguments
-                {
+                } else if self.stack.len() != frame.stack_index {
                     return Err(RuntimeError::InvalidFunctionStackLength);
                 }
 
@@ -170,9 +201,21 @@ impl Vm {
         Frame {
             return_index: return_index,
             stack_index: stack_index,
+            command_index: function.command_index,
             num_arguments: function.num_arguments,
             num_locals: function.num_locals,
             length: function.length,
+        }
+    }
+
+    fn copy_frame(frame: &Frame, return_index: usize, stack_index: usize) -> Frame {
+        Frame {
+            return_index: return_index,
+            stack_index: stack_index,
+            command_index: frame.command_index,
+            num_arguments: frame.num_arguments,
+            num_locals: frame.num_locals,
+            length: frame.length,
         }
     }
 }

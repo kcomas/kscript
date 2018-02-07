@@ -5,6 +5,8 @@ pub enum RuntimeError {
     NoMoreCommands,
     StackEmpty,
     TargetNotAFunction,
+    TargetNotABool,
     InvalidFunctionStackLength,
     CannotLoadStackPositionToFront,
+    CannotCompareDifferentTypes,
 }
