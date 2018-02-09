@@ -3,4 +3,10 @@ pub enum RuntimeError {
     InvalidMemoryAccess,
     InvalidRefInc,
     InvalidRefDec,
+    InvalidUpdateAddress,
+    CannotUpdateStaticMemory,
+    CannotUpdateBool,
+    CannotUpdateInteger,
+    CannotUpdateFloat,
+    CannotUpdateFunction,
 }

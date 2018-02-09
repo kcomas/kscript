@@ -30,6 +30,10 @@ impl<T> Counted<T> {
         self.ref_count -= 1;
         self.ref_count
     }
+
+    pub fn update(&mut self, value: T) {
+        self.value = value;
+    }
 }
 
 #[derive(Debug)]
@@ -93,6 +97,14 @@ impl<T> Container<T> {
         self.fixed.push(value);
         self.fixed.len() - 1
     }
+
+    pub fn update(&mut self, index: usize, value: T) -> Result<(), RuntimeError> {
+        if let Some(item) = self.dynamic.get_mut(index) {
+            item.update(value);
+            return Ok(());
+        }
+        Err(RuntimeError::InvalidUpdateAddress)
+    }
 }
 
 #[derive(Debug)]
@@ -149,7 +161,7 @@ impl Memory {
         Ok(holder)
     }
 
-    fn inc(&mut self, address: &MemoryAddress) -> Result<usize, RuntimeError> {
+    pub fn inc(&mut self, address: &MemoryAddress) -> Result<usize, RuntimeError> {
         let count = match *address {
             MemoryAddress::Dynamic(ref item) => match *item {
                 MemoryItem::Bool(index) => self.bools.inc(index)?,
@@ -162,7 +174,7 @@ impl Memory {
         Ok(count)
     }
 
-    fn dec(&mut self, address: &MemoryAddress) -> Result<usize, RuntimeError> {
+    pub fn dec(&mut self, address: &MemoryAddress) -> Result<usize, RuntimeError> {
         let count = match *address {
             MemoryAddress::Dynamic(ref item) => match *item {
                 MemoryItem::Bool(index) => self.bools.dec(index)?,
@@ -173,5 +185,61 @@ impl Memory {
             MemoryAddress::Fixed(_) => 1,
         };
         Ok(count)
+    }
+
+    pub fn insert_dynamic(&mut self, data: DataHolder) -> MemoryAddress {
+        let item = match data {
+            DataHolder::Bool(b) => MemoryItem::Bool(self.bools.insert_dynamic(b)),
+            DataHolder::Integer(int) => MemoryItem::Integer(self.integers.insert_dynamic(int)),
+            DataHolder::Float(float) => MemoryItem::Float(self.floats.insert_dynamic(float)),
+            DataHolder::Function(function) => {
+                MemoryItem::Function(self.functions.insert_dynamic(function))
+            }
+        };
+        MemoryAddress::Dynamic(item)
+    }
+
+    pub fn insert_fixed(&mut self, data: DataHolder) -> MemoryAddress {
+        let item = match data {
+            DataHolder::Bool(b) => MemoryItem::Bool(self.bools.insert_fixed(b)),
+            DataHolder::Integer(int) => MemoryItem::Integer(self.integers.insert_fixed(int)),
+            DataHolder::Float(float) => MemoryItem::Float(self.floats.insert_fixed(float)),
+            DataHolder::Function(function) => {
+                MemoryItem::Function(self.functions.insert_fixed(function))
+            }
+        };
+        MemoryAddress::Fixed(item)
+    }
+
+    pub fn update(
+        &mut self,
+        address: &MemoryAddress,
+        data: DataHolder,
+    ) -> Result<(), RuntimeError> {
+        match *address {
+            MemoryAddress::Dynamic(ref item) => match *item {
+                MemoryItem::Bool(index) => if let DataHolder::Bool(value) = data {
+                    self.bools.update(index, value)
+                } else {
+                    Err(RuntimeError::CannotUpdateBool)
+                },
+                MemoryItem::Integer(index) => if let DataHolder::Integer(value) = data {
+                    self.integers.update(index, value)
+                } else {
+                    Err(RuntimeError::CannotUpdateInteger)
+                },
+                MemoryItem::Float(index) => if let DataHolder::Float(value) = data {
+                    self.floats.update(index, value)
+                } else {
+                    Err(RuntimeError::CannotUpdateFloat)
+                },
+                MemoryItem::Function(index) => if let DataHolder::Function(value) = data {
+                    self.functions.update(index, value)
+                } else {
+                    Err(RuntimeError::CannotUpdateFunction)
+                },
+            },
+            MemoryAddress::Fixed(_) => Err(RuntimeError::CannotUpdateStaticMemory),
+        }
     }
 }
