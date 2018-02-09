@@ -148,4 +148,30 @@ impl Memory {
         };
         Ok(holder)
     }
+
+    fn inc(&mut self, address: &MemoryAddress) -> Result<usize, RuntimeError> {
+        let count = match *address {
+            MemoryAddress::Dynamic(ref item) => match *item {
+                MemoryItem::Bool(index) => self.bools.inc(index)?,
+                MemoryItem::Integer(index) => self.integers.inc(index)?,
+                MemoryItem::Float(index) => self.floats.inc(index)?,
+                MemoryItem::Function(index) => self.functions.inc(index)?,
+            },
+            MemoryAddress::Fixed(_) => 1,
+        };
+        Ok(count)
+    }
+
+    fn dec(&mut self, address: &MemoryAddress) -> Result<usize, RuntimeError> {
+        let count = match *address {
+            MemoryAddress::Dynamic(ref item) => match *item {
+                MemoryItem::Bool(index) => self.bools.dec(index)?,
+                MemoryItem::Integer(index) => self.integers.dec(index)?,
+                MemoryItem::Float(index) => self.floats.dec(index)?,
+                MemoryItem::Function(index) => self.functions.dec(index)?,
+            },
+            MemoryAddress::Fixed(_) => 1,
+        };
+        Ok(count)
+    }
 }
