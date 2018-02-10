@@ -1,5 +1,6 @@
-use super::function::FunctionPointer;
 use std::ops::{Add, Sub};
+use super::function::FunctionPointer;
+use super::error::RuntimeError;
 
 pub enum DataHolder {
     Bool(bool),
@@ -8,6 +9,7 @@ pub enum DataHolder {
     Function(FunctionPointer),
 }
 
+#[derive(Debug)]
 pub enum RefHolder<'a> {
     Bool(&'a bool),
     Integer(&'a i64),
@@ -54,6 +56,13 @@ impl<'a> RefHolder<'a> {
             RefHolder::Float(float) => *float,
             _ => 0.0,
         }
+    }
+
+    pub fn get_function(&self) -> Result<&FunctionPointer, RuntimeError> {
+        if let RefHolder::Function(pointer) = *self {
+            return Ok(pointer);
+        }
+        Err(RuntimeError::TargetIsNotAFunction)
     }
 }
 

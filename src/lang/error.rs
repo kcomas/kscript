@@ -12,4 +12,7 @@ pub enum RuntimeError {
     CallStackEmpty,
     InvalidCommandIndex,
     StackEmpty,
+    TargetIsNotAFunction,
+    CannotLoadArgument,
+    InvalidReturnStack,
 }

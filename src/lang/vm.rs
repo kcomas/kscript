@@ -21,7 +21,7 @@ impl Vm {
                 current_command_index: 0,
                 num_arguments: 0,
                 num_locals: 0,
-                function_length: 0,
+                entry_stack_len: 0,
             },
         ]
     }
@@ -33,21 +33,32 @@ impl Vm {
         call_stack: &mut Vec<FunctionPointer>,
     ) -> Result<i32, RuntimeError> {
         loop {
-            let current_call = match call_stack.last_mut() {
-                Some(current_call) => current_call,
-                None => return Err(RuntimeError::CallStackEmpty),
-            };
+            let (mabe_exit, mabe_call, mabe_return) = {
+                let current_call = match call_stack.last_mut() {
+                    Some(current_call) => current_call,
+                    None => return Err(RuntimeError::CallStackEmpty),
+                };
 
-            let command = match commands.get(current_call.current_command_index) {
-                Some(command) => command,
-                None => return Err(RuntimeError::InvalidCommandIndex),
-            };
+                let command = match commands.get(current_call.current_command_index) {
+                    Some(command) => command,
+                    None => return Err(RuntimeError::InvalidCommandIndex),
+                };
 
-            let (mabe_exit, mabe_call, mabe_return) =
-                self.match_command(command, memory, current_call)?;
+                self.match_command(command, memory, current_call)?
+            };
 
             if let Some(exit_code) = mabe_exit {
                 return Ok(exit_code);
+            }
+
+            if let Some(new_call) = mabe_call {
+                call_stack.push(new_call);
+            }
+
+            if mabe_return {
+                if let None = call_stack.pop() {
+                    return Err(RuntimeError::CallStackEmpty);
+                }
             }
         }
     }
@@ -75,6 +86,8 @@ impl Vm {
                     let left = memory.get(&left)?;
                     left + right
                 };
+                memory.dec(&right);
+                memory.dec(&left);
                 self.stack.push(memory.insert_dynamic(value));
             }
             Command::Sub => {
@@ -85,7 +98,65 @@ impl Vm {
                     let left = memory.get(&left)?;
                     left - right
                 };
+                memory.dec(&right);
+                memory.dec(&left);
                 self.stack.push(memory.insert_dynamic(value));
+            }
+            Command::Call => {
+                let target = self.pop_stack()?;
+
+                let fn_call = {
+                    let mut function = {
+                        let data = memory.get(&target)?;
+                        data.get_function()?.clone()
+                    };
+                    function.entry_stack_len = self.stack.len();
+                    function
+                };
+
+                memory.dec(&target);
+
+                current_call.current_command_index += 1;
+                return Ok((None, Some(fn_call), false));
+            }
+            Command::LoadArgument(index) => {
+                let stack_index = current_call.entry_stack_len - current_call.num_arguments + index;
+                let value = match self.stack.get(stack_index) {
+                    Some(value) => value.clone(),
+                    None => return Err(RuntimeError::CannotLoadArgument),
+                };
+                memory.inc(&value);
+                self.stack.push(value);
+            }
+            Command::Return => {
+                let mut save = None;
+
+                if self.stack.len() == current_call.entry_stack_len + 1 {
+                    save = Some(self.pop_stack()?);
+                } else if self.stack.len() != current_call.entry_stack_len {
+                    return Err(RuntimeError::InvalidReturnStack);
+                }
+
+                for _ in 0..current_call.num_locals {
+                    memory.dec(&self.pop_stack()?);
+                }
+
+                for _ in 0..current_call.num_arguments {
+                    memory.dec(&self.pop_stack()?);
+                }
+
+                if let Some(value) = save {
+                    self.stack.push(value);
+                }
+
+                return Ok((None, None, true));
+            }
+            Command::Print => {
+                let target = self.pop_stack()?;
+                {
+                    println!("{:?}", memory.get(&target)?);
+                }
+                memory.dec(&target);
             }
             Command::Halt(exit_code) => return Ok((Some(exit_code), None, false)),
         }
