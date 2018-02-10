@@ -11,4 +11,5 @@ pub enum RuntimeError {
     CannotUpdateFunction,
     CallStackEmpty,
     InvalidCommandIndex,
+    StackEmpty,
 }

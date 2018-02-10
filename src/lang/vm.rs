@@ -52,7 +52,14 @@ impl Vm {
         }
     }
 
-    pub fn match_command(
+    fn pop_stack(&mut self) -> Result<MemoryAddress, RuntimeError> {
+        if let Some(address) = self.stack.pop() {
+            return Ok(address);
+        }
+        Err(RuntimeError::StackEmpty)
+    }
+
+    fn match_command(
         &mut self,
         command: &Command,
         memory: &mut Memory,
@@ -60,6 +67,26 @@ impl Vm {
     ) -> Result<(Option<i32>, Option<FunctionPointer>, bool), RuntimeError> {
         match *command {
             Command::PushStack(ref address) => self.stack.push(address.clone()),
+            Command::Add => {
+                let right = self.pop_stack()?;
+                let left = self.pop_stack()?;
+                let value = {
+                    let right = memory.get(&right)?;
+                    let left = memory.get(&left)?;
+                    left + right
+                };
+                self.stack.push(memory.insert_dynamic(value));
+            }
+            Command::Sub => {
+                let right = self.pop_stack()?;
+                let left = self.pop_stack()?;
+                let value = {
+                    let right = memory.get(&right)?;
+                    let left = memory.get(&left)?;
+                    left - right
+                };
+                self.stack.push(memory.insert_dynamic(value));
+            }
             Command::Halt(exit_code) => return Ok((Some(exit_code), None, false)),
         }
         current_call.current_command_index += 1;
