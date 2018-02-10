@@ -18,6 +18,13 @@ pub enum RefHolder<'a> {
 }
 
 impl<'a> RefHolder<'a> {
+    pub fn get_bool(&self) -> Result<bool, RuntimeError> {
+        if let RefHolder::Bool(b) = *self {
+            return Ok(*b);
+        }
+        Err(RuntimeError::TargetIsNotABool)
+    }
+
     pub fn is_int(&self) -> bool {
         if let RefHolder::Integer(_) = *self {
             return true;

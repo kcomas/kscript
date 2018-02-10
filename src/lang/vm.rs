@@ -3,6 +3,7 @@ use super::function::FunctionPointer;
 use super::command::Command;
 use super::memory::Memory;
 use super::error::RuntimeError;
+use super::data::DataHolder;
 
 #[derive(Debug)]
 pub struct Vm {
@@ -86,9 +87,37 @@ impl Vm {
                     let left = memory.get(&left)?;
                     left + right
                 };
-                memory.dec(&right);
-                memory.dec(&left);
+                memory.dec(&right)?;
+                memory.dec(&left)?;
                 self.stack.push(memory.insert_dynamic(value));
+            }
+            Command::Equals => {
+                let right = self.pop_stack()?;
+                let left = self.pop_stack()?;
+
+                let b = {
+                    let right = memory.get(&right)?;
+                    let left = memory.get(&left)?;
+
+                    if left.is_int() && right.is_int() {
+                        left.as_int() == right.as_int()
+                    } else {
+                        return Err(RuntimeError::CannotCompareDifferentTypes);
+                    }
+                };
+                memory.dec(&right)?;
+                memory.dec(&left)?;
+                self.stack.push(memory.insert_dynamic(DataHolder::Bool(b)));
+            }
+            Command::JumpIfFalse(skip) => {
+                let target = self.pop_stack()?;
+
+                {
+                    if !memory.get(&target)?.get_bool()? {
+                        current_call.current_command_index += skip;
+                    }
+                }
+                memory.dec(&target)?;
             }
             Command::Sub => {
                 let right = self.pop_stack()?;
@@ -98,8 +127,8 @@ impl Vm {
                     let left = memory.get(&left)?;
                     left - right
                 };
-                memory.dec(&right);
-                memory.dec(&left);
+                memory.dec(&right)?;
+                memory.dec(&left)?;
                 self.stack.push(memory.insert_dynamic(value));
             }
             Command::Call => {
@@ -114,8 +143,15 @@ impl Vm {
                     function
                 };
 
-                memory.dec(&target);
+                memory.dec(&target)?;
 
+                current_call.current_command_index += 1;
+                return Ok((None, Some(fn_call), false));
+            }
+            Command::CallSelf => {
+                let mut fn_call = current_call.clone();
+                fn_call.current_command_index = current_call.entry_command_index;
+                fn_call.entry_stack_len = self.stack.len();
                 current_call.current_command_index += 1;
                 return Ok((None, Some(fn_call), false));
             }
@@ -125,7 +161,7 @@ impl Vm {
                     Some(value) => value.clone(),
                     None => return Err(RuntimeError::CannotLoadArgument),
                 };
-                memory.inc(&value);
+                memory.inc(&value)?;
                 self.stack.push(value);
             }
             Command::Return => {
@@ -138,11 +174,11 @@ impl Vm {
                 }
 
                 for _ in 0..current_call.num_locals {
-                    memory.dec(&self.pop_stack()?);
+                    memory.dec(&self.pop_stack()?)?;
                 }
 
                 for _ in 0..current_call.num_arguments {
-                    memory.dec(&self.pop_stack()?);
+                    memory.dec(&self.pop_stack()?)?;
                 }
 
                 if let Some(value) = save {
@@ -156,7 +192,7 @@ impl Vm {
                 {
                     println!("{:?}", memory.get(&target)?);
                 }
-                memory.dec(&target);
+                memory.dec(&target)?;
             }
             Command::Halt(exit_code) => return Ok((Some(exit_code), None, false)),
         }

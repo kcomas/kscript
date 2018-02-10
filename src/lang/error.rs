@@ -15,4 +15,6 @@ pub enum RuntimeError {
     TargetIsNotAFunction,
     CannotLoadArgument,
     InvalidReturnStack,
+    CannotCompareDifferentTypes,
+    TargetIsNotABool,
 }
