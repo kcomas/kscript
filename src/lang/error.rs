@@ -9,4 +9,6 @@ pub enum RuntimeError {
     CannotUpdateInteger,
     CannotUpdateFloat,
     CannotUpdateFunction,
+    CallStackEmpty,
+    InvalidCommandIndex,
 }

@@ -107,7 +107,7 @@ impl<T> Container<T> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum MemoryItem {
     Bool(usize),
     Integer(usize),
@@ -115,7 +115,7 @@ pub enum MemoryItem {
     Function(usize),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum MemoryAddress {
     Dynamic(MemoryItem),
     Fixed(MemoryItem),

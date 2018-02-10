@@ -1,4 +1,7 @@
-
 mod lang;
 
-fn main() {}
+use self::lang::run;
+
+fn main() {
+    run();
+}
