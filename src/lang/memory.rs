@@ -1,5 +1,3 @@
-use std::rc::Rc;
-use std::cell::RefCell;
 use super::function::FunctionPointer;
 use super::error::RuntimeError;
 use super::data::DataHolder;
@@ -22,8 +20,8 @@ where
     }
 
     pub fn pop_stack(&mut self, index: usize) -> Result<T, RuntimeError> {
-        if index != self.stack.len() - 1 {
-            return Err(RuntimeError::CannotPopMemoryStack);
+        if (self.stack.len() != 0 && index == 0) || index != self.stack.len() - 1 {
+            return self.get_stack(index);
         }
         if let Some(item) = self.stack.pop() {
             return Ok(item);
@@ -52,11 +50,11 @@ where
 
     pub fn insert_fixed(&mut self, value: T) -> usize {
         self.fixed.push(value);
-        self.stack.len() - 1
+        self.fixed.len() - 1
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum MemoryItem {
     Bool(usize),
     Integer(usize),
@@ -66,7 +64,7 @@ pub enum MemoryItem {
     Function(usize),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum MemoryAddress {
     Stack(MemoryItem),
     Fixed(MemoryItem),
@@ -77,8 +75,8 @@ pub struct Memory {
     bools: MemoryContainer<bool>,
     integers: MemoryContainer<i64>,
     floats: MemoryContainer<f64>,
-    strings: MemoryContainer<Rc<RefCell<String>>>,
-    arrays: MemoryContainer<Vec<Rc<RefCell<DataHolder>>>>,
+    strings: MemoryContainer<String>,
+    arrays: MemoryContainer<Vec<MemoryAddress>>,
     functions: MemoryContainer<FunctionPointer>,
 }
 
@@ -129,8 +127,31 @@ impl Memory {
     }
 
     pub fn insert_stack(&mut self, data: DataHolder) -> MemoryAddress {
-        let item = match data {};
+        let item = match data {
+            DataHolder::Bool(b) => MemoryItem::Bool(self.bools.insert_stack(b)),
+            DataHolder::Integer(int) => MemoryItem::Integer(self.integers.insert_stack(int)),
+            DataHolder::Float(float) => MemoryItem::Float(self.floats.insert_stack(float)),
+            DataHolder::String(string) => MemoryItem::String(self.strings.insert_stack(string)),
+            DataHolder::Array(array) => MemoryItem::Array(self.arrays.insert_stack(array)),
+            DataHolder::Function(function) => {
+                MemoryItem::Function(self.functions.insert_stack(function))
+            }
+        };
         MemoryAddress::Stack(item)
+    }
+
+    pub fn insert_fixed(&mut self, data: DataHolder) -> MemoryAddress {
+        let item = match data {
+            DataHolder::Bool(b) => MemoryItem::Bool(self.bools.insert_fixed(b)),
+            DataHolder::Integer(int) => MemoryItem::Integer(self.integers.insert_fixed(int)),
+            DataHolder::Float(float) => MemoryItem::Float(self.floats.insert_fixed(float)),
+            DataHolder::String(string) => MemoryItem::String(self.strings.insert_fixed(string)),
+            DataHolder::Array(array) => MemoryItem::Array(self.arrays.insert_fixed(array)),
+            DataHolder::Function(function) => {
+                MemoryItem::Function(self.functions.insert_fixed(function))
+            }
+        };
+        MemoryAddress::Fixed(item)
     }
 
     fn get_fixed(&self, item: &MemoryItem) -> Result<DataHolder, RuntimeError> {
