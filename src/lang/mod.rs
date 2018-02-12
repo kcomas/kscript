@@ -58,10 +58,11 @@ pub fn run() {
         Command::Return,
     ];
 
-    let mut call_stack = Vm::create_call_stack();
+    let mut call_stack = Vm::create_call_stack(0);
     let mut vm = Vm::new();
 
     let exit_code = vm.run(&commands, &mut memory, &mut call_stack).unwrap();
+    vm.clean_locals(&mut memory, call_stack.last().unwrap());
     // println!("{:?}", vm);
     // println!("{:?}", memory);
 }

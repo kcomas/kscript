@@ -15,13 +15,13 @@ impl Vm {
         Vm { stack: Vec::new() }
     }
 
-    pub fn create_call_stack() -> Vec<FunctionPointer> {
+    pub fn create_call_stack(num_locals: usize) -> Vec<FunctionPointer> {
         vec![
             FunctionPointer {
                 entry_command_index: 0,
                 current_command_index: 0,
                 num_arguments: 0,
-                num_locals: 0,
+                num_locals: num_locals,
                 entry_stack_len: 0,
             },
         ]
@@ -62,6 +62,17 @@ impl Vm {
                 }
             }
         }
+    }
+
+    pub fn clean_locals(
+        &mut self,
+        memory: &mut Memory,
+        current_call: &FunctionPointer,
+    ) -> Result<(), RuntimeError> {
+        for _ in 0..current_call.num_locals {
+            memory.dec(&self.pop_stack()?)?;
+        }
+        Ok(())
     }
 
     fn pop_stack(&mut self) -> Result<MemoryAddress, RuntimeError> {
@@ -173,9 +184,7 @@ impl Vm {
                     return Err(RuntimeError::InvalidReturnStack);
                 }
 
-                for _ in 0..current_call.num_locals {
-                    memory.dec(&self.pop_stack()?)?;
-                }
+                self.clean_locals(memory, current_call)?;
 
                 for _ in 0..current_call.num_arguments {
                     memory.dec(&self.pop_stack()?)?;
