@@ -1,4 +1,5 @@
 use std::collections::VecDeque;
+use super::data::{DataHolder, RefHolder};
 use super::error::RuntimeError;
 
 #[derive(Debug)]
@@ -90,5 +91,75 @@ impl<T> Container<T> {
     pub fn insert_fixed(&mut self, value: T) -> usize {
         self.fixed.push(value);
         self.fixed.len() - 1
+    }
+}
+
+#[derive(Debug)]
+pub enum MemoryItem {
+    Bool(bool),
+    Integer(i64),
+    Float(f64),
+    Char(char),
+    String(usize),
+}
+
+#[derive(Debug)]
+pub enum MemoryAddress {
+    Counted(MemoryItem),
+    Fixed(MemoryItem),
+}
+
+#[derive(Debug)]
+pub struct Memory {
+    strings: Container<String>,
+}
+
+impl Memory {
+    pub fn new() -> Memory {
+        Memory {
+            strings: Container::new(),
+        }
+    }
+
+    pub fn get(&self, address: &MemoryAddress) -> Result<RefHolder, RuntimeError> {
+        let item = match *address {
+            MemoryAddress::Counted(ref item) => match *item {
+                MemoryItem::Bool(b) => RefHolder::Bool(b),
+                MemoryItem::Integer(int) => RefHolder::Integer(int),
+                MemoryItem::Float(float) => RefHolder::Float(float),
+                MemoryItem::Char(c) => RefHolder::Char(c),
+                MemoryItem::String(index) => RefHolder::String(self.strings.get_counted(index)?),
+            },
+            MemoryAddress::Fixed(ref item) => match *item {
+                MemoryItem::Bool(b) => RefHolder::Bool(b),
+                MemoryItem::Integer(int) => RefHolder::Integer(int),
+                MemoryItem::Float(float) => RefHolder::Float(float),
+                MemoryItem::Char(c) => RefHolder::Char(c),
+                MemoryItem::String(index) => RefHolder::String(self.strings.get_fixed(index)?),
+            },
+        };
+        Ok(item)
+    }
+
+    pub fn inc(&mut self, address: &MemoryAddress) -> Result<usize, RuntimeError> {
+        let count = match *address {
+            MemoryAddress::Counted(ref item) => match *item {
+                MemoryItem::String(index) => self.strings.inc(index)?,
+                _ => 1,
+            },
+            MemoryAddress::Fixed(_) => 1,
+        };
+        Ok(count)
+    }
+
+    pub fn dec(&mut self, address: &MemoryAddress) -> Result<usize, RuntimeError> {
+        let count = match *address {
+            MemoryAddress::Counted(ref item) => match *item {
+                MemoryItem::String(index) => self.strings.dec(index)?,
+                _ => 1,
+            },
+            MemoryAddress::Fixed(_) => 1,
+        };
+        Ok(count)
     }
 }
