@@ -1,9 +1,12 @@
+use super::function::FunctionPointer;
+
 #[derive(Debug)]
 pub enum DataHolder {
     Bool(bool),
     Integer(i64),
     Float(f64),
     Char(char),
+    Function(FunctionPointer),
     String(String),
 }
 
@@ -13,5 +16,6 @@ pub enum RefHolder<'a> {
     Integer(i64),
     Float(f64),
     Char(char),
+    Function(FunctionPointer),
     String(&'a String),
 }

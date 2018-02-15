@@ -1,5 +1,6 @@
 use std::collections::VecDeque;
 use super::data::{DataHolder, RefHolder};
+use super::function::FunctionPointer;
 use super::error::RuntimeError;
 
 #[derive(Debug)]
@@ -100,6 +101,7 @@ pub enum MemoryItem {
     Integer(i64),
     Float(f64),
     Char(char),
+    Function(FunctionPointer),
     String(usize),
 }
 
@@ -128,6 +130,7 @@ impl Memory {
                 MemoryItem::Integer(int) => RefHolder::Integer(int),
                 MemoryItem::Float(float) => RefHolder::Float(float),
                 MemoryItem::Char(c) => RefHolder::Char(c),
+                MemoryItem::Function(ref pointer) => RefHolder::Function(pointer.clone()),
                 MemoryItem::String(index) => RefHolder::String(self.strings.get_counted(index)?),
             },
             MemoryAddress::Fixed(ref item) => match *item {
@@ -135,6 +138,7 @@ impl Memory {
                 MemoryItem::Integer(int) => RefHolder::Integer(int),
                 MemoryItem::Float(float) => RefHolder::Float(float),
                 MemoryItem::Char(c) => RefHolder::Char(c),
+                MemoryItem::Function(ref pointer) => RefHolder::Function(pointer.clone()),
                 MemoryItem::String(index) => RefHolder::String(self.strings.get_fixed(index)?),
             },
         };
@@ -161,5 +165,29 @@ impl Memory {
             MemoryAddress::Fixed(_) => 1,
         };
         Ok(count)
+    }
+
+    pub fn insert_counted(&mut self, data: DataHolder) -> MemoryAddress {
+        let item = match data {
+            DataHolder::Bool(b) => MemoryItem::Bool(b),
+            DataHolder::Integer(int) => MemoryItem::Integer(int),
+            DataHolder::Float(float) => MemoryItem::Float(float),
+            DataHolder::Char(c) => MemoryItem::Char(c),
+            DataHolder::Function(pointer) => MemoryItem::Function(pointer),
+            DataHolder::String(string) => MemoryItem::String(self.strings.insert_counted(string)),
+        };
+        MemoryAddress::Counted(item)
+    }
+
+    pub fn insert_fixed(&mut self, data: DataHolder) -> MemoryAddress {
+        let item = match data {
+            DataHolder::Bool(b) => MemoryItem::Bool(b),
+            DataHolder::Integer(int) => MemoryItem::Integer(int),
+            DataHolder::Float(float) => MemoryItem::Float(float),
+            DataHolder::Char(c) => MemoryItem::Char(c),
+            DataHolder::Function(pointer) => MemoryItem::Function(pointer),
+            DataHolder::String(string) => MemoryItem::String(self.strings.insert_counted(string)),
+        };
+        MemoryAddress::Fixed(item)
     }
 }
