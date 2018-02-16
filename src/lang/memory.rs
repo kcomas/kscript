@@ -95,7 +95,7 @@ impl<T> Container<T> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum MemoryItem {
     Bool(bool),
     Integer(i64),
@@ -105,10 +105,38 @@ pub enum MemoryItem {
     String(usize),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum MemoryAddress {
     Counted(MemoryItem),
     Fixed(MemoryItem),
+}
+
+impl MemoryAddress {
+    pub fn get_function(&self) -> Result<FunctionPointer, RuntimeError> {
+        match *self {
+            MemoryAddress::Counted(ref item) => match *item {
+                MemoryItem::Function(ref pointer) => Ok(pointer.clone()),
+                _ => Err(RuntimeError::TargetIsNotAFunction),
+            },
+            MemoryAddress::Fixed(ref item) => match *item {
+                MemoryItem::Function(ref pointer) => Ok(pointer.clone()),
+                _ => Err(RuntimeError::TargetIsNotAFunction),
+            },
+        }
+    }
+
+    pub fn get_function_mut(&mut self) -> Result<&mut FunctionPointer, RuntimeError> {
+        match *self {
+            MemoryAddress::Counted(ref mut item) => match *item {
+                MemoryItem::Function(ref mut pointer) => Ok(pointer),
+                _ => Err(RuntimeError::TargetIsNotAFunction),
+            },
+            MemoryAddress::Fixed(ref mut item) => match *item {
+                MemoryItem::Function(ref mut pointer) => Ok(pointer),
+                _ => Err(RuntimeError::TargetIsNotAFunction),
+            },
+        }
+    }
 }
 
 #[derive(Debug)]

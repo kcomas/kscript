@@ -4,4 +4,8 @@ pub enum RuntimeError {
     CannotGetFixedMemoryItem,
     CannotIncRef,
     CannotDecRef,
+    CannotLoadCurrentFunction,
+    CannotUpdateCurrentFunction,
+    TargetIsNotAFunction,
+    InvalidCommandIndex,
 }
