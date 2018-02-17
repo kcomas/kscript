@@ -1,2 +1,8 @@
 #[derive(Debug)]
-pub enum RuntimeError {}
+pub enum RuntimeError {
+    CannotLoadCountedMemory,
+    CannotLoadFixedMemory,
+    CannotIncRefCount,
+    CannotDecRefCount,
+    TargetIsNotABool,
+}
