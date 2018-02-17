@@ -7,6 +7,7 @@ mod vm;
 
 use self::memory::Memory;
 use self::data::DataHolder;
+use self::function::FunctionPointer;
 use self::command::Command;
 use self::vm::Vm;
 
@@ -16,17 +17,29 @@ pub fn run() {
     let i1 = memory.insert_fixed(DataHolder::Integer(3));
     let i2 = memory.insert_fixed(DataHolder::Integer(4));
     let i3 = memory.insert_fixed(DataHolder::Integer(1));
+    let i4 = memory.insert_fixed(DataHolder::Integer(5));
+
+    let f1 = memory.insert_fixed(DataHolder::Function(FunctionPointer {
+        current_command_index: 5,
+        num_arguments: 1,
+        num_locals: 0,
+    }));
 
     let mut vm = Vm::new();
     vm.init(&mut memory, 0, 0);
 
     let commands = vec![
+        Command::Push(i4),
+        Command::Push(f1),
+        Command::Call,
+        Command::Print,
+        Command::Halt(0),
         Command::Push(i1),
         Command::Push(i2),
         Command::Add,
         Command::Push(i3),
         Command::Sub,
-        Command::Halt(0),
+        Command::Return,
     ];
 
     let exit_code = vm.run(&mut memory, &commands).unwrap();

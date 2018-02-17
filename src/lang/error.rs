@@ -9,4 +9,5 @@ pub enum RuntimeError {
     TargetIsNotAFunction,
     InvalidCommandIndex,
     StackEmpty,
+    InvalidRetrunLength,
 }

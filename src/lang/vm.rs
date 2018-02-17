@@ -104,6 +104,47 @@ impl Vm {
 
                 self.stack.push(memory.insert_counted(value));
             }
+            Command::Call => {
+                self.uppdate_current_function_comamnd_index(
+                    current_call.current_command_index + 1,
+                )?;
+                self.stack_function_index = self.stack.len() - 1;
+                return Ok(None);
+            }
+            Command::Return => {
+                let mut save = None;
+
+                let current_function_pointer = self.get_current_function_pointer()?;
+
+                if self.stack_function_index + current_function_pointer.num_locals + 2
+                    == self.stack.len()
+                {
+                    save = Some(self.pop_stack()?);
+                } else if self.stack_function_index + 1 + current_function_pointer.num_locals
+                    != self.stack.len()
+                {
+                    return Err(RuntimeError::InvalidRetrunLength);
+                }
+
+                for _ in 0..current_function_pointer.num_arguments {
+                    memory.dec(&self.pop_stack()?)?;
+                }
+
+                memory.dec(&self.pop_stack()?)?;
+
+                self.stack_function_index = self.stack.len() - 1;
+
+                if let Some(value) = save {
+                    self.stack.push(value);
+                }
+
+                return Ok(None);
+            }
+            Command::Print => {
+                let target = self.pop_stack()?;
+                println!("{:?}", memory.get(&target)?);
+                memory.dec(&target)?;
+            }
             Command::Halt(exit_code) => return Ok(Some(exit_code)),
         };
         self.uppdate_current_function_comamnd_index(current_call.current_command_index + 1)?;
