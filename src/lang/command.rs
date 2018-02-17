@@ -4,5 +4,6 @@ use super::memory::MemoryAddress;
 pub enum Command {
     Push(MemoryAddress),
     Add,
+    Sub,
     Halt(i32),
 }

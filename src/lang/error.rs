@@ -8,4 +8,5 @@ pub enum RuntimeError {
     CannotUpdateCurrentFunction,
     TargetIsNotAFunction,
     InvalidCommandIndex,
+    StackEmpty,
 }

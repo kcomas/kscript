@@ -67,6 +67,13 @@ impl Vm {
         Err(RuntimeError::CannotUpdateCurrentFunction)
     }
 
+    fn pop_stack(&mut self) -> Result<MemoryAddress, RuntimeError> {
+        if let Some(item) = self.stack.pop() {
+            return Ok(item);
+        }
+        Err(RuntimeError::StackEmpty)
+    }
+
     fn match_command(
         &mut self,
         memory: &mut Memory,
@@ -75,9 +82,30 @@ impl Vm {
     ) -> Result<Option<i32>, RuntimeError> {
         match *command {
             Command::Push(ref address) => self.stack.push(address.clone()),
+            Command::Add => {
+                let right = self.pop_stack()?;
+                let left = self.pop_stack()?;
+
+                let value = memory.get(&left)? + memory.get(&right)?;
+
+                memory.dec(&right)?;
+                memory.dec(&left)?;
+
+                self.stack.push(memory.insert_counted(value));
+            }
+            Command::Sub => {
+                let right = self.pop_stack()?;
+                let left = self.pop_stack()?;
+
+                let value = memory.get(&left)? - memory.get(&right)?;
+
+                memory.dec(&right)?;
+                memory.dec(&left)?;
+
+                self.stack.push(memory.insert_counted(value));
+            }
             Command::Halt(exit_code) => return Ok(Some(exit_code)),
         };
-
         self.uppdate_current_function_comamnd_index(current_call.current_command_index + 1)?;
         Ok(None)
     }
