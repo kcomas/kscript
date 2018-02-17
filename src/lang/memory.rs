@@ -112,6 +112,19 @@ pub enum MemoryAddress {
 }
 
 impl MemoryAddress {
+    pub fn get_bool(&self) -> Result<bool, RuntimeError> {
+        match *self {
+            MemoryAddress::Counted(ref item) => match *item {
+                MemoryItem::Bool(b) => Ok(b),
+                _ => Err(RuntimeError::TargetIsNotBool),
+            },
+            MemoryAddress::Fixed(ref item) => match *item {
+                MemoryItem::Bool(b) => Ok(b),
+                _ => Err(RuntimeError::TargetIsNotBool),
+            },
+        }
+    }
+
     pub fn get_function(&self) -> Result<FunctionPointer, RuntimeError> {
         match *self {
             MemoryAddress::Counted(ref item) => match *item {

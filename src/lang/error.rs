@@ -6,8 +6,12 @@ pub enum RuntimeError {
     CannotDecRef,
     CannotLoadCurrentFunction,
     CannotUpdateCurrentFunction,
+    TargetIsNotBool,
     TargetIsNotAFunction,
     InvalidCommandIndex,
     StackEmpty,
     InvalidRetrunLength,
+    CannotLoadArgument,
+    CannotCompareTypes,
+    CannotGetLastFunctionIndex,
 }
