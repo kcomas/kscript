@@ -8,4 +8,7 @@ pub enum RuntimeError {
     CannotLoadAddressIsData,
     CannotReloadData,
     CannotIncData,
+    CannotLoadCurrentCall,
+    CannotUpdateCurrentCall,
+    InvalidCommandIndex,
 }

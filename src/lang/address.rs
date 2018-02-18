@@ -1,7 +1,7 @@
 use super::function::FunctionPointer;
 use super::error::RuntimeError;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum MemoryItem {
     Bool(bool),
     Integer(i64),
@@ -32,7 +32,7 @@ impl MemoryItem {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum MemoryAddress {
     Counted(MemoryItem),
     Fixed(MemoryItem),
