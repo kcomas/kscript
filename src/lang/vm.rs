@@ -1,5 +1,6 @@
 use super::command::Command;
 use super::address::MemoryAddress;
+use super::memory::Memory;
 use super::error::RuntimeError;
 
 #[derive(Debug)]
@@ -33,7 +34,11 @@ impl Vm {
         }
     }
 
-    pub fn run(&mut self, commands: &Vec<Command>) -> Result<i32, RuntimeError> {
+    pub fn run(
+        &mut self,
+        memory: &mut Memory,
+        commands: &Vec<Command>,
+    ) -> Result<i32, RuntimeError> {
         loop {
             let command = {
                 let current_call = self.get_current_call()?;
@@ -43,7 +48,7 @@ impl Vm {
                 }
             };
 
-            if let Some(exit_code) = self.match_command(command)? {
+            if let Some(exit_code) = self.match_command(memory, command)? {
                 return Ok(exit_code);
             }
         }
@@ -64,9 +69,38 @@ impl Vm {
         Err(RuntimeError::CannotUpdateCurrentCall)
     }
 
-    fn match_command(&mut self, command: &Command) -> Result<Option<i32>, RuntimeError> {
+    fn pop_stack(&mut self) -> Result<MemoryAddress, RuntimeError> {
+        if let Some(item) = self.stack.pop() {
+            return Ok(item);
+        }
+        Err(RuntimeError::CannotPopStack)
+    }
+
+    fn match_command(
+        &mut self,
+        memory: &mut Memory,
+        command: &Command,
+    ) -> Result<Option<i32>, RuntimeError> {
         match *command {
             Command::Push(ref address) => self.stack.push(address.clone()),
+            Command::Add => {
+                let right = self.pop_stack()?;
+                let left = self.pop_stack()?;
+
+                self.stack.push(memory.insert_counted(&left + &right));
+
+                memory.dec(&right)?;
+                memory.dec(&left)?;
+            }
+            Command::Sub => {
+                let right = self.pop_stack()?;
+                let left = self.pop_stack()?;
+
+                self.stack.push(memory.insert_counted(&left - &right));
+
+                memory.dec(&right)?;
+                memory.dec(&left)?;
+            }
             Command::Halt(exit_code) => return Ok(Some(exit_code)),
         }
 

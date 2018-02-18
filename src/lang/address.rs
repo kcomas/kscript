@@ -1,4 +1,6 @@
+use std::ops::{Add, Sub};
 use super::function::FunctionPointer;
+use super::data::Data;
 use super::error::RuntimeError;
 
 #[derive(Debug, Clone)]
@@ -24,11 +26,37 @@ impl MemoryItem {
         false
     }
 
+    pub fn as_int(&self) -> i64 {
+        match *self {
+            MemoryItem::Bool(b) => if b {
+                1
+            } else {
+                0
+            },
+            MemoryItem::Integer(int) => int,
+            MemoryItem::Float(float) => float as i64,
+            _ => 0,
+        }
+    }
+
     pub fn is_float(&self) -> bool {
         if let MemoryItem::Float(_) = *self {
             return true;
         }
         false
+    }
+
+    pub fn as_float(&self) -> f64 {
+        match *self {
+            MemoryItem::Bool(b) => if b {
+                1.0
+            } else {
+                0.0
+            },
+            MemoryItem::Integer(int) => int as f64,
+            MemoryItem::Float(float) => float,
+            _ => 0.0,
+        }
     }
 }
 
@@ -53,7 +81,37 @@ impl MemoryAddress {
         self.get_item().is_int()
     }
 
+    pub fn as_int(&self) -> i64 {
+        self.get_item().as_int()
+    }
+
     pub fn is_float(&self) -> bool {
         self.get_item().is_float()
+    }
+
+    pub fn as_float(&self) -> f64 {
+        self.get_item().as_float()
+    }
+}
+
+impl<'a> Add for &'a MemoryAddress {
+    type Output = Data;
+
+    fn add(self, right: &'a MemoryAddress) -> Data {
+        if self.is_float() || right.is_float() {
+            return Data::Float(self.as_float() + self.as_float());
+        }
+        Data::Integer(self.as_int() + right.as_int())
+    }
+}
+
+impl<'a> Sub for &'a MemoryAddress {
+    type Output = Data;
+
+    fn sub(self, right: &'a MemoryAddress) -> Data {
+        if self.is_float() || right.is_float() {
+            return Data::Float(self.as_float() - self.as_float());
+        }
+        Data::Integer(self.as_int() - right.as_int())
     }
 }

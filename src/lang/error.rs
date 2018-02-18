@@ -11,4 +11,5 @@ pub enum RuntimeError {
     CannotLoadCurrentCall,
     CannotUpdateCurrentCall,
     InvalidCommandIndex,
+    CannotPopStack,
 }
