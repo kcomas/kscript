@@ -124,10 +124,40 @@ impl Vm {
                 memory.dec(&target);
                 return Ok(None);
             }
+            Command::LoadArg(index) => {
+                let arg = {
+                    let current_call = self.get_current_call()?;
+                    let pos = current_call.stack_index - current_call.number_arguments + index;
+                    match self.stack.get(pos) {
+                        Some(arg) => arg.clone(),
+                        None => return Err(RuntimeError::InvalidArgumentIndex),
+                    }
+                };
+                memory.inc(&arg);
+                self.stack.push(arg);
+            }
             Command::Return => {
-                if let None = self.call_stack.pop() {
-                    return Err(RuntimeError::CannotReturnFromFunction);
+                let last_call = match self.call_stack.pop() {
+                    Some(last_call) => last_call,
+                    None => return Err(RuntimeError::CannotReturnFromFunction),
+                };
+
+                let mut save = None;
+
+                if self.stack.len() == last_call.stack_index + last_call.number_locals + 1 {
+                    save = Some(self.pop_stack()?);
+                } else if self.stack.len() != last_call.stack_index + last_call.number_locals {
+                    return Err(RuntimeError::InvalidStackReturnLength);
                 }
+
+                for _ in 0..last_call.number_arguments {
+                    memory.dec(&self.pop_stack()?)?;
+                }
+
+                if let Some(item) = save {
+                    self.stack.push(item);
+                }
+
                 return Ok(None);
             }
             Command::Halt(exit_code) => return Ok(Some(exit_code)),

@@ -14,4 +14,6 @@ pub enum RuntimeError {
     InvalidCommandIndex,
     CannotPopStack,
     CannotReturnFromFunction,
+    InvalidStackReturnLength,
+    InvalidArgumentIndex,
 }

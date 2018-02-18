@@ -19,16 +19,17 @@ pub fn run() {
     let i3 = memory.insert_fixed(Data::Integer(2));
 
     let f1 = memory.insert_fixed(Data::Function(FunctionPointer {
-        entry_index: 3,
-        number_arguments: 0,
+        entry_index: 4,
+        number_arguments: 1,
         number_locals: 0,
     }));
 
     let commands = vec![
+        Command::Push(i1),
         Command::Push(f1),
         Command::Call,
         Command::Halt(0),
-        Command::Push(i1),
+        Command::LoadArg(0),
         Command::Push(i2),
         Command::Add,
         Command::Push(i3),

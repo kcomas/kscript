@@ -6,7 +6,7 @@ pub enum Command {
     Add,
     Sub,
     Call,
-    // LoadArg(usize),
+    LoadArg(usize),
     Return,
     Halt(i32),
 }
