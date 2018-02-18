@@ -14,9 +14,8 @@ use self::vm::Vm;
 
 pub fn run() {
     let mut memory = Memory::new();
-    let i1 = memory.insert_fixed(Data::Integer(3));
-    let i2 = memory.insert_fixed(Data::Integer(4));
-    let i3 = memory.insert_fixed(Data::Integer(2));
+    let i1 = memory.insert_fixed(Data::Integer(1));
+    let i2 = memory.insert_fixed(Data::Integer(0));
 
     let f1 = memory.insert_fixed(Data::Function(FunctionPointer {
         entry_index: 4,
@@ -31,9 +30,7 @@ pub fn run() {
         Command::Halt(0),
         Command::LoadArg(0),
         Command::Push(i2),
-        Command::Add,
-        Command::Push(i3),
-        Command::Sub,
+        Command::Equals,
         Command::Return,
     ];
 

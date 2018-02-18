@@ -1,6 +1,7 @@
 use super::command::Command;
 use super::address::MemoryAddress;
 use super::memory::Memory;
+use super::data::Data;
 use super::error::RuntimeError;
 
 #[derive(Debug)]
@@ -63,7 +64,7 @@ impl Vm {
 
     fn update_current_call_index(&mut self, command_inc: usize) -> Result<(), RuntimeError> {
         if let Some(call) = self.call_stack.last_mut() {
-            call.current_command_index += 1;
+            call.current_command_index += command_inc;
             return Ok(());
         }
         Err(RuntimeError::CannotUpdateCurrentCall)
@@ -83,6 +84,21 @@ impl Vm {
     ) -> Result<Option<i32>, RuntimeError> {
         match *command {
             Command::Push(ref address) => self.stack.push(address.clone()),
+            Command::Equals => {
+                let right = self.pop_stack()?;
+                let left = self.pop_stack()?;
+
+                let b = if left.is_int() && right.is_int() {
+                    left.as_int() == right.as_int()
+                } else {
+                    return Err(RuntimeError::CannotCompareTypes);
+                };
+
+                memory.dec(&right)?;
+                memory.dec(&left)?;
+
+                self.stack.push(memory.insert_counted(Data::Bool(b)));
+            }
             Command::Add => {
                 let right = self.pop_stack()?;
                 let left = self.pop_stack()?;
@@ -110,7 +126,7 @@ impl Vm {
                         Some(data) => data.get_function()?,
                         None => return Err(RuntimeError::TargetIsNotAFunction),
                     };
-                    self.update_current_call_index(1);
+                    self.update_current_call_index(1)?;
 
                     self.call_stack.push(Call {
                         current_command_index: function.entry_index,
@@ -121,7 +137,7 @@ impl Vm {
                     });
                 }
 
-                memory.dec(&target);
+                memory.dec(&target)?;
                 return Ok(None);
             }
             Command::LoadArg(index) => {
@@ -133,7 +149,7 @@ impl Vm {
                         None => return Err(RuntimeError::InvalidArgumentIndex),
                     }
                 };
-                memory.inc(&arg);
+                memory.inc(&arg)?;
                 self.stack.push(arg);
             }
             Command::Return => {
@@ -163,7 +179,7 @@ impl Vm {
             Command::Halt(exit_code) => return Ok(Some(exit_code)),
         }
 
-        self.update_current_call_index(1);
+        self.update_current_call_index(1)?;
         Ok(None)
     }
 }

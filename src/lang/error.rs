@@ -16,4 +16,5 @@ pub enum RuntimeError {
     CannotReturnFromFunction,
     InvalidStackReturnLength,
     InvalidArgumentIndex,
+    CannotCompareTypes,
 }
