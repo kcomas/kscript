@@ -1,5 +1,4 @@
 use std::ops::{Add, Sub};
-use super::function::FunctionPointer;
 use super::data::Data;
 use super::error::RuntimeError;
 
@@ -58,6 +57,13 @@ impl MemoryItem {
             _ => 0.0,
         }
     }
+
+    pub fn is_function(&self) -> bool {
+        if let MemoryItem::Function(_) = *self {
+            return true;
+        }
+        false
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -91,6 +97,10 @@ impl MemoryAddress {
 
     pub fn as_float(&self) -> f64 {
         self.get_item().as_float()
+    }
+
+    pub fn is_function(&self) -> bool {
+        self.get_item().is_function()
     }
 }
 

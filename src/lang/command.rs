@@ -5,5 +5,8 @@ pub enum Command {
     Push(MemoryAddress),
     Add,
     Sub,
+    Call,
+    // LoadArg(usize),
+    Return,
     Halt(i32),
 }

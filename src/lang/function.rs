@@ -1,6 +1,6 @@
 #[derive(Debug)]
 pub struct FunctionPointer {
-    entry_index: usize,
-    number_arguments: usize,
-    number_locals: usize,
+    pub entry_index: usize,
+    pub number_arguments: usize,
+    pub number_locals: usize,
 }

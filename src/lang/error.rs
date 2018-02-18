@@ -5,6 +5,7 @@ pub enum RuntimeError {
     CannotIncRefCount,
     CannotDecRefCount,
     TargetIsNotABool,
+    TargetIsNotAFunction,
     CannotLoadAddressIsData,
     CannotReloadData,
     CannotIncData,
@@ -12,4 +13,5 @@ pub enum RuntimeError {
     CannotUpdateCurrentCall,
     InvalidCommandIndex,
     CannotPopStack,
+    CannotReturnFromFunction,
 }

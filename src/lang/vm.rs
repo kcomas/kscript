@@ -101,6 +101,35 @@ impl Vm {
                 memory.dec(&right)?;
                 memory.dec(&left)?;
             }
+            Command::Call => {
+                let target = self.pop_stack()?;
+
+                {
+                    let function = memory.get(&target)?;
+                    let function = match function {
+                        Some(data) => data.get_function()?,
+                        None => return Err(RuntimeError::TargetIsNotAFunction),
+                    };
+                    self.update_current_call_index(1);
+
+                    self.call_stack.push(Call {
+                        current_command_index: function.entry_index,
+                        entry_index: function.entry_index,
+                        stack_index: self.stack.len(),
+                        number_arguments: function.number_arguments,
+                        number_locals: function.number_locals,
+                    });
+                }
+
+                memory.dec(&target);
+                return Ok(None);
+            }
+            Command::Return => {
+                if let None = self.call_stack.pop() {
+                    return Err(RuntimeError::CannotReturnFromFunction);
+                }
+                return Ok(None);
+            }
             Command::Halt(exit_code) => return Ok(Some(exit_code)),
         }
 
