@@ -21,9 +21,10 @@ pub fn run() {
     let i5 = memory.insert_fixed(Data::Integer(1));
     let i6 = memory.insert_fixed(Data::Integer(1));
     let i7 = memory.insert_fixed(Data::Integer(2));
+    let s1 = memory.insert_fixed(Data::String("Hello World".to_string()));
 
     let f1 = memory.insert_fixed(Data::Function(FunctionPointer {
-        entry_index: 5,
+        entry_index: 7,
         number_arguments: 1,
         number_locals: 0,
     }));
@@ -32,6 +33,8 @@ pub fn run() {
         Command::Push(i1),
         Command::Push(f1),
         Command::Call,
+        Command::Print,
+        Command::Push(s1),
         Command::Print,
         Command::Halt(0),
         Command::LoadArg(0),

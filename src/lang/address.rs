@@ -7,6 +7,7 @@ pub enum MemoryItem {
     Bool(bool),
     Integer(i64),
     Float(f64),
+    String(usize),
     Function(usize),
 }
 

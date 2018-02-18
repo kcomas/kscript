@@ -98,12 +98,14 @@ impl<T> Collection<T> {
 
 #[derive(Debug)]
 pub struct Memory {
+    strings: Collection<String>,
     functions: Collection<FunctionPointer>,
 }
 
 impl Memory {
     pub fn new() -> Memory {
         Memory {
+            strings: Collection::new(),
             functions: Collection::new(),
         }
     }
@@ -111,12 +113,16 @@ impl Memory {
     pub fn get(&self, address: &MemoryAddress) -> Result<Option<RefData>, RuntimeError> {
         let item = match *address {
             MemoryAddress::Counted(ref item) => match *item {
+                MemoryItem::String(index) => {
+                    Some(RefData::String(self.strings.get_counted(index)?))
+                }
                 MemoryItem::Function(index) => {
                     Some(RefData::Function(self.functions.get_counted(index)?))
                 }
                 _ => None,
             },
             MemoryAddress::Fixed(ref item) => match *item {
+                MemoryItem::String(index) => Some(RefData::String(self.strings.get_fixed(index)?)),
                 MemoryItem::Function(index) => {
                     Some(RefData::Function(self.functions.get_fixed(index)?))
                 }
@@ -153,6 +159,7 @@ impl Memory {
             Data::Bool(b) => MemoryItem::Bool(b),
             Data::Integer(int) => MemoryItem::Integer(int),
             Data::Float(float) => MemoryItem::Float(float),
+            Data::String(string) => MemoryItem::String(self.strings.insert_counted(string)),
             Data::Function(pointer) => MemoryItem::Function(self.functions.insert_counted(pointer)),
         };
         MemoryAddress::Counted(item)
@@ -163,6 +170,7 @@ impl Memory {
             Data::Bool(b) => MemoryItem::Bool(b),
             Data::Integer(int) => MemoryItem::Integer(int),
             Data::Float(float) => MemoryItem::Float(float),
+            Data::String(string) => MemoryItem::String(self.strings.insert_fixed(string)),
             Data::Function(pointer) => MemoryItem::Function(self.functions.insert_fixed(pointer)),
         };
         MemoryAddress::Fixed(item)

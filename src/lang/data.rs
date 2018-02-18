@@ -6,6 +6,7 @@ pub enum Data {
     Bool(bool),
     Integer(i64),
     Float(f64),
+    String(String),
     Function(FunctionPointer),
 }
 
