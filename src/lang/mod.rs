@@ -14,15 +14,16 @@ use self::vm::Vm;
 
 pub fn run() {
     let mut memory = Memory::new();
-    let i1 = memory.insert_fixed(Data::Integer(3));
+    let i1 = memory.insert_fixed(Data::Integer(30));
     let i2 = memory.insert_fixed(Data::Integer(0));
     let i3 = memory.insert_fixed(Data::Integer(0));
     let i4 = memory.insert_fixed(Data::Integer(1));
     let i5 = memory.insert_fixed(Data::Integer(1));
     let i6 = memory.insert_fixed(Data::Integer(1));
+    let i7 = memory.insert_fixed(Data::Integer(2));
 
     let f1 = memory.insert_fixed(Data::Function(FunctionPointer {
-        entry_index: 4,
+        entry_index: 5,
         number_arguments: 1,
         number_locals: 0,
     }));
@@ -31,6 +32,7 @@ pub fn run() {
         Command::Push(i1),
         Command::Push(f1),
         Command::Call,
+        Command::Print,
         Command::Halt(0),
         Command::LoadArg(0),
         Command::Push(i2),
@@ -47,13 +49,19 @@ pub fn run() {
         Command::LoadArg(0),
         Command::Push(i6),
         Command::Sub,
+        Command::CallSelf,
+        Command::LoadArg(0),
+        Command::Push(i7),
+        Command::Sub,
+        Command::CallSelf,
+        Command::Add,
         Command::Return,
     ];
 
     let mut vm = Vm::new(0);
 
     let exit_code = vm.run(&mut memory, &commands).unwrap();
-    println!("Exit Code {}", exit_code);
-    println!("{:?}", vm);
-    println!("{:?}", memory);
+    // println!("Exit Code {}", exit_code);
+    // println!("{:?}", vm);
+    // println!("{:?}", memory);
 }

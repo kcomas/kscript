@@ -4,7 +4,7 @@ use super::memory::Memory;
 use super::data::Data;
 use super::error::RuntimeError;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Call {
     pub current_command_index: usize,
     pub entry_index: usize,
@@ -148,6 +148,15 @@ impl Vm {
                 memory.dec(&target)?;
                 return Ok(None);
             }
+            Command::CallSelf => {
+                let mut current_call_clone = self.get_current_call()?.clone();
+                self.update_current_call_index(1)?;
+
+                current_call_clone.current_command_index = current_call_clone.entry_index;
+                current_call_clone.stack_index = self.stack.len();
+                self.call_stack.push(current_call_clone);
+                return Ok(None);
+            }
             Command::LoadArg(index) => {
                 let arg = {
                     let current_call = self.get_current_call()?;
@@ -183,6 +192,14 @@ impl Vm {
                 }
 
                 return Ok(None);
+            }
+            Command::Print => {
+                let target = self.pop_stack()?;
+                match memory.get(&target)? {
+                    Some(data) => println!("{:?}", data),
+                    None => println!("{:?}", target),
+                };
+                memory.dec(&target)?;
             }
             Command::Halt(exit_code) => return Ok(Some(exit_code)),
         }

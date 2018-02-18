@@ -8,7 +8,9 @@ pub enum Command {
     Add,
     Sub,
     Call,
+    CallSelf,
     LoadArg(usize),
     Return,
+    Print,
     Halt(i32),
 }
