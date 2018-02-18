@@ -99,6 +99,14 @@ impl Vm {
 
                 self.stack.push(memory.insert_counted(Data::Bool(b)));
             }
+            Command::JumpIfFalse(count) => {
+                let target = self.pop_stack()?;
+
+                if !target.get_bool()? {
+                    self.update_current_call_index(count)?;
+                    return Ok(None);
+                }
+            }
             Command::Add => {
                 let right = self.pop_stack()?;
                 let left = self.pop_stack()?;

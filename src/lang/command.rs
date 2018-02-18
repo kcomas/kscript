@@ -4,6 +4,7 @@ use super::address::MemoryAddress;
 pub enum Command {
     Push(MemoryAddress),
     Equals,
+    JumpIfFalse(usize),
     Add,
     Sub,
     Call,
