@@ -1,4 +1,7 @@
 use std::collections::VecDeque;
+use super::function::FunctionPointer;
+use super::address::{MemoryAddress, MemoryItem};
+use super::data::{Data, RefData};
 use super::error::RuntimeError;
 
 #[derive(Debug)]
@@ -31,15 +34,15 @@ impl<T> Counted<T> {
 }
 
 #[derive(Debug)]
-pub struct Container<T> {
+pub struct Collection<T> {
     counted: Vec<Counted<T>>,
     free: VecDeque<usize>,
     fixed: Vec<T>,
 }
 
-impl<T> Container<T> {
-    pub fn new() -> Container<T> {
-        Container {
+impl<T> Collection<T> {
+    pub fn new() -> Collection<T> {
+        Collection {
             counted: Vec::new(),
             free: VecDeque::new(),
             fixed: Vec::new(),
@@ -90,5 +93,78 @@ impl<T> Container<T> {
     pub fn insert_fixed(&mut self, value: T) -> usize {
         self.fixed.push(value);
         self.fixed.len() - 1
+    }
+}
+
+#[derive(Debug)]
+pub struct Memory {
+    functions: Collection<FunctionPointer>,
+}
+
+impl Memory {
+    pub fn new() -> Memory {
+        Memory {
+            functions: Collection::new(),
+        }
+    }
+
+    pub fn get(&self, address: &MemoryAddress) -> Result<Option<RefData>, RuntimeError> {
+        let item = match *address {
+            MemoryAddress::Counted(ref item) => match *item {
+                MemoryItem::Function(index) => {
+                    Some(RefData::Function(self.functions.get_counted(index)?))
+                }
+                _ => None,
+            },
+            MemoryAddress::Fixed(ref item) => match *item {
+                MemoryItem::Function(index) => {
+                    Some(RefData::Function(self.functions.get_fixed(index)?))
+                }
+                _ => None,
+            },
+        };
+        Ok(item)
+    }
+
+    pub fn inc(&mut self, address: &MemoryAddress) -> Result<usize, RuntimeError> {
+        let count = match *address {
+            MemoryAddress::Counted(ref item) => match *item {
+                MemoryItem::Function(index) => self.functions.inc(index)?,
+                _ => 1,
+            },
+            MemoryAddress::Fixed(_) => 1,
+        };
+        Ok(count)
+    }
+
+    pub fn dec(&mut self, address: &MemoryAddress) -> Result<usize, RuntimeError> {
+        let count = match *address {
+            MemoryAddress::Counted(ref item) => match *item {
+                MemoryItem::Function(index) => self.functions.dec(index)?,
+                _ => 1,
+            },
+            MemoryAddress::Fixed(_) => 1,
+        };
+        Ok(count)
+    }
+
+    pub fn insert_counted(&mut self, data: Data) -> MemoryAddress {
+        let item = match data {
+            Data::Bool(b) => MemoryItem::Bool(b),
+            Data::Integer(int) => MemoryItem::Integer(int),
+            Data::Float(float) => MemoryItem::Float(float),
+            Data::Function(pointer) => MemoryItem::Function(self.functions.insert_counted(pointer)),
+        };
+        MemoryAddress::Counted(item)
+    }
+
+    pub fn insert_fixed(&mut self, data: Data) -> MemoryAddress {
+        let item = match data {
+            Data::Bool(b) => MemoryItem::Bool(b),
+            Data::Integer(int) => MemoryItem::Integer(int),
+            Data::Float(float) => MemoryItem::Float(float),
+            Data::Function(pointer) => MemoryItem::Function(self.functions.insert_fixed(pointer)),
+        };
+        MemoryAddress::Fixed(item)
     }
 }

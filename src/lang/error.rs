@@ -5,4 +5,7 @@ pub enum RuntimeError {
     CannotIncRefCount,
     CannotDecRefCount,
     TargetIsNotABool,
+    CannotLoadAddressIsData,
+    CannotReloadData,
+    CannotIncData,
 }

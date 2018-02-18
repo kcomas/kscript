@@ -1,3 +1,4 @@
+use super::function::FunctionPointer;
 use super::error::RuntimeError;
 
 #[derive(Debug)]
