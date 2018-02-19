@@ -59,6 +59,10 @@ impl MemoryItem {
         }
     }
 
+    pub fn is_number(&self) -> bool {
+        self.is_int() || self.is_float()
+    }
+
     pub fn is_function(&self) -> bool {
         if let MemoryItem::Function(_) = *self {
             return true;
@@ -98,6 +102,10 @@ impl MemoryAddress {
 
     pub fn as_float(&self) -> f64 {
         self.get_item().as_float()
+    }
+
+    pub fn is_number(&self) -> bool {
+        self.get_item().is_number()
     }
 
     pub fn is_function(&self) -> bool {

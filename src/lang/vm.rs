@@ -20,7 +20,7 @@ pub struct Vm {
 }
 
 impl Vm {
-    pub fn new(entry: usize) -> Vm {
+    pub fn new(entry: usize, number_locals: usize) -> Vm {
         Vm {
             stack: Vec::new(),
             call_stack: vec![
@@ -29,7 +29,7 @@ impl Vm {
                     entry_index: entry,
                     stack_index: 0,
                     number_arguments: 0,
-                    number_locals: 0,
+                    number_locals: number_locals,
                 },
             ],
         }
@@ -94,8 +94,8 @@ impl Vm {
                     return Err(RuntimeError::CannotCompareTypes);
                 };
 
-                memory.dec(&right)?;
-                memory.dec(&left)?;
+                // memory.dec(&right)?;
+                // memory.dec(&left)?;
 
                 self.stack.push(memory.insert_counted(Data::Bool(b)));
             }
@@ -111,19 +111,27 @@ impl Vm {
                 let right = self.pop_stack()?;
                 let left = self.pop_stack()?;
 
-                self.stack.push(memory.insert_counted(&left + &right));
+                if left.is_number() && right.is_number() {
+                    self.stack.push(memory.insert_counted(&left + &right));
+                } else {
+                    return Err(RuntimeError::CannotAddTypes);
+                }
 
-                memory.dec(&right)?;
-                memory.dec(&left)?;
+                //  memory.dec(&right)?;
+                //  memory.dec(&left)?;
             }
             Command::Sub => {
                 let right = self.pop_stack()?;
                 let left = self.pop_stack()?;
 
-                self.stack.push(memory.insert_counted(&left - &right));
+                if left.is_number() && right.is_number() {
+                    self.stack.push(memory.insert_counted(&left - &right));
+                } else {
+                    return Err(RuntimeError::CannotSubTypes);
+                }
 
-                memory.dec(&right)?;
-                memory.dec(&left)?;
+                // memory.dec(&right)?;
+                // memory.dec(&left)?;
             }
             Command::Call => {
                 let target = self.pop_stack()?;

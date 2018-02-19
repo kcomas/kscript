@@ -61,7 +61,7 @@ pub fn run() {
         Command::Return,
     ];
 
-    let mut vm = Vm::new(0);
+    let mut vm = Vm::new(0, 0);
 
     let exit_code = vm.run(&mut memory, &commands).unwrap();
     // println!("Exit Code {}", exit_code);

@@ -17,4 +17,6 @@ pub enum RuntimeError {
     InvalidStackReturnLength,
     InvalidArgumentIndex,
     CannotCompareTypes,
+    CannotAddTypes,
+    CannotSubTypes,
 }
