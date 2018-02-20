@@ -20,3 +20,11 @@ pub enum RuntimeError {
     CannotAddTypes,
     CannotSubTypes,
 }
+
+#[derive(Debug, Clone)]
+pub enum LexerError {
+    InvalidTokenLength,
+    EndOfFile,
+    InvalidFloat,
+    InvalidStringEscape,
+}
