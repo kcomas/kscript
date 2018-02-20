@@ -13,7 +13,6 @@ pub enum Token {
     Add,
     Sub,
     CallSelf,
-    Return,
     Assign,
     Equals,
     EqualsGreater,
