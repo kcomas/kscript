@@ -25,11 +25,7 @@ pub enum Ast {
         arguments: AstBody,
     },
     SelfFunctionCall(AstBody),
-    IfGroup {
-        conditional: AstBody,
-        body: AstBody,
-    },
-    IfBlock {
+    If {
         conditional: AstBody,
         body: AstBody,
     },

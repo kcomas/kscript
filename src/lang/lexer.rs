@@ -109,8 +109,17 @@ pub fn lex(iter: &mut Peekable<Chars>, matchers: &Vec<Matcher>) -> Result<TokenB
 
         match c {
             '\n' | ';' => {
-                push_body!(token_body, current_token_section);
                 iter.next();
+                let next_c = match iter.peek() {
+                    Some(c) => Some(*c),
+                    None => None,
+                };
+                if let Some(c) = next_c {
+                    if c == ';' {
+                        current_token_section.push(Token::Return);
+                    }
+                }
+                push_body!(token_body, current_token_section);
             }
             '#' => current_token_section.push(load_comment(iter)?),
             '{' => {
