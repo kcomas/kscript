@@ -9,6 +9,7 @@ mod util;
 mod token;
 mod lexer;
 mod ast;
+mod symbol;
 
 use std::path::Path;
 use self::memory::Memory;
