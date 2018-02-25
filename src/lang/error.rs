@@ -28,3 +28,8 @@ pub enum LexerError {
     InvalidFloat,
     InvalidStringEscape,
 }
+
+#[derive(Debug)]
+pub enum JoinerError {
+    InvalidToken,
+}

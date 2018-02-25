@@ -31,6 +31,7 @@ pub fn run() {
     println!("{:#?}", tokens);
     let mut symbol_table = SymbolTable::new();
     let ast = join_tokens(&tokens, &mut symbol_table, &create_joiners()).unwrap();
+    println!("{:?}", ast);
 
     let mut memory = Memory::new();
     let i1 = memory.insert_fixed(Data::Integer(15));
@@ -80,7 +81,8 @@ pub fn run() {
         Command::Return,
     ];
 
-    let mut vm = Vm::new(0, 0);
+    let mut vm = Vm::new();
+    vm.init_call_stack(0, 0);
 
     let exit_code = vm.run(&mut memory, &commands).unwrap();
     println!("Exit Code {}", exit_code);

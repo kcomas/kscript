@@ -1,11 +1,11 @@
 use super::token::{Token, TokenBody};
 use super::ast::{Ast, AstBody};
 use super::symbol::SymbolTable;
-use super::error::RuntimeError;
+use super::error::JoinerError;
 
-type TokenConvertFn = fn(&Token, &mut SymbolTable, &Vec<Joiner>) -> Result<Ast, RuntimeError>;
+type TokenConvertFn = fn(&Token, &mut SymbolTable, &Vec<Joiner>) -> Result<Ast, JoinerError>;
 type TokenVecConverterFn =
-    fn(Vec<&Token>, &mut SymbolTable, &Vec<Joiner>) -> Result<Ast, RuntimeError>;
+    fn(Vec<&Token>, &mut SymbolTable, &Vec<Joiner>) -> Result<Ast, JoinerError>;
 
 pub struct Joiner {
     base: Token,
@@ -36,12 +36,12 @@ impl Joiner {
     pub fn do_match(
         &self,
         current_index: &mut usize,
-        token: &Token,
         tokens: &Vec<Token>,
         symbols: &mut SymbolTable,
         joiners: &Vec<Joiner>,
-    ) -> Result<Ast, RuntimeError> {
-        let mut ast = (self.base_ast)(token, symbols, joiners)?;
+    ) -> Result<Ast, JoinerError> {
+        let mut ast = (self.base_ast)(&tokens[*current_index], symbols, joiners)?;
+        *current_index += 1;
         Ok(ast)
     }
 }
@@ -107,13 +107,36 @@ pub fn join_tokens(
     tokens: &TokenBody,
     symbols: &mut SymbolTable,
     joiners: &Vec<Joiner>,
-) -> Result<AstBody, RuntimeError> {
+) -> Result<AstBody, JoinerError> {
     let mut current_ast: Vec<Ast> = Vec::new();
     let mut ast_body = Vec::new();
 
     for token_section in tokens {
         let mut current_token_counter = 0;
-        println!("{:?}", token_section);
+        while current_token_counter < token_section.len() {
+            let mut joiner_index = 0;
+            while joiner_index < joiners.len() {
+                if joiners[joiner_index].is_match(&token_section[current_token_counter]) {
+                    current_ast.push(joiners[joiner_index].do_match(
+                        &mut current_token_counter,
+                        token_section,
+                        symbols,
+                        joiners,
+                    )?);
+                    break;
+                } else {
+                    joiner_index += 1;
+                }
+            }
+
+            if joiner_index == joiners.len() {
+                ast_body.push(current_ast);
+                println!("{:?}", ast_body);
+                return Err(JoinerError::InvalidToken);
+            }
+        }
+        ast_body.push(current_ast);
+        current_ast = Vec::new();
     }
 
     Ok(ast_body)

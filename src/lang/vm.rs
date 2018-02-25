@@ -20,19 +20,21 @@ pub struct Vm {
 }
 
 impl Vm {
-    pub fn new(entry: usize, number_locals: usize) -> Vm {
+    pub fn new() -> Vm {
         Vm {
             stack: Vec::new(),
-            call_stack: vec![
-                Call {
-                    current_command_index: entry,
-                    entry_index: entry,
-                    stack_index: 0,
-                    number_arguments: 0,
-                    number_locals: number_locals,
-                },
-            ],
+            call_stack: Vec::new(),
         }
+    }
+
+    pub fn init_call_stack(&mut self, entry: usize, number_locals: usize) {
+        self.call_stack.push(Call {
+            current_command_index: entry,
+            entry_index: entry,
+            stack_index: 0,
+            number_arguments: 0,
+            number_locals: number_locals,
+        });
     }
 
     pub fn run(
