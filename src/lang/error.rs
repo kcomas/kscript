@@ -32,4 +32,6 @@ pub enum LexerError {
 #[derive(Debug)]
 pub enum JoinerError {
     InvalidToken,
+    TokenFnMismatch,
+    NoMuliMatchFound,
 }

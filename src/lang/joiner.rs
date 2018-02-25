@@ -5,7 +5,7 @@ use super::error::JoinerError;
 
 type TokenConvertFn = fn(&Token, &mut SymbolTable, &Vec<Joiner>) -> Result<Ast, JoinerError>;
 type TokenVecConverterFn =
-    fn(Vec<&Token>, &mut SymbolTable, &Vec<Joiner>) -> Result<Ast, JoinerError>;
+    fn(&Vec<Ast>, &Vec<Token>, &mut SymbolTable, &Vec<Joiner>) -> Result<Ast, JoinerError>;
 
 pub struct Joiner {
     base: Token,
@@ -42,6 +42,31 @@ impl Joiner {
     ) -> Result<Ast, JoinerError> {
         let mut ast = (self.base_ast)(&tokens[*current_index], symbols, joiners)?;
         *current_index += 1;
+        if self.tokens.len() == 0 {
+            return Ok(ast);
+        }
+
+        let mut prev_ast = Vec::new();
+        let mut outer_index = 0;
+
+        while outer_index < self.tokens.len() {
+            prev_ast.push(ast.clone());
+            let mut inner_index = 0;
+            while inner_index < self.tokens[outer_index].len() {
+                if self.tokens[outer_index][inner_index].match_type(&tokens[*current_index]) {
+                    ast =
+                        (self.asts[outer_index][inner_index])(&prev_ast, tokens, symbols, joiners)?;
+                    *current_index += 1;
+                    break;
+                }
+                inner_index += 1;
+            }
+            if inner_index == self.tokens[outer_index].len() {
+                break;
+            }
+            outer_index += 1;
+        }
+
         Ok(ast)
     }
 }
@@ -51,12 +76,11 @@ pub fn create_joiners() -> Vec<Joiner> {
         Joiner::new(
             Token::Comment(String::new()),
             |token, _, _| {
-                let value = if let Token::Comment(ref comment) = *token {
-                    Ast::Comment(comment.clone())
+                if let Token::Comment(ref comment) = *token {
+                    Ok(Ast::Comment(comment.clone()))
                 } else {
-                    Ast::Comment(String::new())
-                };
-                Ok(value)
+                    Err(JoinerError::TokenFnMismatch)
+                }
             },
             Vec::new(),
             Vec::new(),
@@ -64,12 +88,11 @@ pub fn create_joiners() -> Vec<Joiner> {
         Joiner::new(
             Token::Integer(0),
             |token, _, _| {
-                let value = if let Token::Integer(int) = *token {
-                    Ast::Integer(int)
+                if let Token::Integer(int) = *token {
+                    Ok(Ast::Integer(int))
                 } else {
-                    Ast::Integer(0)
-                };
-                Ok(value)
+                    Err(JoinerError::TokenFnMismatch)
+                }
             },
             Vec::new(),
             Vec::new(),
@@ -77,12 +100,11 @@ pub fn create_joiners() -> Vec<Joiner> {
         Joiner::new(
             Token::Float(0.0),
             |token, _, _| {
-                let value = if let Token::Float(float) = *token {
-                    Ast::Float(float)
+                if let Token::Float(float) = *token {
+                    Ok(Ast::Float(float))
                 } else {
-                    Ast::Float(0.0)
-                };
-                Ok(value)
+                    Err(JoinerError::TokenFnMismatch)
+                }
             },
             Vec::new(),
             Vec::new(),
@@ -90,15 +112,26 @@ pub fn create_joiners() -> Vec<Joiner> {
         Joiner::new(
             Token::String(String::new()),
             |token, _, _| {
-                let value = if let Token::String(ref string) = *token {
-                    Ast::String(string.clone())
+                if let Token::String(ref string) = *token {
+                    Ok(Ast::String(string.clone()))
                 } else {
-                    Ast::String(String::new())
-                };
-                Ok(value)
+                    Err(JoinerError::TokenFnMismatch)
+                }
             },
             Vec::new(),
             Vec::new(),
+        ),
+        Joiner::new(
+            Token::Var(String::new()),
+            |token, symbols, _| {
+                if let Token::Var(ref name) = *token {
+                    Ok(Ast::Var(symbols.getsert(name)))
+                } else {
+                    Err(JoinerError::TokenFnMismatch)
+                }
+            },
+            vec![vec![Token::Group(Vec::new())]],
+            vec![vec![|prev_ast, tokens, symbols, joiners| Ok(Ast::Greater)]],
         ),
     ]
 }
@@ -130,9 +163,10 @@ pub fn join_tokens(
             }
 
             if joiner_index == joiners.len() {
-                ast_body.push(current_ast);
-                println!("{:?}", ast_body);
-                return Err(JoinerError::InvalidToken);
+                current_token_counter += 1;
+                // ast_body.push(current_ast);
+                // println!("{:?}", ast_body);
+                // return Err(JoinerError::InvalidToken);
             }
         }
         ast_body.push(current_ast);
