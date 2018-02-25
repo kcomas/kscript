@@ -17,8 +17,7 @@ pub enum Ast {
     Var(Var),
     Group(AstBody),
     Function {
-        num_locals: usize,
-        num_arguments: usize,
+        arguments: AstBody,
         body: AstBody,
         symbols: SymbolTable,
     },

@@ -5,7 +5,8 @@ use super::error::JoinerError;
 
 type TokenConvertFn = fn(&Token, &mut SymbolTable, &Vec<Joiner>) -> Result<Ast, JoinerError>;
 type TokenVecConverterFn =
-    fn(&Vec<Ast>, &Vec<Token>, &mut SymbolTable, &Vec<Joiner>) -> Result<Ast, JoinerError>;
+    fn(&mut Vec<Ast>, &mut usize, &Vec<Token>, &mut SymbolTable, &Vec<Joiner>)
+        -> Result<Ast, JoinerError>;
 
 pub struct Joiner {
     base: Token,
@@ -40,7 +41,7 @@ impl Joiner {
         symbols: &mut SymbolTable,
         joiners: &Vec<Joiner>,
     ) -> Result<Ast, JoinerError> {
-        let mut ast = (self.base_ast)(&tokens[*current_index], symbols, joiners)?;
+        let ast = (self.base_ast)(&tokens[*current_index], symbols, joiners)?;
         *current_index += 1;
         if self.tokens.len() == 0 {
             return Ok(ast);
@@ -53,8 +54,13 @@ impl Joiner {
             let mut inner_index = 0;
             while inner_index < self.tokens[outer_index].len() {
                 if self.tokens[outer_index][inner_index].match_type(&tokens[*current_index]) {
-                    let next_ast_match =
-                        (self.asts[outer_index][inner_index])(&prev_ast, tokens, symbols, joiners)?;
+                    let next_ast_match = (self.asts[outer_index][inner_index])(
+                        &mut prev_ast,
+                        current_index,
+                        tokens,
+                        symbols,
+                        joiners,
+                    )?;
                     prev_ast.push(next_ast_match);
                     *current_index += 1;
                     break;
@@ -135,7 +141,24 @@ pub fn create_joiners() -> Vec<Joiner> {
                 }
             },
             vec![vec![Token::Group(Vec::new())]],
-            vec![vec![|prev_ast, tokens, symbols, joiners| Ok(Ast::Greater)]],
+            vec![
+                vec![
+                    |prev_ast, current_index, tokens, symbols, joiners| {
+                        if let Token::Group(ref body) = tokens[*current_index] {
+                            if let Some(var) = prev_ast.pop() {
+                                Ok(Ast::FunctionCall {
+                                    target: Box::new(var),
+                                    arguments: join_tokens(body, symbols, joiners)?,
+                                })
+                            } else {
+                                Err(JoinerError::InvalidVarForFnCall)
+                            }
+                        } else {
+                            Err(JoinerError::TokenFnMismatch)
+                        }
+                    },
+                ],
+            ],
         ),
     ]
 }

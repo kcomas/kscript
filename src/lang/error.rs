@@ -35,4 +35,5 @@ pub enum JoinerError {
     TokenFnMismatch,
     NoMuliMatchFound,
     AstMultiMatchVecEmpty,
+    InvalidVarForFnCall,
 }
