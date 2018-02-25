@@ -46,16 +46,16 @@ impl Joiner {
             return Ok(ast);
         }
 
-        let mut prev_ast = Vec::new();
+        let mut prev_ast = vec![ast];
         let mut outer_index = 0;
 
         while outer_index < self.tokens.len() {
-            prev_ast.push(ast.clone());
             let mut inner_index = 0;
             while inner_index < self.tokens[outer_index].len() {
                 if self.tokens[outer_index][inner_index].match_type(&tokens[*current_index]) {
-                    ast =
+                    let next_ast_match =
                         (self.asts[outer_index][inner_index])(&prev_ast, tokens, symbols, joiners)?;
+                    prev_ast.push(next_ast_match);
                     *current_index += 1;
                     break;
                 }
@@ -67,7 +67,11 @@ impl Joiner {
             outer_index += 1;
         }
 
-        Ok(ast)
+        if let Some(item) = prev_ast.pop() {
+            Ok(item)
+        } else {
+            Err(JoinerError::AstMultiMatchVecEmpty)
+        }
     }
 }
 

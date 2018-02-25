@@ -34,4 +34,5 @@ pub enum JoinerError {
     InvalidToken,
     TokenFnMismatch,
     NoMuliMatchFound,
+    AstMultiMatchVecEmpty,
 }

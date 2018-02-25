@@ -3,7 +3,7 @@ use super::ast::Var;
 
 pub type SymbolMap = HashMap<String, usize>;
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct SymbolTable {
     locals: SymbolMap,
     local_index_counter: usize,

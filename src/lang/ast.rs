@@ -2,13 +2,13 @@ use super::symbol::SymbolTable;
 
 pub type AstBody = Vec<Vec<Ast>>;
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub enum Var {
     Arg(usize),
     Local(usize),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub enum Ast {
     Comment(String),
     Integer(i64),
