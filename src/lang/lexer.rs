@@ -10,7 +10,6 @@ fn peek_next_char(iter: &mut Peekable<Chars>) -> Result<char, LexerError> {
     }
 }
 
-#[derive(Debug)]
 pub struct Matcher {
     base: char,
     base_token: Token,

@@ -10,6 +10,7 @@ mod token;
 mod lexer;
 mod ast;
 mod symbol;
+mod joiner;
 
 use std::path::Path;
 use self::memory::Memory;
@@ -19,6 +20,8 @@ use self::command::Command;
 use self::vm::Vm;
 use self::util::read_file_to_string;
 use self::lexer::{create_matchers, lex};
+use self::symbol::SymbolTable;
+use self::joiner::{create_joiners, join_tokens};
 
 pub fn run() {
     let file_string = read_file_to_string(Path::new("./examples/fib.ks")).unwrap();
@@ -26,6 +29,8 @@ pub fn run() {
     let mut iter = file_string.chars().peekable();
     let tokens = lex(&mut iter, &create_matchers()).unwrap();
     println!("{:#?}", tokens);
+    let mut symbol_table = SymbolTable::new();
+    let ast = join_tokens(&tokens, &mut symbol_table, &create_joiners()).unwrap();
 
     let mut memory = Memory::new();
     let i1 = memory.insert_fixed(Data::Integer(15));

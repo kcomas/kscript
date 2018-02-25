@@ -1,27 +1,29 @@
+use super::symbol::SymbolTable;
+
 pub type AstBody = Vec<Vec<Ast>>;
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
+pub enum Var {
+    Arg(usize),
+    Local(usize),
+}
+
+#[derive(Debug)]
 pub enum Ast {
     Comment(String),
     Integer(i64),
     Float(f64),
     String(String),
-    VarArg {
-        name: String,
-        index: usize,
-    },
-    VarLocal {
-        name: String,
-        index: usize,
-    },
+    Var(Var),
     Group(AstBody),
     Function {
         num_locals: usize,
-        arguments: AstBody,
+        num_arguments: usize,
         body: AstBody,
+        symbols: SymbolTable,
     },
     FunctionCall {
-        target_local: usize,
+        target: Box<Ast>,
         arguments: AstBody,
     },
     SelfFunctionCall(AstBody),
