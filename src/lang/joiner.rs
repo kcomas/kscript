@@ -214,8 +214,79 @@ pub fn create_joiners() -> Vec<Joiner> {
                 ],
             ],
         ),
+        Joiner::new(
+            Token::If,
+            |token, _, _| {
+                if let Token::If = *token {
+                    Ok(Ast::IfPlaceHolder)
+                } else {
+                    Err(JoinerError::TokenFnMismatch)
+                }
+            },
+            vec![
+                vec![Token::Group(Vec::new())],
+                vec![Token::Block(Vec::new())],
+            ],
+            vec![
+                vec![
+                    |prev_ast, current_index, tokens, symbols, joiners| {
+                        if let Token::Group(ref body) = tokens[*current_index] {
+                            Ok(Ast::Group(join_tokens(body, symbols, joiners)?))
+                        } else {
+                            Err(JoinerError::TokenFnMismatch)
+                        }
+                    },
+                ],
+                vec![
+                    |prev_ast, current_index, tokens, symbols, joiners| {
+                        if let Token::Block(ref body) = tokens[*current_index] {
+                            if let Some(group) = prev_ast.pop() {
+                                if let Ast::Group(group_body) = group {
+                                    Ok(Ast::If {
+                                        conditional: group_body,
+                                        body: join_tokens(body, symbols, joiners)?,
+                                    })
+                                } else {
+                                    Err(JoinerError::InvalidGroupForIf)
+                                }
+                            } else {
+                                Err(JoinerError::InvalidGroupForIf)
+                            }
+                        } else {
+                            Err(JoinerError::TokenFnMismatch)
+                        }
+                    },
+                ],
+            ],
+        ),
         quick_joiner!(Add),
         quick_joiner!(Sub),
+        Joiner::new(
+            Token::CallSelf,
+            |token, symbols, _| {
+                if let Token::CallSelf = *token {
+                    Ok(Ast::SelfCallPlaceHolder)
+                } else {
+                    Err(JoinerError::TokenFnMismatch)
+                }
+            },
+            vec![vec![Token::Group(Vec::new())]],
+            vec![
+                vec![
+                    |prev_ast, current_index, tokens, symbols, joiners| {
+                        if let Token::Group(ref body) = tokens[*current_index] {
+                            if let Some(_) = prev_ast.pop() {
+                                Ok(Ast::SelfFunctionCall(join_tokens(body, symbols, joiners)?))
+                            } else {
+                                Err(JoinerError::InvalidVarForFnCall)
+                            }
+                        } else {
+                            Err(JoinerError::TokenFnMismatch)
+                        }
+                    },
+                ],
+            ],
+        ),
         quick_joiner!(Return),
         quick_joiner!(Assign),
         quick_joiner!(Equals),
@@ -257,9 +328,6 @@ pub fn join_tokens(
             }
 
             if joiner_index == joiners.len() {
-                // ast_body.push(current_ast);
-                // println!("{:?}", ast_body);
-                println!("{:?}", token_section[current_token_counter]);
                 return Err(JoinerError::InvalidToken);
             }
         }

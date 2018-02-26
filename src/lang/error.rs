@@ -37,4 +37,5 @@ pub enum JoinerError {
     AstMultiMatchVecEmpty,
     InvalidVarForFnCall,
     InvalidGroupForFunction,
+    InvalidGroupForIf,
 }

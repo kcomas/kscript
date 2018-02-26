@@ -31,7 +31,7 @@ pub fn run() {
     println!("{:#?}", tokens);
     let mut symbol_table = SymbolTable::new();
     let ast = join_tokens(&tokens, &mut symbol_table, &create_joiners()).unwrap();
-    println!("{:?}", ast);
+    println!("{:#?}", ast);
 
     let mut memory = Memory::new();
     let i1 = memory.insert_fixed(Data::Integer(15));
